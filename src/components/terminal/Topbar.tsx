@@ -10,9 +10,9 @@ interface TopbarProps { userId: string }
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard':             'Overview',
-  '/dashboard/portfolio':   'Portfolio Â· Holdings',
-  '/dashboard/analytics':   'Portfolio Â· Analytics',
-  '/dashboard/history':     'Portfolio Â· History',
+  '/dashboard/portfolio':   'Portfolio . Holdings',
+  '/dashboard/analytics':   'Portfolio . Analytics',
+  '/dashboard/history':     'Portfolio . History',
   '/dashboard/scanner':     'Market Scanner',
   '/dashboard/watchlist':   'Watchlist',
   '/dashboard/cases':       'Cases Terminal',
@@ -27,7 +27,7 @@ const ACCENTS = [
   { id: 'amber',  hex: '#f59e0b' },
 ]
 
-// ââ Notification Bell âââââââââââââââââââââââââââââââââââââ
+//  Notification Bell 
 function NotificationBell() {
   const [open, setOpen] = useState(false)
   const qc = useQueryClient()
@@ -64,7 +64,7 @@ function NotificationBell() {
   return (
     <div className="relative">
       <button onClick={() => setOpen(o => !o)} className="btn-terminal relative" title="Notifications">
-        <span className="text-[13px] leading-none">ð</span>
+        <span className="text-[13px] leading-none"></span>
         {unread > 0 && (
           <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red text-white font-mono text-[7px] font-bold flex items-center justify-center leading-none">
             {Math.min(unread, 9)}
@@ -91,7 +91,7 @@ function NotificationBell() {
                 <div className="p-4 text-center font-mono text-xs text-muted-3">
                   No notifications yet.<br/>
                   <a href="/dashboard/alerts" className="text-green hover:underline" onClick={() => setOpen(false)}>
-                    Set up alerts â
+                    Set up alerts 
                   </a>
                 </div>
               ) : (
@@ -107,7 +107,7 @@ function NotificationBell() {
             <div className="border-t border-terminal-border p-2 text-center">
               <a href="/dashboard/alerts" onClick={() => setOpen(false)}
                 className="font-mono text-[10px] text-green hover:underline">
-                Manage all alerts â
+                Manage all alerts 
               </a>
             </div>
           </div>
@@ -117,7 +117,7 @@ function NotificationBell() {
   )
 }
 
-// ââ Topbar ââââââââââââââââââââââââââââââââââââââââââââââââ
+//  Topbar 
 export function TerminalTopbar({ userId }: TopbarProps) {
   const pathname = usePathname()
   const router   = useRouter()
@@ -136,7 +136,7 @@ export function TerminalTopbar({ userId }: TopbarProps) {
     tick(); const t = setInterval(tick, 1000); return () => clearInterval(t)
   }, [])
 
-  // Keyboard shortcuts (1â8, S, âR)
+  // Keyboard shortcuts (18, S, R)
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
@@ -202,23 +202,23 @@ export function TerminalTopbar({ userId }: TopbarProps) {
             <span className={`w-1.5 h-1.5 rounded-full transition-all ${liveDot ? 'bg-green' : 'bg-terminal-border-2'}`}
               style={liveDot ? { boxShadow: '0 0 6px var(--green)' } : undefined} />
             <span className="font-mono text-[9px] text-muted-3">
-              {liveDot ? 'LIVE' : lastRefresh ? `Updated ${lastRefresh}` : 'SKINSTRACK Â· 27M'}
+              {liveDot ? 'LIVE' : lastRefresh ? `Updated ${lastRefresh}` : 'SKINSTRACK . 27M'}
             </span>
           </div>
         </div>
 
         {/* Center: kbd hints */}
         <div className="hidden xl:flex items-center gap-3 font-mono text-[9px] text-muted-4 tracking-wider">
-          <span>[1â8] NAV</span>
+          <span>[18] NAV</span>
           <span>[S] SETTINGS</span>
-          <span>[âR] REFRESH</span>
+          <span>[R] REFRESH</span>
         </div>
 
         {/* Right: controls */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button onClick={handleRefresh} disabled={refreshing} className="btn-terminal text-[10px]">
-            <span className={refreshing ? 'inline-block animate-spin' : ''}>â»</span>
-            {refreshing ? 'Fetchingâ¦' : 'Refresh'}
+            <span className={refreshing ? 'inline-block animate-spin' : ''}>"</span>
+            {refreshing ? 'Fetching' : 'Refresh'}
           </button>
 
           <NotificationBell />
