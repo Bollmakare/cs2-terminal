@@ -25,7 +25,7 @@ export default function SignupPage() {
             {error && <div className="font-mono text-xs text-red-400">{error}</div>}
             <div><label className="block font-mono text-[9px] uppercase text-muted-3 mb-1.5">Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus className="input-terminal" /></div>
             <div><label className="block font-mono text-[9px] uppercase text-muted-3 mb-1.5">Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 chars" required className="input-terminal" /></div>
-            <button type="submit" className="btn-primary w-full justify-center" disabled={loading}>{loading ? 'Creating...' : 'Create account â'}</button>
+            <button type="submit" className="btn-primary w-full justify-center" disabled={loading}>{loading ? 'Creating...' : 'Create account '}</button>
             <p className="font-mono text-[10px] text-muted-3 text-center">Already registered? <a href="/auth/login" className="text-green">Foot in</a></p>
           </form>
         )}
