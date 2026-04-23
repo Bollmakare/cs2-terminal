@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatUSD(value: number | null | undefined, decimals = 2): string {
-  if (value == null) return '—'
+  if (value == null) return '-'
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -16,7 +16,7 @@ export function formatUSD(value: number | null | undefined, decimals = 2): strin
 }
 
 export function formatPct(value: number | null | undefined, decimals = 1): string {
-  if (value == null) return '—'
+  if (value == null) return '-'
   const sign = value > 0 ? '+' : ''
   return `${sign}${value.toFixed(decimals)}%`
 }
