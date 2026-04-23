@@ -4,11 +4,11 @@
  *
  * Scoring factors:
  * 1. Price vs 7d/30d/90d average  (weight: 28%)
- * 2. Cross-market arbitrage        (weight: 25%) â now across 10+ markets
+ * 2. Cross-market arbitrage        (weight: 25%)  now across 10+ markets
  * 3. Liquidity/volume              (weight: 18%)
  * 4. Momentum/trend                (weight: 14%)
- * 5. Float/pattern premium         (weight: 10%) â now uses real CSFloat data
- * 6. Supply/demand (order book)    (weight:  5%) â Steam buy vs sell pressure
+ * 5. Float/pattern premium         (weight: 10%)  now uses real CSFloat data
+ * 6. Supply/demand (order book)    (weight:  5%)  Steam buy vs sell pressure
  */
 
 import type { SkinstrackPrice, ScannerSignal, ScannerVerdict } from '@/types/db'
@@ -44,7 +44,7 @@ export interface ScannerScore {
   verdict: ScannerVerdict
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// 
 export function computeScannerScores(item: ItemWithExtended): ScannerScore {
   const signals: ScannerSignal[] = []
 
@@ -53,7 +53,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
   const avg30d = item.price_30d_avg ?? 0
   const avg90d = (item as any).price_90d_avg ?? 0
 
-  // ââ Factor 1: Price vs historical averages (28%) ââââââ
+  //  Factor 1: Price vs historical averages (28%) 
   let score_price_vs_avg = 50
 
   if (price > 0 && avg7d > 0) {
@@ -61,7 +61,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     const vs30d = avg30d > 0 ? ((price - avg30d) / avg30d) * 100 : vs7d
     const vs90d = avg90d > 0 ? ((price - avg90d) / avg90d) * 100 : vs30d
 
-    // Deep discount gets highest score â mean reversion opportunity
+    // Deep discount gets highest score  mean reversion opportunity
     if (vs7d <= -25 && vs30d <= -15) {
       score_price_vs_avg = 97
       signals.push({ type: 'price', label: 'Extreme discount', detail: `${vs7d.toFixed(1)}% below 7d, ${vs30d.toFixed(1)}% below 30d avg`, score: 47, direction: 'bullish' })
@@ -94,7 +94,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     }
     if (avg90d > 0 && vs90d <= -20 && score_price_vs_avg >= 70) {
       score_price_vs_avg = Math.min(100, score_price_vs_avg + 5)
-      signals.push({ type: 'price', label: '90d macro dip', detail: `${vs90d.toFixed(1)}% below 90d avg â potential value`, score: 5, direction: 'bullish' })
+      signals.push({ type: 'price', label: '90d macro dip', detail: `${vs90d.toFixed(1)}% below 90d avg  potential value`, score: 5, direction: 'bullish' })
     }
     // Compare vs PricEmpire fair value if available
     const fairValue = (item as any).pricempire_fair ?? 0
@@ -105,7 +105,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     }
   }
 
-  // ââ Factor 2: Cross-market arbitrage (25%) ââââââââââââ
+  //  Factor 2: Cross-market arbitrage (25%) 
   let score_arb = 40
 
   const markets: [string, number][] = [
@@ -130,13 +130,13 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
 
     if (netSpread >= 25) {
       score_arb = 98
-      signals.push({ type: 'arb', label: 'Exceptional arb', detail: `Buy ${buyMkt} $${buyPx.toFixed(2)} â sell ${sellMkt} $${sellPx.toFixed(2)} (net ~${netSpread.toFixed(0)}%)`, score: 55, direction: 'bullish' })
+      signals.push({ type: 'arb', label: 'Exceptional arb', detail: `Buy ${buyMkt} $${buyPx.toFixed(2)}  sell ${sellMkt} $${sellPx.toFixed(2)} (net ~${netSpread.toFixed(0)}%)`, score: 55, direction: 'bullish' })
     } else if (netSpread >= 15) {
       score_arb = 88
       signals.push({ type: 'arb', label: 'Strong arb', detail: `${spread.toFixed(1)}% spread across ${markets.length} markets`, score: 40, direction: 'bullish' })
     } else if (netSpread >= 7) {
       score_arb = 72
-      signals.push({ type: 'arb', label: 'Arb opportunity', detail: `${buyMkt} â ${sellMkt}: +${spread.toFixed(1)}% (net ~${netSpread.toFixed(0)}%)`, score: 25, direction: 'bullish' })
+      signals.push({ type: 'arb', label: 'Arb opportunity', detail: `${buyMkt}  ${sellMkt}: +${spread.toFixed(1)}% (net ~${netSpread.toFixed(0)}%)`, score: 25, direction: 'bullish' })
     } else if (netSpread >= 2) {
       score_arb = 55
       signals.push({ type: 'arb', label: 'Small spread', detail: `${spread.toFixed(1)}% across ${markets.length} markets`, score: 8, direction: 'bullish' })
@@ -145,7 +145,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     }
   }
 
-  // ââ Factor 3: Liquidity / Volume (18%) âââââââââââââââ
+  //  Factor 3: Liquidity / Volume (18%) 
   let score_volume = 50
 
   const vol24h  = item.volume_24h   ?? 0
@@ -171,10 +171,10 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     signals.push({ type: 'volume', label: 'Moderate liquidity', detail: `${combinedVol} trades/24h`, score: 0, direction: 'neutral' })
   } else if (combinedVol > 0) {
     score_volume = 25
-    signals.push({ type: 'volume', label: 'Low liquidity', detail: `${combinedVol} trades/24h â hard to exit`, score: -15, direction: 'bearish' })
+    signals.push({ type: 'volume', label: 'Low liquidity', detail: `${combinedVol} trades/24h  hard to exit`, score: -15, direction: 'bearish' })
   } else {
     score_volume = 8
-    signals.push({ type: 'volume', label: 'Illiquid', detail: 'No volume data â use extreme caution', score: -25, direction: 'bearish' })
+    signals.push({ type: 'volume', label: 'Illiquid', detail: 'No volume data  use extreme caution', score: -25, direction: 'bearish' })
   }
 
   // Steam order book pressure signal
@@ -189,7 +189,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     }
   }
 
-  // ââ Factor 4: Momentum / Trend (14%) âââââââââââââââââ
+  //  Factor 4: Momentum / Trend (14%) 
   let score_trend = 50
 
   if (avg7d > 0 && avg30d > 0) {
@@ -201,7 +201,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
 
     if (longTrend >= 10 && shortTrend <= 0) {
       score_trend = 82
-      signals.push({ type: 'trend', label: 'Uptrend pullback', detail: `7d momentum +${longTrend.toFixed(1)}%, currently dipping â entry signal`, score: 22, direction: 'bullish' })
+      signals.push({ type: 'trend', label: 'Uptrend pullback', detail: `7d momentum +${longTrend.toFixed(1)}%, currently dipping  entry signal`, score: 22, direction: 'bullish' })
     } else if (longTrend >= 5 && macroTrend >= 5) {
       score_trend = 70
       signals.push({ type: 'trend', label: 'Strong uptrend', detail: `+${longTrend.toFixed(1)}% 7d, +${macroTrend.toFixed(1)}% 90d momentum`, score: 15, direction: 'bullish' })
@@ -210,7 +210,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
       signals.push({ type: 'trend', label: 'Rising trend', detail: `+${longTrend.toFixed(1)}% 7d momentum`, score: 8, direction: 'bullish' })
     } else if (longTrend <= -10 && shortTrend >= 0) {
       score_trend = 22
-      signals.push({ type: 'trend', label: 'Downtrend bounce', detail: `${longTrend.toFixed(1)}% 7d trend â dead cat risk`, score: -22, direction: 'bearish' })
+      signals.push({ type: 'trend', label: 'Downtrend bounce', detail: `${longTrend.toFixed(1)}% 7d trend  dead cat risk`, score: -22, direction: 'bearish' })
     } else if (longTrend <= -5) {
       score_trend = 35
       signals.push({ type: 'trend', label: 'Falling trend', detail: `${longTrend.toFixed(1)}% 7d momentum`, score: -12, direction: 'bearish' })
@@ -221,7 +221,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     signals.push({ type: 'trend', label: 'No history', detail: 'Insufficient price data', score: 0, direction: 'neutral' })
   }
 
-  // ââ Factor 5: Float / Pattern premium (10%) âââââââââââ
+  //  Factor 5: Float / Pattern premium (10%) 
   // Now uses REAL CSFloat data instead of placeholder
   let score_float = 50
 
@@ -237,7 +237,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     // Very low float minimum = extremely rare items exist (e.g. 0.001 FN)
     if (floatMin < 0.01 && price > 50) {
       score_float = 80
-      signals.push({ type: 'float', label: 'Ultra-low float exists', detail: `Min float: ${floatMin.toFixed(4)} â premium potential`, score: 20, direction: 'bullish' })
+      signals.push({ type: 'float', label: 'Ultra-low float exists', detail: `Min float: ${floatMin.toFixed(4)}  premium potential`, score: 20, direction: 'bullish' })
     } else if (floatMin < 0.05) {
       score_float = 65
       signals.push({ type: 'float', label: 'Low float available', detail: `Min: ${floatMin.toFixed(4)}`, score: 10, direction: 'bullish' })
@@ -246,17 +246,17 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     // Narrow float range = scarcer good floats
     if (floatRange < 0.1 && floatMin < 0.1) {
       score_float = Math.min(100, score_float + 8)
-      signals.push({ type: 'float', label: 'Narrow float range', detail: `${floatMin.toFixed(3)}â${floatMax.toFixed(3)} â low supply`, score: 8, direction: 'bullish' })
+      signals.push({ type: 'float', label: 'Narrow float range', detail: `${floatMin.toFixed(3)}${floatMax.toFixed(3)}  low supply`, score: 8, direction: 'bullish' })
     }
 
     // Low total float count = genuinely rare
     if (floatCount !== null && floatCount < 500) {
       score_float = Math.min(100, score_float + 12)
-      signals.push({ type: 'float', label: 'Rare â few indexed', detail: `Only ${floatCount} items on CSFloat`, score: 12, direction: 'bullish' })
+      signals.push({ type: 'float', label: 'Rare  few indexed', detail: `Only ${floatCount} items on CSFloat`, score: 12, direction: 'bullish' })
     }
   }
 
-  // Pattern premiums â high pattern premium suggests market values this skin highly
+  // Pattern premiums  high pattern premium suggests market values this skin highly
   if (hasPatterns && patternPremium > 0) {
     if (patternPremium >= 500) {
       score_float = Math.min(100, score_float + 20)
@@ -270,7 +270,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     }
   }
 
-  // ââ Weighted total ââââââââââââââââââââââââââââââââââââ
+  //  Weighted total 
   const score_total = Math.round(
     score_price_vs_avg * 0.28 +
     score_arb          * 0.25 +
@@ -280,7 +280,7 @@ export function computeScannerScores(item: ItemWithExtended): ScannerScore {
     50                 * 0.05  // supply/demand absorbed into volume factor
   )
 
-  // ââ Verdict âââââââââââââââââââââââââââââââââââââââââââ
+  //  Verdict 
   let verdict: ScannerVerdict
   if (score_total >= 80)      verdict = 'Strong Buy'
   else if (score_total >= 65) verdict = 'Buy'
