@@ -23,7 +23,7 @@ export default function LoginPage() {
   return (
     <div className="panel p-0 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-terminal-border bg-black/40">
-        <span className="ml-2 font-mono text-[11px] text-muted-3 tracking-widest uppercase">CS2 TERMINAL â AUTH</span>
+        <span className="ml-2 font-mono text-[11px] text-muted-3 tracking-widest uppercase">CS2 TERMINAL ??? AUTH</span>
       </div>
       <div className="p-8">
         <div className="mb-8">
@@ -39,4 +39,4 @@ export default function LoginPage() {
           <form onSubmit={handleEmailLogin} className="space-y-3">
             {error && <div className="px-3 py-2 rounded border border-red-500/30 bg-red-soft font-mono text-xs text-red-400">{error}</div>}
             <div><label className="block font-mono text-[9px] uppercase tracking-widest text-muted-3 mb-1.5">Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required autoFocus className="input-terminal" /></div>
-            <div><label className="block font-mono text-[9px] uppercase tracking-widest text-muted-3 mb-1.5">Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="â¢â¢â¢â¢â¢â¢â¢â¢""&WV&VB6Æ74æÖSÒ&çWB×FW&ÖæÂ"óãÂöFcà¢Æ'WGFöâGSÒ'7V&ÖB"6Æ74æÖSÒ&'Fâ×&Ö'rÖgVÆÂ§W7FgÖ6VçFW""F6&ÆVC×¶ÆöFæwÓç¶ÆöFæròtWFVçF6Færâââr¢u6vââ(i"wÓÂö'WGFöãà¢Âöf÷&Óà¢Ð¢ÆFb6Æ74æÖSÒ&×BÓbBÓB&÷&FW"×B&÷&FW"×FW&ÖæÂÖ&÷&FW"#ãÇ6Æ74æÖSÒ&föçBÖÖöæòFWBÕ³ÒFWBÖ×WFVBÓ2FWBÖ6VçFW"#äæò66÷VçCòÆ&VcÒ"öWF÷6vçW"6Æ74æÖSÒ'FWBÖw&VVâ÷fW#§VæFW&ÆæR#å&Vv7FW#ÂöãÂ÷ãÂöFcà¢ÂöFcà¢ÂöFcà¢§Ð
+            <div><label className="block font-mono text-[9px] uppercase tracking-widest text-muted-3 mb-1.5">Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="????????????????????????""&WV?&VB6?74??S?&??WBxFW&????"????F?c???'WGF??G?S?'7V&??B"6?74??S?&'F?x&??'?r?gV???W7F?g??6V?FW""F?6&?VCx???F??w?????F??r?tWF?V?F?6F??r???r?u6?v???(i"w???'WGF??????f?&???????F?b6?74??S?&xB?bB?B&?&FW"xB&?&FW"xFW&?????&?&FW"#??6?74??S?&f??B?????FW?B????FW?B?xWFVB?2FW?B?6V?FW"#???66?V?C???&Vc?"?WF??6?v?W"6?74??S?'FW?B?w&VV???fW#?V?FW&???R#?&Vv?7FW#????????F?c????F?c????F?c?????
