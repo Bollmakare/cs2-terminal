@@ -23,7 +23,7 @@ const TAG_COLORS: Record<string, string> = {
   general:    'var(--text-3)',
 }
 
-// ââ Compact ticker tape (for topbar) âââââââââââââââââââââ
+//  Compact ticker tape (for topbar) 
 export function NewsTicker() {
   const { data: news = [] } = useQuery<NewsItem[]>({
     queryKey: ['news-ticker'],
@@ -38,8 +38,8 @@ export function NewsTicker() {
 
   // Static fallback items while loading
   const items = news.length > 0 ? news : [
-    { id: '1', title: 'CS2 Terminal â Live market data across 27 markets', tags: ['general'], url: null, published_at: '' },
-    { id: '2', title: 'Skinstrack price refresh active â arbitrage scanner running', tags: ['general'], url: null, published_at: '' },
+    { id: '1', title: 'CS2 Terminal  Live market data across 27 markets', tags: ['general'], url: null, published_at: '' },
+    { id: '2', title: 'Skinstrack price refresh active  arbitrage scanner running', tags: ['general'], url: null, published_at: '' },
     { id: '3', title: 'Set price alerts on any item in the Watchlist tab', tags: ['general'], url: null, published_at: '' },
   ] as NewsItem[]
 
@@ -71,7 +71,7 @@ export function NewsTicker() {
             ) : (
               <span className="font-mono text-[10px] text-muted-3">{item.title}</span>
             )}
-            <span className="text-muted-4 text-[10px]">Â·</span>
+            <span className="text-muted-4 text-[10px]">.</span>
           </span>
         ))}
       </div>
@@ -79,7 +79,7 @@ export function NewsTicker() {
   )
 }
 
-// ââ Full news panel (for dashboard) ââââââââââââââââââââââ
+//  Full news panel (for dashboard) 
 export function NewsPanel() {
   const { data: news = [], isLoading } = useQuery<NewsItem[]>({
     queryKey: ['news-panel'],
