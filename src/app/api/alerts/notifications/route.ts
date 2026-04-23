@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ notifications: data })
 }
 
-// PATCH /api/alerts/notifications — mark read
+// PATCH /api/alerts/notifications - mark read
 export async function PATCH(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({ error: 'id or mark_all_read required' }, { status: 400 })
 }
 
-// POST /api/alerts/notifications — run alert check (called by cron)
+// POST /api/alerts/notifications - run alert check (called by cron)
 export async function POST(req: NextRequest) {
   const cronSecret = req.headers.get('x-cron-secret')
   if (cronSecret !== process.env.CRON_SECRET) {
