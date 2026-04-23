@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   ])
 
   if (!portfolio) {
-    // Bootstrap â create default portfolio if missing (edge case)
+    // Bootstrap  create default portfolio if missing (edge case)
     const { data: newPf } = await supabase
       .from('portfolios')
       .insert({ user_id: user.id, name: 'Main', is_default: true })
