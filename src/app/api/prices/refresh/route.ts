@@ -8,14 +8,14 @@ import type { SkinstrackPrice } from '@/types/db'
 
 export const maxDuration = 60 // Vercel function timeout
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// 
 // POST /api/prices/refresh
 // Called by: Vercel Cron (x-cron-secret) OR authenticated user
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// 
 export async function POST(req: NextRequest) {
   const force = req.nextUrl.searchParams.get('force') === 'true'
 
-  // ââ Auth âââââââââââââââââââââââââââââââââââââââââââââ
+  //  Auth 
   const cronSecret = req.headers.get('x-cron-secret')
   const isCron = cronSecret === process.env.CRON_SECRET && !!cronSecret
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // ââ Fetch from Skinstrack âââââââââââââââââââââââââ
+    //  Fetch from Skinstrack 
     console.log('[refresh] Starting price refresh...')
     let prices: SkinstrackPrice[]
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       const msg = (err as Error).message
       const is429 = msg.includes('rate limited') || msg.includes('quota')
-      console.error('[refresh] Skinstrack failed:', msg, 'â using cached data')
+      console.error('[refresh] Skinstrack failed:', msg, ' using cached data')
 
       if (is429) {
         return NextResponse.json(
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const today = new Date().toISOString().slice(0, 10)
     let itemsUpdated = 0
 
-    // ââ Fetch PricEmpire in parallel with items processing ââ
+    //  Fetch PricEmpire in parallel with items processing 
     // PricEmpire covers 20+ markets in a single call
     let pricempireData: Awaited<ReturnType<typeof fetchAllPricEmpire>> = {}
     if (process.env.PRICEMPIRE_API_KEY) {
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (prices.length > 0) {
-      // ââ Batch upsert items table ââââââââââââââââââ
+      //  Batch upsert items table 
       const BATCH_SIZE = 500
       for (let i = 0; i < prices.length; i += BATCH_SIZE) {
         const batch = prices.slice(i, i + BATCH_SIZE)
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
         else itemsUpdated += rows.length
       }
 
-      // ââ Snapshot price_history ââââââââââââââââââââ
+      //  Snapshot price_history 
       const histRows = prices
         .filter(p => p.best_buy_price || p.steam_price)
         .map(p => ({
@@ -151,17 +151,17 @@ export async function POST(req: NextRequest) {
           .upsert(histRows.slice(i, i + 500), { onConflict: 'item_id,snapped_at,source' })
       }
 
-      // ââ Sync holding prices âââââââââââââââââââââââ
+      //  Sync holding prices 
       await supabase.rpc('sync_holding_prices')
 
-      // ââ Update scanner cache ââââââââââââââââââââââ
+      //  Update scanner cache 
       await updateScannerCache(supabase, prices)
 
-      // ââ Update market index âââââââââââââââââââââââ
+      //  Update market index 
       await updateMarketIndex(supabase, prices)
     }
 
-    // ââ Snapshot portfolio NAV ââââââââââââââââââââââââ
+    //  Snapshot portfolio NAV 
     await snapshotPortfolios(supabase)
 
     return NextResponse.json({
@@ -179,9 +179,9 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-// GET /api/prices/refresh â status check
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// 
+// GET /api/prices/refresh  status check
+// 
 export async function GET(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -202,14 +202,14 @@ export async function GET(req: NextRequest) {
   })
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// 
 // Helpers
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// 
 
 function slugify(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[â|â¢]/g, '')
+    .replace(/[|]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 120)
@@ -223,11 +223,11 @@ function parseItemName(name: string): {
   is_stattrak: boolean
   is_souvenir: boolean
 } {
-  const is_stattrak = name.startsWith('StatTrakâ¢')
+  const is_stattrak = name.startsWith('StatTrak')
   const is_souvenir  = name.startsWith('Souvenir')
 
   const cleanName = name
-    .replace(/^StatTrakâ¢\s+/, '')
+    .replace(/^StatTrak\s+/, '')
     .replace(/^Souvenir\s+/, '')
 
   // Extract condition
@@ -254,7 +254,7 @@ function parseItemName(name: string): {
   if (['karambit','butterfly knife','m9 bayonet','bayonet','gut knife','flip knife',
        'falchion knife','shadow daggers','bowie knife','stiletto knife','ursus knife',
        'navaja knife','talon knife','classic knife','skeleton knife','paracord knife',
-       'survival knife','nomad knife'].some(k => w.includes(k)) || name.includes('â')) category = 'knife'
+       'survival knife','nomad knife'].some(k => w.includes(k)) || name.includes('')) category = 'knife'
   else if (['ak-47','m4a4','m4a1-s','aug','sg 553','galil ar','famas','awp','ssg 08',
             'scar-20','g3sg1'].some(k => w.includes(k))) {
     category = ['awp','ssg 08','scar-20','g3sg1'].some(k => w.includes(k)) ? 'sniper' : 'rifle'
@@ -294,7 +294,7 @@ async function updateScannerCache(supabase: ReturnType<typeof createServiceClien
       .upsert(scoredItems.slice(i, i + 500), { onConflict: 'item_id' })
     if (error) console.error('[scanner] cache upsert error:', error.message)
   }
-  console.log(`[scanner] â ${scoredItems.length} items scored`)
+  console.log(`[scanner]  ${scoredItems.length} items scored`)
 }
 
 async function snapshotPortfolios(supabase: ReturnType<typeof createServiceClient>) {
@@ -329,7 +329,7 @@ async function snapshotPortfolios(supabase: ReturnType<typeof createServiceClien
     .from('portfolio_snapshots')
     .upsert(snapshots, { onConflict: 'portfolio_id,snapped_at' })
 
-  console.log(`[snapshot] â ${snapshots.length} portfolios snapshotted`)
+  console.log(`[snapshot]  ${snapshots.length} portfolios snapshotted`)
 }
 
 async function updateMarketIndex(supabase: ReturnType<typeof createServiceClient>, prices: SkinstrackPrice[]) {
@@ -397,5 +397,5 @@ async function updateMarketIndex(supabase: ReturnType<typeof createServiceClient
     }, { onConflict: 'snapped_at' })
 
   if (error) console.error('[market-index] upsert error:', error.message)
-  else console.log(`[market-index] â index=${indexValue.toFixed(2)} 1d=${change1d}%`)
+  else console.log(`[market-index]  index=${indexValue.toFixed(2)} 1d=${change1d}%`)
 }
