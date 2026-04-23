@@ -1,16 +1,16 @@
 /**
  * Doppler Phase Detection + Sticker Value Estimation
  *
- * Doppler items are critical to price correctly â same skin name, wildly different value:
- * Karambit | Doppler Phase 4 (FN) â $450
- * Karambit | Doppler Sapphire (FN) â $8,000
+ * Doppler items are critical to price correctly  same skin name, wildly different value:
+ * Karambit | Doppler Phase 4 (FN)  $450
+ * Karambit | Doppler Sapphire (FN)  $8,000
  *
  * Sticker detection flags holdings that likely have significant sticker value
  * that the base price doesn't capture.
  */
 
-// ââ Doppler phase detection ââââââââââââââââââââââââââââââââ
-// Maps paint_index â phase name for each Doppler variant
+//  Doppler phase detection 
+// Maps paint_index  phase name for each Doppler variant
 // Source: CS2 item schema (Valve), verified against CSFloat data
 
 export type DopplerPhase =
@@ -45,9 +45,9 @@ export const DOPPLER_PHASE_PREMIUM: Record<string, number> = {
   'Phase 2':    1.3,   // most popular, slight premium
   'Phase 3':    0.85,  // less desirable
   'Phase 4':    1.2,   // blue back = popular
-  'Emerald':    3.5,   // Gamma Emerald â rare green
+  'Emerald':    3.5,   // Gamma Emerald  rare green
   'Ruby':       8.0,   // solid red
-  'Sapphire':  12.0,   // most desirable â bright blue
+  'Sapphire':  12.0,   // most desirable  bright blue
   'Black Pearl':18.0,  // rarest
 }
 
@@ -107,7 +107,7 @@ export function detectDopplerPhase(
   }
 }
 
-// ââ Phase-adjusted price ââââââââââââââââââââââââââââââââââ
+//  Phase-adjusted price 
 // When we know the base Doppler price (from Skinstrack/PricEmpire)
 // and the specific phase, compute a better estimate
 export function adjustDopplerPrice(
@@ -122,7 +122,7 @@ export function adjustDopplerPrice(
   return Math.round((basePrice / phase2Factor * phaseFactor) * 100) / 100
 }
 
-// ââ High-value sticker detection ââââââââââââââââââââââââââ
+//  High-value sticker detection 
 // Stickers that could be worth more than the skin itself
 // Source: community price tracking (community-driven, approximate)
 
@@ -147,7 +147,7 @@ const HIGH_VALUE_STICKERS: Record<string, StickerValueInfo> = {
   'ESL One Katowice 2015 Holo': { sticker_name: 'ESL One Katowice 2015 Holo', min_value: 200, max_value: 3000, tier: 'major', applied_discount: 0.30, notes: 'Kat 2015 holos' },
   // Dreamhack 2014
   'DreamHack 2014 Holo':  { sticker_name: 'DreamHack 2014 Holo', min_value: 300, max_value: 5000, tier: 'major', applied_discount: 0.30, notes: 'DHW 2014 holos' },
-  // Crown (Foil) â perennial high value
+  // Crown (Foil)  perennial high value
   'Crown (Foil)':         { sticker_name: 'Crown (Foil)', min_value: 300, max_value: 1500, tier: 'significant', applied_discount: 0.40, notes: 'Always valuable, rarely applied' },
   // Howling Dawn (Foil)
   'Howling Dawn (Foil)':  { sticker_name: 'Howling Dawn (Foil)', min_value: 150, max_value: 800, tier: 'significant', applied_discount: 0.35, notes: 'Discontinued, scarce' },
@@ -216,9 +216,9 @@ export function estimateStickerValue(
 
   const hasLegendary = flagged.some(s => s.tier === 'legendary')
   const warning = hasLegendary
-    ? 'LEGENDARY sticker detected â this item may be worth significantly more than the base price. Check CSFloat/Buff listing comps.'
+    ? 'LEGENDARY sticker detected  this item may be worth significantly more than the base price. Check CSFloat/Buff listing comps.'
     : totalMax > 500
-    ? 'High-value sticker(s) detected â base price does not include sticker premium.'
+    ? 'High-value sticker(s) detected  base price does not include sticker premium.'
     : null
 
   return {
@@ -232,10 +232,10 @@ export function estimateStickerValue(
   }
 }
 
-// ââ Float-adjusted price estimator âââââââââââââââââââââââ
+//  Float-adjusted price estimator 
 // Given a float value, estimate what the item is actually worth
 // relative to the condition's median price
-// Uses exponential curve â low floats command exponential premiums
+// Uses exponential curve  low floats command exponential premiums
 
 export interface FloatAdjustedPrice {
   base_price:        number
@@ -268,7 +268,7 @@ export function estimateFloatAdjustedPrice(
 
   if (floatValue <= thresholds.gem) {
     floatTier  = 'gem'
-    // Exponential premium for gem floats â diminishing returns
+    // Exponential premium for gem floats  diminishing returns
     const depthBelowGem = (thresholds.gem - floatValue) / thresholds.gem
     premiumPct = Math.min(1500, 50 + depthBelowGem * 800)
   } else if (floatValue <= thresholds.low) {
@@ -296,9 +296,9 @@ export function estimateFloatAdjustedPrice(
   const adjustedPrice   = Math.round(basePrice * (1 + finalPremiumPct / 100) * 100) / 100
 
   let note = ''
-  if (floatTier === 'gem') note = `Gem float â very rare, manual comps recommended`
-  else if (floatTier === 'low') note = `Low float â slight premium over median`
-  else if (finalPremiumPct === 0 && !hasFloatPremium) note = `Float irrelevant â pattern/phase drives price`
+  if (floatTier === 'gem') note = `Gem float  very rare, manual comps recommended`
+  else if (floatTier === 'low') note = `Low float  slight premium over median`
+  else if (finalPremiumPct === 0 && !hasFloatPremium) note = `Float irrelevant  pattern/phase drives price`
 
   return {
     base_price:        basePrice,
