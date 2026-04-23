@@ -162,14 +162,14 @@ export function HistoryClient({ portfolioId }: { portfolioId: string }) {
               className="input-terminal text-xs py-1 w-36">
               <option value="date_desc">Newest first</option>
               <option value="date_asc">Oldest first</option>
-              <option value="pnl_desc">P&L â</option>
-              <option value="pnl_asc">P&L â</option>
-              <option value="amount_desc">Amount â</option>
+              <option value="pnl_desc">P&L </option>
+              <option value="pnl_asc">P&L </option>
+              <option value="amount_desc">Amount </option>
             </select>
             <div className="ml-auto flex items-center gap-2">
               <span className="font-mono text-[10px] text-muted-3">{visible.length} records</span>
-              <button onClick={exportCSV} className="btn-terminal text-[10px] py-1">â Ledger CSV</button>
-              <button onClick={exportTaxSummary} className="btn-terminal text-[10px] py-1">â Tax Summary</button>
+              <button onClick={exportCSV} className="btn-terminal text-[10px] py-1"> Ledger CSV</button>
+              <button onClick={exportTaxSummary} className="btn-terminal text-[10px] py-1"> Tax Summary</button>
             </div>
           </div>
 
@@ -181,7 +181,7 @@ export function HistoryClient({ portfolioId }: { portfolioId: string }) {
               </div>
             ) : visible.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2">
-                <span className="text-3xl text-muted-4">â«</span>
+                <span className="text-3xl text-muted-4">"</span>
                 <p className="font-mono text-sm text-muted-2">No transactions yet</p>
                 <p className="font-mono text-xs text-muted-3">Sell holdings to build your ledger</p>
               </div>
@@ -220,20 +220,20 @@ export function HistoryClient({ portfolioId }: { portfolioId: string }) {
                         <td className="term-num font-mono text-xs text-muted-2">{t.quantity}</td>
                         <td className="term-num font-mono text-xs">{fmt$(t.price_per_unit)}</td>
                         <td className="term-num font-mono text-xs">
-                          {isSell ? fmt$(t.net_proceeds) : `â${fmt$(t.price_per_unit * t.quantity)}`}
+                          {isSell ? fmt$(t.net_proceeds) : `${fmt$(t.price_per_unit * t.quantity)}`}
                         </td>
                       2 <td className="term-num font-mono text-xs text-muted-2">
-                          {t.cost_basis != null ? fmt$(t.cost_basis) : 'â'}
+                          {t.cost_basis != null ? fmt$(t.cost_basis) : ''}
                         </td>
                         <td className="term-num font-mono text-xs font-bold">
                           {isSell && t.realized_pnl != null ? (
                             <span style={{ color: pnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
                               {fmt$(pnl, { sign: true })}
                             </span>
-                          ) : <span className="text-muted-4">â</span>}
+                          ) : <span className="text-muted-4"></span>}
                         </td>
                         <td className="term-num font-mono text-[10px] text-muted-3">
-                          {t.fee_pct != null ? `${t.fee_pct}%` : 'â'}
+                          {t.fee_pct != null ? `${t.fee_pct}%` : ''}
                         </td>
                       </tr>
                     )
@@ -247,7 +247,7 @@ export function HistoryClient({ portfolioId }: { portfolioId: string }) {
         {/* Right sidebar: chart + best/worst */}
         <div className="w-72 flex flex-col gap-3 flex-shrink-0 overflow-y-auto">
           {/* Monthly P&L chart */}
- À2      <div className="panel">
+ 2      <div className="panel">
             <div className="panel-header">
               <span className="panel-title">Monthly P&L</span>
             </div>
@@ -300,7 +300,7 @@ export function HistoryClient({ portfolioId }: { portfolioId: string }) {
           </div>
 
           <p className="font-mono text-[9px] text-muted-4 text-center">
-            P&L shown after platform fees Â· for tax record keeping only
+            P&L shown after platform fees . for tax record keeping only
           </p>
         </div>
       </div>
