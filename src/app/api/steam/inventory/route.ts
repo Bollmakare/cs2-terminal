@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   const items = selItems ?? await fetchInventory(steam_id)
   const today = new Date().toISOString().slice(0, 10)
-  const slug = (name) => name.toLowerCase().replace(/[â|â¢]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  const slug = (name) => name.toLowerCase().replace(/[|]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
   const rows = items.filter(it => it.marketable).map(it => ({ portfolio_id, user_id: user.id, item_id: slug(it.market_hash_name), item_name: it.item_name, item_condition: it.condition, item_category: it.category, is_stattrak: it.is_stattrak, quantity: 1, cost_basis: 0, acquired_at: today, steam_asset_id: it.asset_id }))
   const { data: ins, error } = await supabase.from('holdings').insert(rows).select('id')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
