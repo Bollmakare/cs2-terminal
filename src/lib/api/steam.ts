@@ -8,7 +8,7 @@ export async function getSteamInventory(steamId: string, retries = 3): Promise<u
       const r = await fetch(url, { next: { revalidate: 300 } })
       
       if (r.status === 429) {
-        // Rate limited — wait before retry
+        // Rate limited - wait before retry
         await new Promise(res => setTimeout(res, (attempt + 1) * 2000))
         continue
       }
