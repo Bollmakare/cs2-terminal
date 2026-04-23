@@ -15,26 +15,26 @@ const NAV_GROUPS = [
   {
     label: 'PORTFOLIO',
     items: [
-      { href: '/dashboard',             label: 'OVERVIEW',   icon: 'â¬¡', kbd: '1' },
-      { href: '/dashboard/portfolio',   label: 'HOLDINGS',   icon: 'â¤', kbd: '2' },
-      { href: '/dashboard/history',     label: 'HISTORY',    icon: 'â«', kbd: '3' },
+      { href: '/dashboard',             label: 'OVERVIEW',   icon: '', kbd: '1' },
+      { href: '/dashboard/portfolio',   label: 'HOLDINGS',   icon: '', kbd: '2' },
+      { href: '/dashboard/history',     label: 'HISTORY',    icon: '"', kbd: '3' },
     ],
   },
   {
     label: 'ANALYTICS',
     items: [
-      { href: '/dashboard/analytics',   label: 'RISK',       icon: 'â', kbd: '4' },
-      { href: '/dashboard/cases',       label: 'CASES',      icon: 'â¬', kbd: '5' },
+      { href: '/dashboard/analytics',   label: 'RISK',       icon: '', kbd: '4' },
+      { href: '/dashboard/cases',       label: 'CASES',      icon: '', kbd: '5' },
     ],
   },
   {
     label: 'MARKET',
     items: [
-      { href: '/dashboard/scanner',     label: 'SCANNER',    icon: 'â', kbd: '6' },
-      { href: '/dashboard/trends',      label: 'TRENDS',     icon: 'â¬', kbd: '7' },
-      { href: '/dashboard/calendar',    label: 'CALENDAR',   icon: 'â·', kbd: '8' },
-      { href: '/dashboard/watchlist',   label: 'WATCHLIST',  icon: 'â', kbd: '9' },
-      { href: '/dashboard/alerts',      label: 'ALERTS',     icon: 'â¯', kbd: '0', badge: true },
+      { href: '/dashboard/scanner',     label: 'SCANNER',    icon: '', kbd: '6' },
+      { href: '/dashboard/trends',      label: 'TRENDS',     icon: '', kbd: '7' },
+      { href: '/dashboard/calendar',    label: 'CALENDAR',   icon: '.', kbd: '8' },
+      { href: '/dashboard/watchlist',   label: 'WATCHLIST',  icon: '', kbd: '9' },
+      { href: '/dashboard/alerts',      label: 'ALERTS',     icon: '', kbd: '0', badge: true },
     ],
   },
 ]
@@ -72,7 +72,7 @@ export function TerminalSidebar({ profile, portfolios, userId }: SidebarProps) {
           CS2_TERMINAL
         </div>
         <div className="font-mono text-[9px] text-muted-3 tracking-widest uppercase mt-0.5">
-          v0.4.0 Â· PHASE 4
+          v0.4.0 . PHASE 4
         </div>
       </div>
 
@@ -129,7 +129,7 @@ export function TerminalSidebar({ profile, portfolios, userId }: SidebarProps) {
         <Link href="/dashboard/settings"
           className={`flex items-center gap-2.5 px-4 py-2 font-mono text-[11px] tracking-widest transition-all
             ${pathname === '/dashboard/settings' ? 'text-green bg-green-soft' : 'text-muted-3 hover:text-muted-2 hover:bg-terminal-surface'}`}>
-          <span className="text-[13px] leading-none">â</span>
+          <span className="text-[13px] leading-none"></span>
           SETTINGS
           <span className="ml-auto font-mono text-[9px] text-muted-4 opacity-60">S</span>
         </Link>
@@ -142,7 +142,7 @@ export function TerminalSidebar({ profile, portfolios, userId }: SidebarProps) {
           {portfolios.map(pf => (
             <button key={pf.id}
               className={`w-full text-left px-2 py-1 rounded font-mono text-[10px] transition-all ${pf.is_default ? 'text-green' : 'text-muted-3 hover:text-muted-2'}`}>
-              {pf.is_default ? 'â¸ ' : '  '}{pf.name}
+              {pf.is_default ? ' ' : '  '}{pf.name}
             </button>
           ))}
         </div>
@@ -160,12 +160,12 @@ export function TerminalSidebar({ profile, portfolios, userId }: SidebarProps) {
           )}
           <div className="flex-1 min-w-0">
             <div className="font-mono text-[10px] text-[var(--text)] truncate">{displayName}</div>
-            <div className="font-mono text-[9px] text-muted-3">{isSteam ? 'ð® Steam' : 'â Email'}</div>
+            <div className="font-mono text-[9px] text-muted-3">{isSteam ? ' Steam' : ' Email'}</div>
           </div>
         </div>
         <button onClick={signOut}
           className="w-full text-left px-2 py-1 font-mono text-[10px] text-muted-3 hover:text-red transition-colors rounded hover:bg-red-soft">
-          â© Sign out
+           Sign out
         </button>
       </div>
     </aside>
