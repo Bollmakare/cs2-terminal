@@ -1,4 +1,4 @@
-// Portfolio risk analytics — mirrors the DB function compute_portfolio_risk
+// Portfolio risk analytics - mirrors the DB function compute_portfolio_risk
 // Used client-side when snapshot history is insufficient
 
 export interface RiskMetrics {
