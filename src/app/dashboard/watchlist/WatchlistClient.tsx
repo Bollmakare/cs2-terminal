@@ -44,7 +44,7 @@ function AlertRow({
         </button>
         {value && (
           <button onClick={() => { setInput(''); onClear() }}
-            className="font-mono text-[10px] text-muted-3 hover:text-red transition-colors">â</button>
+            className="font-mono text-[10px] text-muted-3 hover:text-red transition-colors"></button>
         )}
       </div>
       {value && (
@@ -90,8 +90,8 @@ function WatchCard({ item, onRemove, onUpdateAlerts }: {
         </div>
         <div className="flex flex-col items-end gap-1">
           <button onClick={e => { e.stopPropagation(); onRemove() }}
-            className="text-muted-4 hover:text-red transition-colors text-xs">â</button>
-          <span className="font-mono text-[9px] text-muted-4">{expanded ? 'â²' : 'â¼'}</span>
+            className="text-muted-4 hover:text-red transition-colors text-xs"></button>
+          <span className="font-mono text-[9px] text-muted-4">{expanded ? '' : ''}</span>
         </div>
       </div>
 
@@ -100,12 +100,12 @@ function WatchCard({ item, onRemove, onUpdateAlerts }: {
         <div className="flex items-center gap-2 px-3 pb-2">
           {buyAlert && (
             <div className={`flex items-center gap-1 font-mono text-[9px] px-2 py-0.5 rounded ${buyTriggered ? 'bg-green-soft text-green animate-pulse' : 'bg-terminal-muted text-muted-3'}`}>
-              {buyTriggered ? 'â¡' : 'â¼'} BUY {fmt$(buyAlert)}
+              {buyTriggered ? '' : ''} BUY {fmt$(buyAlert)}
             </div>
           )}
           {sellAlert && (
             <div className={`flex items-center gap-1 font-mono text-[9px] px-2 py-0.5 rounded ${sellTriggered ? 'bg-red-soft text-red animate-pulse' : 'bg-terminal-muted text-muted-3'}`}>
-              {sellTriggered ? 'â¡' : 'â²'} SELL {fmt$(sellAlert)}
+              {sellTriggered ? '' : ''} SELL {fmt$(sellAlert)}
             </div>
           )}
           {arb && arb > 5 && (
@@ -119,11 +119,11 @@ function WatchCard({ item, onRemove, onUpdateAlerts }: {
       {/* Expanded: alert config + market data */}
       {expanded && (
         <div className="px-3 pb-3 space-y-2.5 border-t border-terminal-border pt-2.5">
-          <AlertRow label="â¼ Buy alert â trigger when price drops to"
+          <AlertRow label=" Buy alert  trigger when price drops to"
             value={buyAlert} color="var(--green)" placeholder={price ? (price * 0.9).toFixed(2) : '0.00'}
             onSet={v => onUpdateAlerts(v, sellAlert ?? null)}
             onClear={() => onUpdateAlerts(null, sellAlert ?? null)} />
-          <AlertRow label="â² Sell alert â trigger when price rises to"
+          <AlertRow label=" Sell alert  trigger when price rises to"
             value={sellAlert} color="var(--red)" placeholder={price ? (price * 1.15).toFixed(2) : '0.00'}
             onSet={v => onUpdateAlerts(buyAlert ?? null, v)}
             onClear={() => onUpdateAlerts(buyAlert ?? null, null)} />
@@ -228,7 +228,7 @@ export function WatchlistClient() {
       {/* Alert banner */}
       {triggered.length > 0 && (
         <div className="flex items-center gap-3 p-3 rounded border border-green/30 bg-green-soft flex-shrink-0 animate-pulse-green">
-          <span className="font-mono text-xs text-green font-bold">â¡ {triggered.length} ALERT{triggered.length > 1 ? 'S' : ''} TRIGGERED</span>
+          <span className="font-mono text-xs text-green font-bold"> {triggered.length} ALERT{triggered.length > 1 ? 'S' : ''} TRIGGERED</span>
           {triggered.slice(0, 3).map((i: any) => (
             <span key={i.id} className="font-mono text-[10px] text-green/80">{i.item_name}</span>
           ))}
@@ -243,8 +243,8 @@ export function WatchlistClient() {
         <div className="flex gap-1">
           {[
             { id: 'added' as WLSort,      label: 'Recent' },
-            { id: 'price_desc' as WLSort, label: 'Price â' },
-            { id: 'price_asc' as WLSort,  label: 'Price â' },
+            { id: 'price_desc' as WLSort, label: 'Price ' },
+            { id: 'price_asc' as WLSort,  label: 'Price ' },
             { id: 'alert' as WLSort,      label: 'Alerts' },
           ].map(s => (
             <button key={s.id} onClick={() => setSort(s.id)}
@@ -256,7 +256,7 @@ export function WatchlistClient() {
 
         <div className="ml-auto">
           <button onClick={() => setAdding(a => !a)} className="btn-primary text-xs py-1.5">
-            {adding ? 'â Cancel' : '+ Watch item'}
+            {adding ? ' Cancel' : '+ Watch item'}
           </button>
         </div>
       </div>
@@ -277,7 +277,7 @@ export function WatchlistClient() {
                       onClick={() => handleAdd(item)}>
                       <div className="flex-1 min-w-0">
                         <div className="font-mono text-xs text-[var(--text)] truncate">{item.market_hash_name}</div>
-                        <div className="font-mono text-[9px] text-muted-3">{item.category} Â· {item.condition}</div>
+                        <div className="font-mono text-[9px] text-muted-3">{item.category} . {item.condition}</div>
                       </div>
                       <span className="font-mono text-xs text-muted-2">{fmt$(item.price_usd)}</span>
                     </div>
@@ -300,7 +300,7 @@ export function WatchlistClient() {
           </div>
         ) : sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
-            <span className="text-4xl text-muted-4">â</span>
+            <span className="text-4xl text-muted-4"></span>
             <p className="font-mono text-sm text-muted-2">Watchlist is empty</p>
             <p className="font-mono text-xs text-muted-3">Add items to track prices and set alerts</p>
             <button onClick={() => setAdding(true)} className="btn-primary text-sm mt-1">+ Add first item</button>
@@ -320,7 +320,7 @@ export function WatchlistClient() {
       </div>
 
       <div className="font-mono text-[9px] text-muted-4 text-center flex-shrink-0">
-        ALERTS CHECK AGAINST LATEST SKINSTRACK PRICES Â· NOT FINANCIAL ADVICE
+        ALERTS CHECK AGAINST LATEST SKINSTRACK PRICES . NOT FINANCIAL ADVICE
       </div>
     </div>
   )
