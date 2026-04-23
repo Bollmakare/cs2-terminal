@@ -20,8 +20,8 @@ export function atLeastOneProbability(dropRate: number, n: number): number {
 // Expected value for N opens
 export interface SimulationResult {
   n:              number
-  total_cost:     number      // case price + key price Ã n
-  expected_value: number      // EV per open Ã n
+  total_cost:     number      // case price + key price  n
+  expected_value: number      // EV per open  n
   expected_profit: number
   expected_roi_pct: number
   prob_knife_at_least_one: number
@@ -100,7 +100,7 @@ export function simulate(
   }
 }
 
-// ââ Break-even chart data âââââââââââââââââââââââââââââââââ
+//  Break-even chart data 
 export function buildBreakEvenChart(evPerOpen: number, keyPrice: number, n = 100) {
   const points: { case_price: number; roi_pct: number }[] = []
   for (let casePx = 0.01; casePx <= 20; casePx += 0.25) {
@@ -111,7 +111,7 @@ export function buildBreakEvenChart(evPerOpen: number, keyPrice: number, n = 100
   return points
 }
 
-// ââ Rarity breakdown for charting ââââââââââââââââââââââââ
+//  Rarity breakdown for charting 
 export interface RarityBreakdown {
   rarity:    string
   drop_rate: number
