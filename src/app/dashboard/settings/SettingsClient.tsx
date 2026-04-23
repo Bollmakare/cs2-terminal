@@ -124,12 +124,12 @@ export function SettingsClient({ settings, profile, userId, userEmail }: Props) 
           <p className="font-mono text-[10px] text-muted-3 mt-0.5">Preferences saved to your Supabase account</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="btn-primary">
-          {saving ? 'Saving...' : saved ? 'â Saved' : 'Save settings'}
+          {saving ? 'Saving...' : saved ? ' Saved' : 'Save settings'}
         </button>
       </div>
 
       {error && <div className="px-4 py-3 rounded border border-red/30 bg-red-soft font-mono text-xs text-red">{error}</div>}
-      {saved && <div className="px-4 py-3 rounded border border-green/30 bg-green-soft font-mono text-xs text-green">â Settings saved successfully</div>}
+      {saved && <div className="px-4 py-3 rounded border border-green/30 bg-green-soft font-mono text-xs text-green"> Settings saved successfully</div>}
 
       {/* Account */}
       <Section title="Account" sub={userEmail}>
@@ -156,7 +156,7 @@ export function SettingsClient({ settings, profile, userId, userEmail }: Props) 
                 style={{ fontFamily: 'var(--font-mono)' }} />
               <div className="text-right">
                 <a href="/api/auth/steam" className="font-mono text-[10px] text-green hover:underline">
-                  â Link Steam account instead
+                   Link Steam account instead
                 </a>
               </div>
             </div>
@@ -164,7 +164,7 @@ export function SettingsClient({ settings, profile, userId, userEmail }: Props) 
         )}
         {isSteam && (
           <Row label="Email auth" sub="Optionally add a password">
-            <a href="/auth/signup" className="btn-terminal text-[10px] py-1">Add email â</a>
+            <a href="/auth/signup" className="btn-terminal text-[10px] py-1">Add email </a>
           </Row>
         )}
       </Section>
@@ -216,7 +216,7 @@ export function SettingsClient({ settings, profile, userId, userEmail }: Props) 
 
       {/* Scanner defaults */}
       <Section title="Scanner defaults" sub="Saved filter state for the market scanner">
-        <Row label="Min score" sub="0â100 composite score threshold">
+        <Row label="Min score" sub="0100 composite score threshold">
           <div className="flex items-center gap-3">
             <input type="range" min={0} max={100} value={minScore}
               onChange={e => setMinScore(e.target.value)}
@@ -254,21 +254,21 @@ export function SettingsClient({ settings, profile, userId, userEmail }: Props) 
       {/* Data */}
       <Section title="Data & privacy" sub="All data stored in your private Supabase project">
         <Row label="Export portfolio CSV" sub="Current holdings with prices and P&L">
-          <button className="btn-terminal text-[10px] py-1">â Download</button>
+          <button className="btn-terminal text-[10px] py-1"> Download</button>
         </Row>
         <Row label="Export transaction ledger" sub="Full buy/sell history">
-          <button className="btn-terminal text-[10px] py-1">â Download</button>
+          <button className="btn-terminal text-[10px] py-1"> Download</button>
         </Row>
         <Row label="Sign out" sub="End your current session">
           <button onClick={async () => {
             await createClient().auth.signOut()
             window.location.href = '/auth/login'
-          }} className="font-mono text-xs text-red hover:underline">Sign out â</button>
+          }} className="font-mono text-xs text-red hover:underline">Sign out </button>
         </Row>
       </Section>
 
       <p className="font-mono text-[9px] text-muted-4 text-center">
-        CS2 TERMINAL Â· ALL DATA STORED IN YOUR OWN SUPABASE PROJECT Â· NOTHING SHARED WITH THIRD PARTIES
+        CS2 TERMINAL . ALL DATA STORED IN YOUR OWN SUPABASE PROJECT . NOTHING SHARED WITH THIRD PARTIES
       </p>
     </div>
   )
