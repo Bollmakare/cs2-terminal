@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { fmt$, fmtPct, cn, scoreColor, CAT_COLOR } from '@/lib/utils'
 
-// ââ Types âââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Types Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 interface MarketEvent {
   id: number
   event_type: string
@@ -37,7 +37,7 @@ interface SellSignalRow {
   reasons: { type: string; label: string; detail: string; weight: number; direction: string }[]
 }
 
-// ââ Hooks âââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Hooks Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function useEvents() {
   return useQuery<MarketEvent[]>({
     queryKey: ['market-events'],
@@ -77,36 +77,36 @@ function usePortFolioId() {
   })
 }
 
-// ââ Event type config âââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Event type config Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 const EVENT_CONFIG: Record<string, { icon: string; color: string; bg: string }> = {
-  major:       { icon: 'ð', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-  operation:   { icon: 'â¡', color: '#00ff88', bg: 'rgba(0,255,136,0.08)' },
-  case_release:{ icon: 'ð¦', color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
-  steam_sale:  { icon: 'ð¸', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
-  patch:       { icon: 'ð§', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
-  other:       { icon: 'ð', color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' },
+  major:       { icon: 'Ã°ÂÂÂ', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+  operation:   { icon: 'Ã¢ÂÂ¡', color: '#00ff88', bg: 'rgba(0,255,136,0.08)' },
+  case_release:{ icon: 'Ã°ÂÂÂ¦', color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
+  steam_sale:  { icon: 'Ã°ÂÂÂ¸', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+  patch:       { icon: 'Ã°ÂÂÂ§', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
+  other:       { icon: 'Ã°ÂÂÂ', color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' },
 }
 
 const IMPACT_CONFIG: Record<string, { label: string; color: string }> = {
-  bullish: { label: 'â² Bullish',  color: 'var(--green)' },
-  bearish: { label: 'â¼ Bearish',  color: 'var(--red)'   },
-  mixed:   { label: 'â Mixed',    color: 'var(--amber)'  },
-  neutral: { label: 'â Neutral',  color: 'var(--text-3)' },
+  bullish: { label: 'Ã¢ÂÂ² Bullish',  color: 'var(--green)' },
+  bearish: { label: 'Ã¢ÂÂ¼ Bearish',  color: 'var(--red)'   },
+  mixed:   { label: 'Ã¢ÂÂ Mixed',    color: 'var(--amber)'  },
+  neutral: { label: 'Ã¢ÂÂ Neutral',  color: 'var(--text-3)' },
 }
 
 const URGENCY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  high:   { label: 'ð´ SELL NOW',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
-  medium: { label: 'ð¡ CONSIDER',  color: '#f59e0b', bg: 'rgba(245,158,11,0.10)' },
-  low:    { label: 'ð¢ WATCH',     color: '#00ff88', bg: 'rgba(0,255,136,0.06)' },
+  high:   { label: 'Ã°ÂÂÂ´ SELL NOW',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+  medium: { label: 'Ã°ÂÂÂ¡ CONSIDER',  color: '#f59e0b', bg: 'rgba(245,158,11,0.10)' },
+  low:    { label: 'Ã°ÂÂÂ¢ WATCH',     color: '#00ff88', bg: 'rgba(0,255,136,0.06)' },
 }
 
-// ââ Event card ââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Event card Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function EventCard({ event }: { key?: number; event: MarketEvent }) {
   const [expanded, setExpanded] = useState(false)
   const cfg = EVENT_CONFIG[event.event_type] ?? EVENT_CONFIG.other
   const imp = IMPACT_CONFIG[event.expected_impact ?? 'neutral'] ?? IMPACT_CONFIG.neutral
 
-  const daysLabel = event.is_active ? 'ð¢ ACTIVE NOW'
+  const daysLabel = event.is_active ? 'Ã°ÂÂÂ¢ ACTIVE NOW'
     : event.days_until < 0 ? `${Math.abs(event.days_until)}d ago`
     : event.days_until === 0 ? 'TODAY'
     : event.days_until === 1 ? 'TOMORROW'
@@ -150,7 +150,7 @@ function EventCard({ event }: { key?: number; event: MarketEvent }) {
             <span className="font-mono text-[9px]" style={{ color: imp.color }}>{imp.label}</span>
             <span className="font-mono text-[9px] text-muted-3">
               {new Date(event.starts_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              {event.ends_at && ` â ${new Date(event.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+              {event.ends_at && ` Ã¢ÂÂ ${new Date(event.ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
             </span>
             {event.affected_categories.length > 0 && (
               <div className="flex gap-1">
@@ -160,7 +160,7 @@ function EventCard({ event }: { key?: number; event: MarketEvent }) {
                     {cat}
                   </span>
                 ))}
-      2       </div>
+    </div>
             )}
           </div>
         </div>
@@ -178,7 +178,7 @@ function EventCard({ event }: { key?: number; event: MarketEvent }) {
             {event.url && (
               <a href={event.url} target="_blank" rel="noopener"
                 className="font-mono text-[9px] text-green hover:underline mt-1 inline-block">
-                â Source
+                Ã¢ÂÂ Source
               </a>
             )}
           </div>
@@ -188,7 +188,7 @@ function EventCard({ event }: { key?: number; event: MarketEvent }) {
   )
 }
 
-// ââ Sell signal card ââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Sell signal card Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function SellCard({ signal }: { key?: string; signal: SellSignalRow }) {
   const [expanded, setExpanded] = useState(false)
   const cfg = URGENCY_CONFIG[signal.urgency] ?? URGENCY_CONFIG.low
@@ -210,7 +210,7 @@ function SellCard({ signal }: { key?: string; signal: SellSignalRow }) {
               <span className="font-mono text-[9px] text-muted-3">{signal.item_condition}</span>
             )}
             {signal.quantity > 1 && (
-              <span className="font-mono text-[9px] text-muted-3">Ã{signal.quantity}</span>
+              <span className="font-mono text-[9px] text-muted-3">ÃÂ{signal.quantity}</span>
             )}
           </div>
           <div className="font-mono text-[9px] text-muted-3 mt-0.5 truncate">
@@ -253,10 +253,10 @@ function SellCard({ signal }: { key?: string; signal: SellSignalRow }) {
           {signal.reasons.filter(r => r.direction === 'sell').map((r, i) => (
             <div key={i} className="flex items-start gap-2">
               <div className="w-1 h-1 rounded-full flex-shrink-0 mt-1.5"
-       2        style={{ background: r.weight >= 20 ? '#ef4444' : r.weight >= 10 ? '#f59e0b' : '#00ff88' }} />
+    style={{ background: r.weight >= 20 ? '#ef4444' : r.weight >= 10 ? '#f59e0b' : '#00ff88' }} />
               <div>
                 <span className="font-mono text-[10px] font-bold text-[var(--text)]">{r.label}</span>
-                <span className="font-mono text-[9px] text-muted-3 ml-1">â {r.detail}</span>
+                <span className="font-mono text-[9px] text-muted-3 ml-1">Ã¢ÂÂ {r.detail}</span>
               </div>
             </div>
           ))}
@@ -264,8 +264,8 @@ function SellCard({ signal }: { key?: string; signal: SellSignalRow }) {
             <div key={i} className="flex items-start gap-2 opacity-60">
               <div className="w-1 h-1 rounded-full flex-shrink-0 mt-1.5 bg-muted-3" />
               <div>
-                <span className="font-mono text-[9px] text-muted-3">HOLD: {r.label} â {r.detail}</span>
-            2 </div>
+                <span className="font-mono text-[9px] text-muted-3">HOLD: {r.label} Ã¢ÂÂ {r.detail}</span>
+    </div>
             </div>
           ))}
         </div>
@@ -274,7 +274,7 @@ function SellCard({ signal }: { key?: string; signal: SellSignalRow }) {
   )
 }
 
-// ââ Main client âââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Main client Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 export function CalendarClient() {
   const [filter, setFilter] = useState<'all' | 'major' | 'operation' | 'steam_sale' | 'case_release'>('all')
   const [tab, setTab] = useState<'calendar' | 'sell'>('calendar')
@@ -303,12 +303,12 @@ export function CalendarClient() {
             <button onClick={() => setTab('calendar')}
               className={cn('px-3 py-1.5 font-mono text-[11px] rounded border transition-all',
                 tab === 'calendar' ? 'bg-green text-black border-green font-bold' : 'border-terminal-border text-muted-3')}>
-              ð Event Calendar
+              Ã°ÂÂÂ Event Calendar
             </button>
             <button onClick={() => setTab('sell')}
               className={cn('px-3 py-1.5 font-mono text-[11px] rounded border transition-all flex items-center gap-2',
                 tab === 'sell' ? 'bg-red/20 text-red border-red/40 font-bold' : 'border-terminal-border text-muted-3')}>
-              ð¤ Sell Radar
+              Ã°ÂÂÂ¤ Sell Radar
               {(highUrgency > 0 || medUrgency > 0) && (
                 <span className="w-4 h-4 rounded-full bg-red text-white font-mono text-[8px] flex items-center justify-center">
                   {highUrgency + medUrgency}
@@ -344,42 +344,42 @@ export function CalendarClient() {
         {tab === 'calendar' ? (
           <>
             {/* Active events */}
-     2      {active.length > 0 && (
+     {active.length > 0 && (
               <div>
                 <div className="font-mono text-[9px] text-green uppercase tracking-widest px-1 mb-2">
-                  â Active now
+                  Ã¢ÂÂ Active now
                 </div>
                 <div className="space-y-2">
                   {active.map(e => <EventCard key={e.id} event={e} />)}
                 </div>
               </div>
-     
-_BËÊ\ÛÛZ[È
-ßBÝ\ÛÛZ[Ë[Ý	
-]]Û\ÜÓ[YOHÛ[[ÛÈ^VÎ\H^[]]YLÈ\\Ø\ÙHXÚÚ[Ë]ÚY\ÝLHXL\ÛÛZ[È
-Ý\ÛÛZ[Ë[ÝJBÙ]]Û\ÜÓ[YOHÜXÙK^KLÝ\ÛÛZ[ËX\
-HO][Ø\Ù^O^ÙKYH][^Ù_HÏ_BÙ]Ù]
-_BËÊ\Ý
-ÛÛ\ÙY
+     Â
+_BÂÂÃÃÂ\ÃÃZ[ÂÃ
+ÂÃBÂÃ\ÃÃZ[ÂÃÂ[ÂÃÂ	ÂÂ
+Â]ÂÂÂ]ÂÃ\ÃÃÂ[YOHÂÂÃÂ[[ÃÂÃ^VÃ\H^[]]YLÃ\\ÂÃ\ÃHÂXÃÃ[ÂÃ]ÃY\ÃLHXÂLÂÂÂÂ\ÃÃZ[ÂÃ
+Ã\ÃÃZ[ÂÃÂ[ÂÃJBÂÃ]ÂÂÂ]ÂÃ\ÃÃÂ[YOHÂÃXÃK^KLÂÂÂÂÃ\ÃÃZ[ÂÃÂX\
+HOÂ]Â[ÂÃ\ÂÃ^O^ÃKÂYH]Â[Â^Ã_HÃÂ_BÂÃ]ÂÂÂÃ]ÂÂÂ
+_BÂÂÃÃÂ\Ã
+ÃÃ\ÃY
 H
-ßBÜ\Ý[Ý	
-]]Û\ÜÓ[YOHÛ[[ÛÈ^VÎ\H^[]]YM\\Ø\ÙHXÚÚ[Ë]ÚY\ÝLHXLXÙ[\Ý
-Ü\Ý[ÝJBÙ]]Û\ÜÓ[YOHÜXÙK^KLKHÜXÚ]KMLÜ\ÝÛXÙJÊKX\
-HO][Ø\Ù^O^ÙKYH][^Ù_HÏ_BÙ]Ù]
-_BÙ]ØY	
-]Û\ÜÓ[YOHÜXÙK^KLÐ\^KÛJÈ[ÝHJKX\
+ÂÃBÂÃ\ÃÂ[ÂÃÂ	ÂÂ
+Â]ÂÂÂ]ÂÃ\ÃÃÂ[YOHÂÂÃÂ[[ÃÂÃ^VÃ\H^[]]YM\\ÂÃ\ÃHÂXÃÃ[ÂÃ]ÃY\ÃLHXÂLÂÂÂÂÂXÃ[Â\Ã
+Ã\ÃÂ[ÂÃJBÂÃ]ÂÂÂ]ÂÃ\ÃÃÂ[YOHÂÃXÃK^KLKÂHÃXÃ]KMLÂÂÂÃ\ÃÂÃXÃJÃKÂX\
+HOÂ]Â[ÂÃ\ÂÃ^O^ÃKÂYH]Â[Â^Ã_HÃÂ_BÂÃ]ÂÂÂÃ]ÂÂÂ
+_BÂÂÃ]ÂÃY	ÂÂ
+Â]ÂÃ\ÃÃÂ[YOHÂÃXÃK^KLÂÂÂÂÃ\ÂÂ^KÂÂÂÃJÃ[ÂÃÂHJKÂX\
 
-ËJHO
-]Ù^O^Ú_HÛ\ÜÓ[YOHLMÚÙ[]ÛÝ[YÏ
-J_BÙ]
-_BÈY]ØY	[\Y][Ë[ÝOOH	
-]Û\ÜÓ[YOH[[N^XÙ[\Û\ÜÓ[YOHÛ[[ÛÈ^\ÛH^[]]YLÈÈ][ÈÝ[ÜÙ]
-_BËÊ\ØÛZ[Y\
-ßB]Û\ÜÓ[YOH[[LÈÛ\ÜÓ[YOHÛ[[ÛÈ^VÎ\H^[]]YMXY[Ë\[^Y8¦¨][]\ÈX\ÙYÔPÕSUUH\H\ÙYÛ\ÝÜXØ[ÔÌ]\È[ÛÛ[][]H[[[HÙ\ÈÝKX[Ý[ÙH[ÜÝ][Ë[Ø^\È\YHYÜHXZÚ[ÈY[ÈXÚ\Ú[ÛËXÙH[\XÝ\Ý[X]\È\HYXØ][Û[Ý[[ÚX[YXÙKÜÙ]0Ï
-H
-ËÊÝÈ]ÛÜÜÈ
-ßB]Û\ÜÓ[YOH[[MKLÈ^][\Ë\Ý\Ø\M]Û\ÜÓ[YOHÜYÜYXÛÛËLÈØ\M^LHÖÂÈXÛÛ	ü'å-	ËX[	ÒQÒ8¡%XÝÝÉË\ØÎ	ÔÝÛÈÝ\^[Ú[ÛÝÜÜÜËÜXZÜ][[Ù	ÈKÈXÛÛ	ð¡', label: 'MEDIUM â Consider', desc: 'Trend reversal, profit target hit, Buff floor falling' },
-                  { icon: 'ð¢', label: 'WATCH â Monitor', desc: 'Early warning â continue watching price action' },
+ÃJHOÂ
+Â]ÂÃ^O^Ã_HÃ\ÃÃÂ[YOHÂLMÂÃÃ[]ÃÂÂÃ[ÂYÂÃÂÂ
+J_BÂÃ]ÂÂÂ
+_BÂÂÃY]ÂÃY	ÂÂÂ[\ÂY]Â[ÂÃÂ[ÂÃOOH	ÂÂ
+Â]ÂÃ\ÃÃÂ[YOHÂ[Â[N^XÃ[Â\ÂÂÂÂÃ\ÃÃÂ[YOHÂÂÃÂ[[ÃÂÃ^\ÃH^[]]YLÃÂÂÂÃ]Â[ÂÃÂÃ[ÂÃÂÂÃ]ÂÂÂ
+_BÂÂÃÃÂ\ÃÃZ[Y\Â
+ÂÃBÂ]ÂÃ\ÃÃÂ[YOHÂ[Â[LÃÂÂÂÃ\ÃÃÂ[YOHÂÂÃÂ[[ÃÂÃ^VÃ\H^[]]YMXY[ÂÃ\Â[^YÂÂÂ8Â¦Â¨]Â[Â]\ÃX\ÂÃYÃPÃSUUÂH\ÂHÂ\ÃYÃÂ\ÃÃÂXÃ[ÃÃÂ]\ÂÂÃ[ÂÃÃ[][Â]H[Â[ÂÂÂ[ÂHÃ\ÃÂÃÂKX[ÂÂÃ[ÂÃH[ÃÃ]Â[ÂÃÂ[Ã^\ÃÂ\ÂYÂHÂYÂÃÂHXZÃ[ÂÃÂY[ÂÃXÃ\Ã[ÃÂÃÂÂÂXÃH[\XÃ\Ã[X]\Ã\ÂHYXÃ][ÃÂ[ÂÃÂ[Â[ÂÃX[YÂXÃKÂÂÃÂÂÃ]ÂÂÂ0ÂÃÂÂ
+HÂ
+ÂÂÂÃÃÂÃÃ]ÃÃÂÃÃ
+ÂÃBÂ]ÂÃ\ÃÃÂ[YOHÂ[Â[MKLÃÂ^][\Ã\Ã\ÂÃ\MÂÂÂ]ÂÃ\ÃÃÂ[YOHÂÃÂYÃÂYXÃÃÃLÃÃ\MÂ^LHÂÂÂÃÃÂÃXÃÃÂÂ	Ã¼'Ã¥-	ÃXÂ[Â	ÃQÃ8Â¡%XÃÂÃÃÃ\ÃÃÂ	ÃÃÂÃÂÃÃÂ\Â^[ÂÃ[ÃÂÃÃÃÃÃÃÂXZÂÃÂ]Â[Â[ÂÃ	ÃKÂÃXÃÃÂÂ	Ã°ÂÂÂ¡', label: 'MEDIUM Ã¢ÂÂ Consider', desc: 'Trend reversal, profit target hit, Buff floor falling' },
+                  { icon: 'Ã°ÂÂÂ¢', label: 'WATCH Ã¢ÂÂ Monitor', desc: 'Early warning Ã¢ÂÂ continue watching price action' },
                 ].map(u => (
                   <div key={u.label}>
                     <div className="font-mono text-[10px] font-bold text-[var(--text)] mb-0.5">{u.icon} {u.label}</div>
@@ -413,7 +413,7 @@ H
                     <div key={urgency}>
                       <div className="font-mono text-[9px] uppercase tracking-widest px-1 mb-2"
                         style={{ color: urgencyCfg.color }}>
-        2               {urgencyCfg.label} ({group.length})
+                        {urgencyCfg.label} ({group.length})
                       </div>
                       <div className="space-y-2">
                         {group.map(s => <SellCard key={s.holding_id} signal={s} />)}
@@ -424,8 +424,7 @@ H
               </div>
             )}
           </>
-        )}
- À2    </div>
+        )}    </div>
     </div>
   )
 }
