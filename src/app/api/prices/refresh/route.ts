@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       prices = []
     }
 
-    const supabase = createServiceClient()
+    const supabase = await createServiceClient()
     const today = new Date().toISOString().slice(0, 10)
     let itemsUpdated = 0
 
