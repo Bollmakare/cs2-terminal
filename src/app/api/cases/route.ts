@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export async function GET(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const cronSecret = req.headers.get('x-cron-secret')
   if (cronSecret !== process.env.CRON_SECRET) {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
