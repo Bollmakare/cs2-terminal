@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const isCron = cronSecret === process.env.CRON_SECRET && !!cronSecret
 
   if (!isCron) {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
 // GET /api/prices/refresh  status check
 // 
 export async function GET(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
