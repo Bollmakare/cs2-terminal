@@ -11,7 +11,6 @@ interface PricedItem {
   marketable: number
   price_usd: number | null
   item_id: string | null
-  tags?: { category: string; localized_tag_name: string }[]
 }
 
 function useInventory(steamId: string | null) {
@@ -29,7 +28,7 @@ function useInventory(steamId: string | null) {
   })
 }
 
-export function InventoryClient({ steamId, portfolioId, userId }: { steamId: string | null; portfolioId: string | null; userId: string }) {
+export function InventoryClient({ steamId, portfolioId }: { steamId: string | null; portfolioId: string | null }) {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [importing, setImporting] = useState<Set<string>>(new Set())
@@ -43,14 +42,14 @@ export function InventoryClient({ steamId, portfolioId, userId }: { steamId: str
     !search || i.market_hash_name.toLowerCase().includes(search.toLowerCase())
   )
 
-  const getCondition = (name: string) => {
-    const m = name.match(/\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)/)
+  const getCond = (name: string) => {
+    const m = name.match(/[(](Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)[)]/)
     return m ? m[1] : null
   }
 
-  const addToPortfolio = async (item: PricedItem) => {
+  const addOne = async (item: PricedItem) => {
     if (!portfolioId || importing.has(item.assetid) || imported.has(item.assetid)) return
-    setImporting(prev => new Set([...prev, item.assetid]))
+    setImporting(p => new Set([...p, item.assetid]))
     try {
       const res = await fetch('/api/holdings', {
         method: 'POST',
@@ -59,104 +58,81 @@ export function InventoryClient({ steamId, portfolioId, userId }: { steamId: str
           portfolio_id: portfolioId,
           item_id: item.item_id,
           item_name: item.market_hash_name,
-          item_condition: getCondition(item.market_hash_name),
+          item_condition: getCond(item.market_hash_name),
           quantity: 1,
           cost_basis: item.price_usd ?? 0,
           steam_asset_id: item.assetid,
         }),
       })
       if (res.ok) {
-        setImported(prev => new Set([...prev, item.assetid]))
+        setImported(p => new Set([...p, item.assetid]))
         qc.invalidateQueries({ queryKey: ['holdings'] })
       }
     } finally {
-      setImporting(prev => { const s = new Set(prev); s.delete(item.assetid); return s })
+      setImporting(p => { const s = new Set(p); s.delete(item.assetid); return s })
     }
   }
 
-  if (!activeId) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-88px)] gap-6">
-        <div className="panel p-8 max-w-md w-full">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-muted-3 mb-4">Steam Inventory</div>
-          <p className="font-mono text-sm text-muted-2 mb-6">Enter your Steam ID64 to load your CS2 inventory.</p>
-          <div className="flex gap-2">
-            <input type="text" value={manualId} onChange={e => setManualId(e.target.value)}
-              placeholder="76561198xxxxxxxxx" className="input-terminal text-sm flex-1" />
-            <button onClick={() => setActiveId(manualId)} disabled={!manualId.trim()}
-              className="btn-primary text-sm px-4">Load</button>
-          </div>
-          <p className="font-mono text-[10px] text-muted-4 mt-3">Make sure your Steam inventory is set to Public.</p>
+  if (!activeId) return (
+    <div className='flex flex-col items-center justify-center h-[calc(100vh-88px)] gap-6'>
+      <div className='panel p-8 max-w-md w-full'>
+        <div className='font-mono text-[11px] uppercase tracking-widest text-muted-3 mb-4'>Steam Inventory</div>
+        <p className='font-mono text-sm text-muted-2 mb-6'>Enter your Steam ID64 to view your CS2 inventory with prices.</p>
+        <div className='flex gap-2'>
+          <input type='text' value={manualId} onChange={e => setManualId(e.target.value)}
+            placeholder='76561198xxxxxxxxx' className='input-terminal text-sm flex-1' />
+          <button onClick={() => setActiveId(manualId)} disabled={!manualId.trim()} className='btn-primary text-sm px-4'>Load</button>
         </div>
+        <p className='font-mono text-[10px] text-muted-4 mt-3'>Make sure your Steam inventory is set to Public.</p>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
-    <div className="flex flex-col h-[calc(100vh-88px)] overflow-hidden gap-3">
-      {/* Toolbar */}
-      <div className="panel px-4 py-3 flex-shrink-0 flex items-center gap-3 flex-wrap">
+    <div className='flex flex-col h-[calc(100vh-88px)] overflow-hidden gap-3'>
+      <div className='panel px-4 py-3 flex-shrink-0 flex items-center gap-3 flex-wrap'>
         <div>
-          <div className="font-mono text-[10px] text-muted-3 uppercase tracking-widest">Steam Inventory</div>
-          <div className="font-mono text-xs text-muted-2">{activeId}</div>
+          <div className='font-mono text-[10px] text-muted-3 uppercase tracking-widest'>Steam Inventory</div>
+          <div className='font-mono text-xs text-muted-2'>{activeId}</div>
         </div>
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search items..." className="input-terminal text-xs py-1.5 w-52" />
-        <div className="font-mono text-xs text-muted-3">
-          {isLoading ? 'Loading...' : filtered.length + ' items'}
-        </div>
-        <div className="ml-auto flex gap-2">
-          <button onClick={() => refetch()} className="btn-terminal text-[10px] py-1">Refresh</button>
+        <input type='text' value={search} onChange={e => setSearch(e.target.value)}
+          placeholder='Search items...' className='input-terminal text-xs py-1.5 w-52' />
+        <div className='font-mono text-xs text-muted-3'>{isLoading ? 'Loading...' : filtered.length + ' items'}</div>
+        <div className='ml-auto flex gap-2'>
+          <button onClick={() => refetch()} className='btn-terminal text-[10px] py-1'>Refresh</button>
           {portfolioId && filtered.length > 0 && (
-            <button onClick={() => filtered.forEach(i => addToPortfolio(i))}
-              className="btn-primary text-xs py-1.5">Import All</button>
+            <button onClick={() => filtered.forEach(i => addOne(i))} className='btn-primary text-xs py-1.5'>Import All</button>
           )}
         </div>
       </div>
-      {/* Grid */}
-      <div className="flex-1 overflow-y-auto">
-        {isLoading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {Array.from({ length: 24 }).map((_, i) => <div key={i} className="h-44 skeleton rounded" />)}
-          </div>
-        )}
-        {error && (
-          <div className="panel p-8 text-center">
-            <p className="font-mono text-sm text-red mb-2">Failed to load inventory</p>
-            <p className="font-mono text-xs text-muted-3">{(error as Error).message}</p>
-            <p className="font-mono text-[10px] text-muted-4 mt-3">Make sure your Steam inventory is set to Public in Steam Privacy Settings.</p>
-          </div>
-        )}
-        {!isLoading && !error && filtered.length === 0 && <div className="panel p-8 text-center"><p>No items</p></div>}
+      <div className='flex-1 overflow-y-auto'>
+        {isLoading && <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>{Array.from({length:24}).map((_,i)=><div key={i} className='h-44 skeleton rounded'/>)}</div>}
+        {error && <div className='panel p-8 text-center'><p className='font-mono text-sm text-red mb-2'>Failed to load</p><p className='font-mono text-xs text-muted-3'>{(error as Error).message}</p><p className='font-mono text-[10px] text-muted-4 mt-2'>Make sure your Steam inventory is Public.</p></div>}
+        {!isLoading && !error && filtered.length === 0 && <div className='panel p-8 text-center'><p className='font-mono text-sm text-muted-2'>No items found</p></div>}
         {!isLoading && !error && filtered.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>
             {filtered.map((item: PricedItem) => {
-              const condition = getCondition(item.market_hash_name)
-              const isImported = imported.has(item.assetid)
-              const isImporting = importing.has(item.assetid)
-              const baseName = item.market_hash_name.replace(/ \([^)]+\)$/, '')
+              const cond = getCond(item.market_hash_name)
+              const done = imported.has(item.assetid)
+              const busy = importing.has(item.assetid)
+              const base = item.market_hash_name.replace(/ [(][^)]+[)]$/, '')
               return (
-                <div key={item.assetid} className={`panel flex flex-col transition-all ${isImported ? 'border-green/30' : ''}`}>
-                  <div className="relative bg-black/30 rounded-t p-3 flex items-center justify-center h-32">
+                <div key={item.assetid} className={`panel flex flex-col transition-all ${done ? 'border-green/30' : ''}`}>
+                  <div className='relative bg-black/30 rounded-t p-3 flex items-center justify-center h-32'>
                     <img src={`https://community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/200fx150f`}
-                      alt={item.market_hash_name} className="h-24 object-contain"
-                      onError={(e: React.SyntheticEvent<tÌ/ImageElement>) => { e.currentTarget.style.display = 'none' }} />
-                    {!item.marketable && <div className="absolute top-1 right-1 font-mono text-[8px] bg-red/20 text-red px-1 rounded">NOT TRADABLE</div>}
-                    {isImported && <div className="absolute top-1 left-1 font-mono text-[8px] bg-green/20 text-green px-1 rounded">ADDED</div>}
+                      alt={item.market_hash_name} className='h-24 object-contain'
+                      onError={e => { (e.currentTarget as HTMLImageElement).style.display='none' }} />
+                    {!item.marketable && <div className='absolute top-1 right-1 font-mono text-[8px] bg-red/20 text-red px-1 rounded'>NOT TRADABLE</div>}
+                    {done && <div className='absolute top-1 left-1 font-mono text-[8px] bg-green/20 text-green px-1 rounded'>ADDED</div>}
                   </div>
-                  <div className="p-2.5 flex flex-col flex-1">
-                    <div className="font-mono text-[10px] font-bold text-[var(--text)] truncate mb-0.5">{baseName}</div>
-                    {condition && <div className="font-mono text-[9px] text-muted-3 mb-1">{condition}</div>}
-                    <div className="font-mono text-sm font-bold text-green mt-auto mb-2">
-                      {item.price_usd ? fmt$(item.price_usd) : '--'}
-                    </div>
+                  <div className='p-2.5 flex flex-col flex-1'>
+                    <div className='font-mono text-[10px] font-bold text-[var(--text)] truncate mb-0.5'>{base}</div>
+                    {cond && <div className='font-mono text-[9px] text-muted-3 mb-1'>{cond}</div>}
+                    <div className='font-mono text-sm font-bold text-green mt-auto mb-2'>{item.price_usd ? fmt$(item.price_usd) : '--'}</div>
                     {portfolioId && (
-                      <button onClick={() => addToPortfolio(item)} disabled={isImporting || isImported}
-                        className={`font-mono text-[10px] py-1 rounded border w-full transition-all ${
-                          isImported ? 'border-green/30 text-green bg-green/10'
-                          : 'border-terminal-border text-muted-2 hover:border-green/30 hover:text-green hover:bg-green/5'
-                        }`}>
-                        {isImporting ? '...' : isImported ? 'Added' : '+ Portfolio'}
+                      <button onClick={() => addOne(item)} disabled={busy || done}
+                        className={`font-mono text-[10px] py-1 rounded border w-full transition-all ${done ? 'border-green/30 text-green bg-green/10' : 'border-terminal-border text-muted-2 hover:border-green/30 hover:text-green hover:bg-green/5'}`}>
+                        {busy ? '...' : done ? 'Added' : '+ Portfolio'}
                       </button>
                     )}
                   </div>
