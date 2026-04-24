@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   const { data, error } = await supabase.rpc('check_alerts')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ fired: data })
