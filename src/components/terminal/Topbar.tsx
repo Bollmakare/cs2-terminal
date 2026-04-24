@@ -159,7 +159,7 @@ export function TerminalTopbar({ userId }: TopbarProps) {
     if (refreshing) return
     setRefreshing(true)
     try {
-      const supabase = createClient()
+      const supabase = await createClient()
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/prices/refresh', {
         method: 'POST',
