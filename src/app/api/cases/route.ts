@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   const { data: cases } = await supabase.from('cases_data').select('id, market_hash_name, ev_total, key_price_usd')
   if (!cases?.length) return NextResponse.json({ updated: 0 })
 
