@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { fetchInventory } from '@/lib/api/steam'
+import { getSteamInventory } from '@/lib/api/steam'
 
 export async function GET(req: NextRequest) {
   const supabase = createClient()
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   if (!steamId) return NextResponse.json({ error: 'steam_id required' }, { status: 400 })
 
   try {
-    const items = await fetchInventory(steamId)
+    const items = await getSteamInventory(steamId)
     return NextResponse.json({ items, count: items.length, steam_id: steamId })
   } catch (err) {
     const msg = err.message
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   const { data: pf } = await supabase.from('portfolios').select('id').eq('id', portfolio_id).eq('user_id', user.id).single()
   if (!pf) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
 
-  const items = selItems ?? await fetchInventory(steam_id)
+  const items = selItems ?? await getSteamInventory(steam_id)
   const today = new Date().toISOString().slice(0, 10)
   const slug = (name) => name.toLowerCase().replace(/[|]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
   const rows = items.filter(it => it.marketable).map(it => ({ portfolio_id, user_id: user.id, item_id: slug(it.market_hash_name), item_name: it.item_name, item_condition: it.condition, item_category: it.category, is_stattrak: it.is_stattrak, quantity: 1, cost_basis: 0, acquired_at: today, steam_asset_id: it.asset_id }))
