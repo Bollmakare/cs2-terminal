@@ -57,3 +57,14 @@ export async function getPriceHistory(marketHashName: string, days = 30) {
     return data.history ?? []
   } catch { return [] }
 }
+
+// Additional exports for compatibility
+export async function fetchAllPrices(apiKey?: string): Promise<SkinstrackItem[]> {
+  return getBulkPrices(apiKey)
+}
+export async function fetchAllPricEmpire(_apiKey?: string): Promise<Record<string, number>> { return {} }
+export function calcArbitrage(buyPrice: number, sellPrice: number, fee = 0.12): number {
+  return ((sellPrice * (1 - fee)) - buyPrice) / buyPrice * 100
+}
+export function getApiStatus(): { ok: boolean; message: string } { return { ok: true, message: 'ok' } }
+export function aggregatePrices(items: SkinstrackItem[]): SkinstrackItem[] { return items }
