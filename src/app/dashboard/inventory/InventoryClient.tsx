@@ -70,7 +70,7 @@ export function InventoryClient({ steamId, portfolioId }: { steamId: string | nu
       </div>
       <div className='flex-1 overflow-y-auto'>
         {isLoading && <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 p-1'>{Array.from({length:20}).map((_,i)=><div key={i} className='h-44 skeleton rounded'/>)}</div>}
-        {error && <div className='panel p-8 text-center'><p className='font-mono text-sm text-red mb-2'>Failed to load inventory</p><p className='font-mono text-xs text-muted-3 mt-1'>{(error as Error).message}</p>{(error as Error).message?.toLowerCase().includes('private') && <p className='font-mono text-[10px] text-amber mt-3'>Go to Steam -> Edit Profile -> Privacy Settings -> set Game details and Inventory to Public</p>}</div>}
+        {error && <div className='panel p-8 text-center'><p className='font-mono text-sm text-red mb-2'>Failed to load inventory</p><p className='font-mono text-xs text-muted-3 mt-1'>{(error as Error).message}</p>{(error as Error).message?.toLowerCase().includes('private') && <p className='font-mono text-[10px] text-amber mt-3'>Go to Steam &rarr; Edit Profile &rarr; Privacy Settings &rarr; set Game details and Inventory to Public</p>}</div>}
         {!isLoading && !error && filtered.length === 0 && <div className='panel p-8 text-center'><p className='font-mono text-sm text-muted-2'>No CS2 items found</p></div>}
         {!isLoading && !error && filtered.length > 0 && (
           <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 p-1'>
