@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { PortfolioClient } from './PortfolioClient'
 
 export default async function PortfolioPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
