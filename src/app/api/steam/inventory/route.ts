@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getSteamInventory } from '@/lib/api/steam'
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
@@ -11,30 +10,75 @@ export async function GET(req: NextRequest) {
   if (!steamId) return NextResponse.json({ error: 'steam_id required' }, { status: 400 })
 
   try {
-    const items = await getSteamInventory(steamId)
+    // Fetch from Steam Community inventory API (no key needed, must be public)
+    let allAssets: Record<string, string>[] = []
+    let allDescriptions: Record<string, unknown>[] = []
+    let lastAssetId: string | undefined
+    let more = true
+
+    while (more) {
+      const url = `https://steamcommunity.com/inventory/${steamId}/730/2?l=english&count=5000${lastAssetId ? '&start_assetid=' + lastAssetId : ''}`
+      const res = await fetch(url, { headers: { 'User-Agent': 'CS2-Terminal/1.0' }, next: { revalidate: 60 } })
+
+      if (res.status === 403) return NextResponse.json({ error: 'Inventory is private. Set it to Public in Steam Privacy Settings.', code: 'PRIVATE' }, { status: 400 })
+      if (!res.ok) return NextResponse.json({ error: 'Steam API error: ' + res.status, code: 'ERROR' }, { status: 400 })
+
+      const data = await res.json()
+      if (!data.assets || !data.descriptions) break
+
+      allAssets = [...allAssets, ...data.assets]
+      allDescriptions = [...allDescriptions, ...data.descriptions]
+
+      if (data.more && data.last_assetid) {
+        lastAssetId = data.last_assetid
+      } else {
+        more = false
+      }
+    }
+
+    // Build a lookup map from classid+instanceid -> description
+    const descMap = new Map<string, Record<string, unknown>>()
+    for (const d of allDescriptions) {
+      const key = `${d.classid}_${d.instanceid}`
+      descMap.set(key, d)
+    }
+
+    // Get prices from our items table
+    const marketNames = [...new Set(allDescriptions
+      .filter((d: Record<string, unknown>) => d.marketable === 1)
+      .map((d: Record<string, unknown>) => d.market_hash_name as string)
+    )]
+
+    const { data: prices } = await supabase
+      .from('items')
+      .select('id, market_hash_name, price_usd')
+      .in('market_hash_name', marketNames.slice(0, 500))
+
+    const priceMap = new Map<string, { id: string; price_usd: number | null }>()
+    for (const p of (prices || [])) {
+      priceMap.set(p.market_hash_name, { id: p.id, price_usd: p.price_usd })
+    }
+
+    // Merge assets with descriptions and prices
+    const items = allAssets.map((asset: Record<string, string>) => {
+      const desc = descMap.get(`${asset.classid}_${asset.instanceid}`) as Record<string, unknown> | undefined
+      if (!desc || !desc.market_hash_name) return null
+      const price = priceMap.get(desc.market_hash_name as string)
+      return {
+        assetid: asset.assetid,
+        market_hash_name: desc.market_hash_name,
+        icon_url: desc.icon_url,
+        tradable: desc.tradable,
+        marketable: desc.marketable,
+        tags: desc.tags,
+        price_usd: price?.price_usd ?? null,
+        item_id: price?.id ?? null,
+      }
+    }).filter(Boolean)
+
     return NextResponse.json({ items, count: items.length, steam_id: steamId })
-  } catch (err) {
-    const msg = err.message
-    return NextResponse.json({ error: msg, code: msg.includes('429') ? 'RATE_LIMITED' : msg.includes('private') ? 'PRIVATE' : 'ERROR' }, { status: msg.includes('429') ? 429 : 400 })
+  } catch (err: unknown) {
+    const msg = (err as Error).message || 'Unknown error'
+    return NextResponse.json({ error: msg }, { status: 400 })
   }
-}
-
-export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { steam_id, portfolio_id, items: selItems } = await req.json()
-  if (!steam_id || !portfolio_id) return NextResponse.json({ error: 'steam_id and portfolio_id required' }, { status: 400 })
-
-  const { data: pf } = await supabase.from('portfolios').select('id').eq('id', portfolio_id).eq('user_id', user.id).single()
-  if (!pf) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
-
-  const items = selItems ?? await getSteamInventory(steam_id)
-  const today = new Date().toISOString().slice(0, 10)
-  const slug = (name) => name.toLowerCase().replace(/[|]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-  const rows = items.filter(it => it.marketable).map(it => ({ portfolio_id, user_id: user.id, item_id: slug(it.market_hash_name), item_name: it.item_name, item_condition: it.condition, item_category: it.category, is_stattrak: it.is_stattrak, quantity: 1, cost_basis: 0, acquired_at: today, steam_asset_id: it.asset_id }))
-  const { data: ins, error } = await supabase.from('holdings').insert(rows).select('id')
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ imported: ins?.length ?? 0, total: items.length })
 }
