@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-   CS2 TERMINAL â Design System
-   Aesthetic: Bloomberg terminal Ã cyberpunk Ã precision finance
-   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   CS2 TERMINAL --- Design System
+   Aesthetic: Bloomberg terminal -- cyberpunk -- precision finance
+   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
 @layer base {
   :root {
-    /* ââ Core terminal palette ââ */
+    /* ------ Core terminal palette ------ */
     --bg:          #0a0a0a;
     --bg-2:        #0f0f0f;
     --surface:     #111111;
@@ -20,13 +20,13 @@
     --border-3:    #333333;
     --muted:       #2a2a2a;
 
-    /* ââ Text ââ */
+    /* ------ Text ------ */
     --text:        #e8e8e8;
     --text-2:      #888888;
     --text-3:      #555555;
     --text-4:      #333333;
 
-    /* ââ Signal colors ââ */
+    /* ------ Signal colors ------ */
     --green:       #00ff88;
     --green-dim:   #00cc6a;
     --green-soft:  rgba(0,255,136,0.09);
@@ -41,7 +41,7 @@
     --blue:        #3b82f6;
     --blue-soft:   rgba(59,130,246,0.09);
 
-    /* ââ Category rails ââ */
+    /* ------ Category rails ------ */
     --cat-knife:   #f97316;
     --cat-rifle:   #60a5fa;
     --cat-sniper:  #a78bfa;
@@ -51,19 +51,19 @@
     --cat-sticker: #94a3b8;
     --cat-other:   #6b7280;
 
-    /* ââ Verdict colors ââ */
+    /* ------ Verdict colors ------ */
     --verdict-strong-buy: #00ff88;
     --verdict-buy:        #4ade80;
     --verdict-watch:      #f59e0b;
     --verdict-fair:       #888888;
     --verdict-avoid:      #ff3355;
 
-    /* ââ Typography âââ */
+    /* ------ Typography --------- */
     --font-mono:    'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
     --font-sans:    'Geist', -apple-system, 'SF Pro Text', system-ui, sans-serif;
     --font-display: 'Instrument Serif', 'Times New Roman', serif;
 
-    /* ââ Radius ââ */
+    /* ------ Radius ------ */
     --r-xs:  2px;
     --r-sm:  4px;
     --r:     6px;
@@ -106,7 +106,7 @@
     font-size: 13px;
     line-height: 1.5;
     letter-spacing: -0.003em;
-    /* CRT scanline effect â subtle */
+    /* CRT scanline effect --- subtle */
     background-image: repeating-linear-gradient(
       0deg,
       transparent,
@@ -138,7 +138,7 @@
 }
 
 @layer components {
-  /* ââ Terminal panel ââ */
+  /* ------ Terminal panel ------ */
   .panel {
     @apply bg-terminal-surface border border-terminal-border rounded;
     position: relative;
@@ -152,7 +152,7 @@
     pointer-events: none;
   }
 
-  /* ââ Panel header ââ */
+  /* ------ Panel header ------ */
   .panel-header {
     @apply flex items-center justify-between px-3 py-2 border-b border-terminal-border;
     background: rgba(0,0,0,0.3);
@@ -168,7 +168,7 @@
     letter-spacing: 0.12em;
   }
 
-  /* ââ KPI value display ââ */
+  /* ------ KPI value display ------ */
   .kpi-value {
     @apply font-mono font-bold tabular-nums;
     font-size: 22px;
@@ -181,12 +181,12 @@
     letter-spacing: 0.15em;
   }
 
-  /* ââ Up / Down ââ */
+  /* ------ Up / Down ------ */
   .up   { color: var(--green); }
   .down { color: var(--red); }
   .muted { color: var(--text-2); }
 
-  /* ââ Terminal button ââ */
+  /* ------ Terminal button ------ */
   .btn-terminal {
     @apply inline-flex items-center gap-2 px-3 py-1.5 rounded font-mono text-xs font-medium;
     @apply border border-terminal-border-2 bg-terminal-muted;
@@ -223,7 +223,7 @@
   }
   .btn-danger:hover { filter: brightness(1.1); }
 
-  /* ââ Verdict badges ââ */
+  /* ------ Verdict badges ------ */
   .verdict-badge {
     @apply inline-flex items-center px-2 py-0.5 rounded-sm font-mono text-[10px] font-bold tracking-wider uppercase;
   }
@@ -233,7 +233,7 @@
   .verdict-fair       { background: rgba(136,136,136,0.1); color: var(--text-2); border: 1px solid var(--border-2); }
   .verdict-avoid      { background: var(--red-soft);       color: var(--red);    border: 1px solid rgba(255,51,85,0.3); }
 
-  /* ââ Score bar ââ */
+  /* ------ Score bar ------ */
   .score-bar {
     @apply relative h-1 rounded-full overflow-hidden;
     background: var(--surface-3);
@@ -242,7 +242,7 @@
     @apply absolute inset-y-0 left-0 rounded-full transition-all duration-500;
   }
 
-  /* ââ Terminal table ââ */
+  /* ------ Terminal table ------ */
   .term-table { @apply w-full border-collapse; }
   .term-table th {
     @apply px-3 py-2 text-left font-mono text-[9px] uppercase tracking-widest border-b border-terminal-border;
@@ -254,8 +254,8 @@
     background: rgba(0,0,0,0.3);
   }
   .term-table th:hover { color: var(--text-2); }
-  .term-table th.sort-asc::after  { content: ' â'; color: var(--green); }
-  .term-table th.sort-desc::after { content: ' â'; color: var(--green); }
+  .term-table th.sort-asc::after  { content: ' ---'; color: var(--green); }
+  .term-table th.sort-desc::after { content: ' ---'; color: var(--green); }
   .term-table td {
     @apply px-3 py-2.5 border-b border-terminal-border;
     font-size: 12px;
@@ -266,7 +266,7 @@
   .term-table tbody tr:last-child td { border-bottom: none; }
   .term-num { @apply text-right font-mono tabular-nums; }
 
-  /* ââ Skeleton shimmer ââ */
+  /* ------ Skeleton shimmer ------ */
   .skeleton {
     background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
     background-size: 200% 100%;
@@ -279,13 +279,13 @@
     to   { background-position: -200% 0; }
   }
 
-  /* ââ Category pill ââ */
+  /* ------ Category pill ------ */
   .cat-pill {
     @apply inline-flex items-center px-2 py-0.5 rounded-sm font-mono text-[9px] font-bold uppercase tracking-wider;
     border: 1px solid;
   }
 
-  /* ââ Signal dot ââ */
+  /* ------ Signal dot ------ */
   .signal-dot {
     @apply w-1.5 h-1.5 rounded-full flex-shrink-0;
   }
@@ -299,19 +299,19 @@
     50%       { opacity: 0.4; }
   }
 
-  /* ââ Cursor blink ââ */
+  /* ------ Cursor blink ------ */
   .cursor::after {
-    content: 'â';
+    content: '---';
     color: var(--green);
     animation: blink 1s step-end infinite;
   }
   @keyframes blink { 50% { opacity: 0; } }
 
-  /* ââ Ticker tape ââ */
+  /* ------ Ticker tape ------ */
   .ticker-wrap { @apply overflow-hidden relative; }
   .ticker-inner { @apply flex gap-8 whitespace-nowrap animate-ticker; }
 
-  /* ââ Modal ââ */
+  /* ------ Modal ------ */
   .modal-overlay {
     @apply fixed inset-0 z-50 flex items-center justify-center p-4;
     background: rgba(0,0,0,0.88);
@@ -328,7 +328,7 @@
     to   { opacity: 1; transform: scale(1) translateY(0); }
   }
 
-  /* ââ Input terminal style ââ */
+  /* ------ Input terminal style ------ */
   .input-terminal {
     @apply w-full rounded border border-terminal-border-2 bg-terminal-surface px-3 py-2;
     @apply font-mono text-sm text-[var(--text)] placeholder:text-[var(--text-3)];
@@ -339,7 +339,7 @@
     box-shadow: 0 0 0 2px var(--green-soft);
   }
 
-  /* ââ Tab strip ââ */
+  /* ------ Tab strip ------ */
   .tab-strip {
     @apply flex border-b border-terminal-border;
     background: rgba(0,0,0,0.3);
