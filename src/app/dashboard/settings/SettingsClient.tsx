@@ -84,7 +84,7 @@ export function SettingsClient({ settings, profile, userId, userEmail }: Props) 
 
   async function handleSave() {
     setSaving(true); setError(''); setSaved(false)
-    const supabase = createClient()
+    const supabase = await createClient()
     const [r1, r2] = await Promise.all([
       supabase.from('profiles').update({
         display_name: displayName || null,
