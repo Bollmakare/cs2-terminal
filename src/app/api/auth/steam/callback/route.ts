@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     } catch {}
   }
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   const { data: ep } = await supabase.from('profiles').select('id').eq('steam_id', steamId).single()
   let userId
 
