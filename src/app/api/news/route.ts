@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
   let inserted = 0
 
   const RSS_FEEDS = [{ url: 'https://store.steampowered.com/feeds/news/app/730/?cc=US&l=english', source: 'valve_blog' }]
