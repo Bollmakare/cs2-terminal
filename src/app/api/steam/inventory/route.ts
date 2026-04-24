@@ -10,41 +10,35 @@ export async function GET(req: NextRequest) {
   if (!steamId) return NextResponse.json({ error: 'steam_id required' }, { status: 400 })
 
   const apiKey = process.env.STEAM_API_KEY
+  if (!apiKey) {
+    return NextResponse.json({
+      error: 'STEAM_API_KEY not configured. Get a free key at https://steamcommunity.com/dev/apikey and add it to Vercel.',
+      code: 'NO_API_KEY'
+    }, { status: 503 })
+  }
 
   try {
-    let url: string
-    let data: Record<string, unknown>
+    const res = await fetch(
+      `https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/?steamid=${steamId}&appid=730&contextid=2&count=5000&key=${apiKey}`,
+      { headers: { 'User-Agent': 'Valve/Steam HTTP Client 1.0' } }
+    )
 
-    if (apiKey) {
-      // Use official Steam Web API (more reliable, bypasses IP blocks)
-      const res = await fetch(
-        `https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/?steamid=${steamId}&appid=730&contextid=2&count=5000&key=${apiKey}`,
-        { headers: { 'User-Agent': 'Valve/Steam HTTP Client 1.0' } }
-      )
-      if (!res.ok) throw new Error('Steam API error: ' + res.status)
-      const json = await res.json()
-      data = { assets: json.response?.assets || [], descriptions: json.response?.descriptions || [] }
-    } else {
-      // Fallback: Steam Community API
-      const res = await fetch(
-        `https://steamcommunity.com/inventory/${steamId}/730/2?l=english&count=5000`,
-        { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CS2Terminal/1.0)' } }
-      )
-      if (res.status === 403) return NextResponse.json({ error: 'Inventory is private. Set to Public in Steam Privacy Settings.', code: 'PRIVATE' }, { status: 400 })
-      if (!res.ok) throw new Error('Steam returned ' + res.status)
-      data = await res.json()
+    if (res.status === 403) {
+      return NextResponse.json({ error: 'Inventory is private. Set to Public in Steam Privacy Settings.', code: 'PRIVATE' }, { status: 400 })
+    }
+    if (!res.ok) {
+      return NextResponse.json({ error: 'Steam API error: ' + res.status }, { status: 400 })
     }
 
-    const assets = (data.assets as Record<string, string>[]) || []
-    const descriptions = (data.descriptions as Record<string, unknown>[]) || []
+    const json = await res.json()
+    const assets: Record<string, string>[] = json.response?.assets || []
+    const descriptions: Record<string, unknown>[] = json.response?.descriptions || []
 
     if (!assets.length) return NextResponse.json({ items: [], count: 0, steam_id: steamId })
 
-    // Build description lookup
     const descMap = new Map<string, Record<string, unknown>>()
     for (const d of descriptions) descMap.set(`${d.classid}_${d.instanceid}`, d)
 
-    // Get marketable item names for price lookup
     const marketNames = [...new Set(
       assets.map(a => {
         const d = descMap.get(`${a.classid}_${a.instanceid}`)
@@ -52,7 +46,6 @@ export async function GET(req: NextRequest) {
       }).filter(Boolean) as string[]
     )]
 
-    // Look up prices from our DB
     const { data: prices } = await supabase
       .from('items')
       .select('id, market_hash_name, price_usd')
@@ -61,7 +54,6 @@ export async function GET(req: NextRequest) {
     const priceMap = new Map<string, { id: string; price_usd: number | null }>()
     for (const p of (prices || [])) priceMap.set(p.market_hash_name, { id: p.id, price_usd: p.price_usd })
 
-    // Merge
     const items = assets.map(asset => {
       const desc = descMap.get(`${asset.classid}_${asset.instanceid}`)
       if (!desc?.market_hash_name) return null
@@ -80,6 +72,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ items, count: items.length, steam_id: steamId })
   } catch (err: unknown) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 400 })
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 })
   }
 }
