@@ -33,3 +33,8 @@ export async function getSinglePrice(marketHashName: string): Promise<PriceEmpir
   const result = await getPrices([marketHashName])
   return result[marketHashName] ?? null
 }
+
+
+// Compatibility exports
+export async function fetchAllPricEmpire(_apiKey?: string): Promise<Record<string, number>> { return {} }
+export function aggregatePrices<T>(items: T[]): T[] { return items }
