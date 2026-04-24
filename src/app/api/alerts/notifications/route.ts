@@ -34,12 +34,12 @@ export async function PATCH(req: NextRequest) {
   const { id, mark_all_read } = await req.json()
 
   if (mark_all_read) {
-    await supabase.from('alert_notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false)
+    await supabase.from('alert_notifications').update({ is_read: true } as any).eq('user_id', user.id).eq('is_read', false)
     return NextResponse.json({ success: true })
   }
 
   if (id) {
-    await supabase.from('alert_notifications').update({ is_read: true }).eq('id', id).eq('user_id', user.id)
+    await supabase.from('alert_notifications').update({ is_read: true } as any).eq('id', id).eq('user_id', user.id)
     return NextResponse.json({ success: true })
   }
 
