@@ -5,7 +5,7 @@ import { DashboardClient } from './DashboardClient'
 export const revalidate = 60 // ISR every 60s
 
 export default async function DashboardPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
