@@ -43,3 +43,19 @@ export function calcRoi(costBasis: number, proceeds: number): number {
   if (costBasis === 0) return 0
   return ((proceeds - costBasis) / costBasis) * 100
 }
+
+// Additional exports for compatibility
+export const fmt$ = (v: number | null | undefined, opts?: { sign?: boolean }): string => {
+  if (v == null) return '--'
+  const abs = Math.abs(v)
+  const str = abs >= 1000 ? '$' + (abs/1000).toFixed(1) + 'k' : '$' + abs.toFixed(2)
+  return opts?.sign ? (v >= 0 ? '+' : '-') + str : (v < 0 ? '-' : '') + str
+}
+export const fmtPct = (v: number | null | undefined): string => v == null ? '--' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%'
+export const CAT_COLOR: Record<string, string> = {
+  rifle: '#4ade80', sniper: '#60a5fa', pistol: '#f59e0b',
+  knife: '#a855f7', gloves: '#ec4899', case: '#94a3b8', other: '#6b7280',
+}
+export const skinImg = (name: string, sz = 128) => 'https://community.cloudflare.steamstatic.com/economy/image/' + encodeURIComponent(name) + '/' + sz + 'fx' + sz + 'f'
+export const verdictClass = (v: string) => ({ 'Strong Buy': 'text-green', Buy: 'text-green', Watch: 'text-amber', Fair: 'text-muted-2', Avoid: 'text-red' }[v] ?? 'text-muted-3')
+export const scoreColor = (score: number) => score >= 70 ? 'var(--green)' : score >= 40 ? 'var(--amber)' : 'var(--red)'
