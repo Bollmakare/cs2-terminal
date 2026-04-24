@@ -26,3 +26,6 @@ export async function createClient() {
     }
   )
 }
+
+
+export const createServiceClient = () => createClient();
