@@ -13,7 +13,7 @@ function useTxns(portfolioId: string) {
   return useQuery({
     queryKey: ['transactions', portfolioId],
     queryFn: async () => {
-      const supabase = createClient()
+      const supabase = await createClient()
       const { data } = await supabase
         .from('transactions')
         .select('*')
