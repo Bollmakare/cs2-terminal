@@ -24,7 +24,7 @@ export function InventoryHub({ steamId, portfolioId }: Props) {
     return (
       <div className='flex flex-col h-[calc(100vh-88px)]'>
         <div className='flex items-center gap-3 px-4 py-2 flex-shrink-0'>
-          <button onClick={() => setShowSteam(false)} className='font-mono text-[10px] text-muted-3 hover:text-[var(--text)] transition-colors'>
+          <button onClick={() => setShowSteam(false)} className='font-mono text-[10px] text-muted-3 hover:text-[var(--text)]'>
             &#8592; Back
           </button>
           <span className='font-mono text-[10px] text-muted-3 uppercase tracking-widest'>Steam Import</span>
@@ -38,68 +38,125 @@ export function InventoryHub({ steamId, portfolioId }: Props) {
 
   return (
     <>
-      <div className='flex flex-col h-[calc(100vh-88px)] overflow-hidden'>
-        {/* Header */}
-        <div className='panel px-4 py-3 flex-shrink-0 flex items-center justify-between flex-wrap gap-3'>
+      <div className='flex flex-col h-[calc(100vh-88px)] overflow-y-auto'>
+
+        {/* Top bar */}
+        <div className='panel px-5 py-3 flex-shrink-0 flex items-center justify-between flex-wrap gap-3'>
           <div>
-            <div className='font-mono text-[10px] text-muted-3 uppercase tracking-widest'>Inventory</div>
-            <div className='font-mono text-xs text-muted-2'>Add CS2 skins to your portfolio</div>
+            <div className='font-mono text-[10px] text-muted-3 uppercase tracking-widest'>Steam Inventory</div>
+            <div className='font-mono text-xs text-muted-2'>Import your CS2 skins into the portfolio tracker</div>
           </div>
-          <div className='flex gap-2 flex-wrap'>
-            <button onClick={() => setShowBrowserImport(true)} className='btn-terminal text-[10px] py-1.5 px-3'>
-              &#x1F4E6; Import from Browser
-            </button>
-            {steamId && (
-              <button onClick={() => setShowSteam(true)} className='btn-terminal text-[10px] py-1.5 px-3'>
-                &#x2B07; Steam Import
-              </button>
-            )}
-            <button onClick={() => setShowManual(true)} className='btn-primary text-xs py-1.5 px-4'>
-              + Add Manually
-            </button>
+          <div className='flex gap-2'>
+            <button onClick={() => setShowManual(true)} className='btn-terminal text-[10px] py-1.5 px-3'>+ Add Manually</button>
+            {steamId && <button onClick={() => setShowSteam(true)} className='btn-terminal text-[10px] py-1.5 px-3'>Steam API</button>}
           </div>
         </div>
 
-        {/* Main content */}
-        <div className='flex-1 flex items-center justify-center p-8'>
-          <div className='panel p-10 max-w-lg w-full flex flex-col items-center gap-6 text-center'>
-            <div className='font-mono text-4xl text-muted-4'>&#x25A1;</div>
-            <div>
-              <div className='font-mono text-sm text-[var(--text)] mb-2'>Add skins to your portfolio</div>
-              <div className='font-mono text-xs text-muted-3 leading-relaxed'>
-                Three ways to add your CS2 items:
+        {/* Hero instruction block */}
+        <div className='flex-1 flex flex-col items-center justify-center px-6 py-10 gap-8'>
+
+          {/* Title */}
+          <div className='text-center'>
+            <div className='font-mono text-[10px] uppercase tracking-[0.3em] text-green mb-2'>How to import your inventory</div>
+            <div className='font-mono text-2xl font-bold text-[var(--text)]'>3 steps. Takes 30 seconds.</div>
+          </div>
+
+          {/* Steps */}
+          <div className='flex flex-col md:flex-row items-center justify-center gap-0 w-full max-w-3xl'>
+
+            {/* Step 1 */}
+            <div className='flex flex-col items-center gap-3 flex-1 p-5'>
+              <div className='w-16 h-16 rounded-full border-2 border-green/60 flex items-center justify-center bg-green/10 flex-shrink-0'>
+                <span className='font-mono text-2xl font-black text-green'>1</span>
               </div>
+              <div className='font-mono text-xs font-bold text-[var(--text)] text-center'>Open Steam Inventory</div>
+              <div className='font-mono text-[10px] text-muted-3 text-center leading-relaxed'>
+                Go to your Steam profile<br/>click <span className='text-[var(--text)]'>Inventory</span> → switch to <span className='text-[var(--text)]'>CS2</span>
+              </div>
+              <code className='font-mono text-[9px] text-amber bg-black/30 px-2 py-1 rounded break-all text-center'>
+                steamcommunity.com/id/YOU/inventory
+              </code>
             </div>
 
-            <div className='flex flex-col gap-3 w-full'>
-              {/* Browser import — primary for most users */}
-              <button onClick={() => setShowBrowserImport(true)} className='btn-terminal text-sm py-3 w-full flex items-center justify-center gap-2'>
-                <span>&#x1F4E6;</span>
-                <span>Import from Browser / CS2 Trader</span>
-              </button>
-              <div className='font-mono text-[10px] text-muted-4 -mt-2'>
-                Works with CS2 Trader extension, or any Steam inventory page
-              </div>
+            {/* Arrow */}
+            <div className='font-mono text-3xl text-muted-4 px-2 rotate-90 md:rotate-0 flex-shrink-0'>&#10230;</div>
 
-              <button onClick={() => setShowManual(true)} className='btn-primary text-sm py-3 w-full'>
-                + Add Manually
-              </button>
-              <div className='font-mono text-[10px] text-muted-4 -mt-2'>
-                Search any CS2 item by name and add with your buy price
+            {/* Step 2 */}
+            <div className='flex flex-col items-center gap-3 flex-1 p-5'>
+              <div className='w-16 h-16 rounded-full border-2 border-green/60 flex items-center justify-center bg-green/10 flex-shrink-0'>
+                <span className='font-mono text-2xl font-black text-green'>2</span>
               </div>
+              <div className='font-mono text-xs font-bold text-[var(--text)] text-center'>Copy Inventory URL</div>
+              <div className='font-mono text-[10px] text-muted-3 text-center leading-relaxed'>
+                In the address bar, change the URL to the JSON endpoint and copy the page
+              </div>
+              <code className='font-mono text-[9px] text-amber bg-black/30 px-2 py-1 rounded break-all text-center'>
+                steamcommunity.com/inventory/<span className='text-green'>STEAMID</span>/730/2
+              </code>
+            </div>
 
-              {steamId && (
-                <>
-                  <button onClick={() => setShowSteam(true)} className='btn-terminal text-sm py-3 w-full opacity-60'>
-                    &#x2B07; Steam API Import (requires Steam API key)
-                  </button>
-                  <div className='font-mono text-[10px] text-muted-4 -mt-2'>
-                    Needs STEAM_API_KEY in Vercel settings
-                  </div>
-                </>
-              )}
+            {/* Arrow */}
+            <div className='font-mono text-3xl text-muted-4 px-2 rotate-90 md:rotate-0 flex-shrink-0'>&#10230;</div>
+
+            {/* Step 3 */}
+            <div className='flex flex-col items-center gap-3 flex-1 p-5'>
+              <div className='w-16 h-16 rounded-full border-2 border-green/60 flex items-center justify-center bg-green/10 flex-shrink-0'>
+                <span className='font-mono text-2xl font-black text-green'>3</span>
+              </div>
+              <div className='font-mono text-xs font-bold text-[var(--text)] text-center'>Paste Here</div>
+              <div className='font-mono text-[10px] text-muted-3 text-center leading-relaxed'>
+                Select all (Ctrl+A), copy (Ctrl+C),<br/>then click the button below and paste
+              </div>
+              <div className='font-mono text-[9px] text-muted-4 text-center'>Items added with current market prices</div>
+            </div>
+
+          </div>
+
+          {/* Big CTA */}
+          <button
+            onClick={() => setShowBrowserImport(true)}
+            className='btn-primary text-base py-4 px-12 font-bold tracking-wide flex items-center gap-3'
+          >
+            <span className='text-xl'>&#x1F4E6;</span>
+            Import My Inventory
+          </button>
+
+          {/* Divider */}
+          <div className='flex items-center gap-4 w-full max-w-sm'>
+            <div className='flex-1 h-px bg-terminal-border' />
+            <span className='font-mono text-[9px] text-muted-4 uppercase tracking-widest'>or</span>
+            <div className='flex-1 h-px bg-terminal-border' />
+          </div>
+
+          {/* Secondary options */}
+          <div className='flex flex-col sm:flex-row gap-3 w-full max-w-sm'>
+            <button
+              onClick={() => setShowManual(true)}
+              className='btn-terminal text-xs py-2.5 flex-1 flex items-center justify-center gap-2'
+            >
+              <span>&#x270F;</span> Add item manually
+            </button>
+            {steamId && (
+              <button
+                onClick={() => setShowSteam(true)}
+                className='btn-terminal text-xs py-2.5 flex-1 flex items-center justify-center gap-2 opacity-50'
+              >
+                <span>&#x2B07;</span> Steam API (needs key)
+              </button>
+            )}
+          </div>
+
+          {/* CS2 Trader note */}
+          <div className='panel px-4 py-3 max-w-md w-full flex items-start gap-3'>
+            <span className='text-lg flex-shrink-0'>&#x1F9E9;</span>
+            <div>
+              <div className='font-mono text-[10px] font-bold text-[var(--text)] mb-0.5'>Using CS2 Trader / CSGO Trader extension?</div>
+              <div className='font-mono text-[10px] text-muted-3 leading-relaxed'>
+                Click <span className='text-[var(--text)]'>Import My Inventory</span> above &#x2192; use the bookmarklet option. Drag the button to your bookmarks bar, click it on your Steam inventory page &#x2014; done.
+              </div>
             </div>
           </div>
+
         </div>
       </div>
 
