@@ -21,7 +21,7 @@ interface Props {
 type SortCol = 'name' | 'value' | 'cost' | 'pnl' | 'pnl_pct' | 'days' | 'qty'
 type View    = 'holdings' | 'allocation' | 'steam'
 
-// ── Data hook ─────────────────────────────────────────────
+// ââ Data hook âââââââââââââââââââââââââââââââââââââââââââââ
 function useHoldings(portfolioId: string) {
   return useQuery({
     queryKey: ['holdings', portfolioId],
@@ -34,7 +34,7 @@ function useHoldings(portfolioId: string) {
   })
 }
 
-// ── Sell modal ────────────────────────────────────────────
+// ââ Sell modal ââââââââââââââââââââââââââââââââââââââââââââ
 function SellModal({
   holding,
   fees,
@@ -102,7 +102,7 @@ function SellModal({
       <div className="modal-box w-full max-w-md">
         <div className="panel-header px-5 py-4">
           <span className="font-mono font-bold text-sm text-[var(--text)]">SELL POSITION</span>
-          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">✕</button>
+          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">â</button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -113,7 +113,7 @@ function SellModal({
             <div>
               <div className="font-mono text-sm font-bold text-[var(--text)]">{holding.item_name}</div>
               <div className="font-mono text-xs text-muted-3 mt-0.5">
-                {holding.item_condition ?? '—'} · ×{holding.quantity} held · cost {fmt$(holding.cost_basis)}/unit
+                {holding.item_condition ?? 'â'} Â· Ã{holding.quantity} held Â· cost {fmt$(holding.cost_basis)}/unit
               </div>
             </div>
           </div>
@@ -162,7 +162,7 @@ function SellModal({
             </div>
             <div className="flex justify-between font-mono text-xs">
               <span className="text-muted-3">Fee ({feePct}%)</span>
-              <span className="text-red">−{fmt$(feeAmount)}</span>
+              <span className="text-red">â{fmt$(feeAmount)}</span>
             </div>
             <div className="flex justify-between font-mono text-xs border-t border-terminal-border pt-1.5">
               <span className="text-muted-3">Net proceeds</span>
@@ -190,7 +190,7 @@ function SellModal({
         <div className="flex gap-3 px-5 py-4 border-t border-terminal-border">
           <button onClick={onClose} className="btn-terminal flex-1 justify-center">Cancel</button>
           <button onClick={handleSell} disabled={saving} className="btn-primary flex-1 justify-center">
-            {saving ? 'Selling...' : `Sell ×${qty} →`}
+            {saving ? 'Selling...' : `Sell Ã${qty} â`}
           </button>
         </div>
       </div>
@@ -198,7 +198,7 @@ function SellModal({
   )
 }
 
-// ── Add holding drawer ────────────────────────────────────
+// ââ Add holding drawer ââââââââââââââââââââââââââââââââââââ
 function AddDrawer({
   portfolioId,
   onClose,
@@ -278,7 +278,7 @@ function AddDrawer({
 
         <div className="panel-header px-5 py-4 border-b border-terminal-border flex-shrink-0">
           <span className="font-mono font-bold text-sm text-[var(--text)]">ADD HOLDING</span>
-          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">✕</button>
+          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">â</button>
         </div>
 
         {/* Mode tabs */}
@@ -315,7 +315,7 @@ function AddDrawer({
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       <div className="flex-1 min-w-0">
                         <div className="font-mono text-xs text-[var(--text)] truncate">{item.market_hash_name}</div>
-                        <div className="font-mono text-[9px] text-muted-3">{item.category} · {item.condition ?? 'no cond'}</div>
+                        <div className="font-mono text-[9px] text-muted-3">{item.category} Â· {item.condition ?? 'no cond'}</div>
                       </div>
                       <div className="font-mono text-xs text-muted-2 flex-shrink-0">{fmt$(item.price_usd)}</div>
                     </div>
@@ -332,11 +332,11 @@ function AddDrawer({
                   <div className="flex-1 min-w-0">
                     <div className="font-mono text-xs font-bold text-[var(--text)] truncate">{selected.market_hash_name}</div>
                     <div className="font-mono text-[9px] text-muted-3 mt-0.5">
-                      {selected.condition} · Market: {fmt$(selected.price_usd)}
+                      {selected.condition} Â· Market: {fmt$(selected.price_usd)}
                     </div>
                   </div>
                   <button onClick={() => { setSelected(null); setSearch('') }}
-                    className="text-muted-3 hover:text-red text-sm transition-colors">✕</button>
+                    className="text-muted-3 hover:text-red text-sm transition-colors">â</button>
                 </div>
               )}
 
@@ -346,7 +346,7 @@ function AddDrawer({
                   <label className="block font-mono text-[9px] uppercase tracking-widest text-muted-3 mb-1.5">Qty</label>
                   <div className="flex">
                     <button onClick={() => setQty(q => Math.max(1, q - 1))}
-                      className="w-8 h-9 border border-terminal-border-2 bg-terminal-surface font-mono text-sm flex items-center justify-center rounded-l border-r-0 hover:bg-terminal-muted transition-colors text-muted-2">−</button>
+                      className="w-8 h-9 border border-terminal-border-2 bg-terminal-surface font-mono text-sm flex items-center justify-center rounded-l border-r-0 hover:bg-terminal-muted transition-colors text-muted-2">â</button>
                     <input type="number" value={qty} min={1}
                       onChange={e => setQty(Math.max(1, parseInt(e.target.value) || 1))}
                       className="input-terminal text-center rounded-none w-full" />
@@ -408,7 +408,7 @@ function AddDrawer({
           <div className="flex gap-3 px-5 py-4 border-t border-terminal-border flex-shrink-0">
             <button onClick={onClose} className="btn-terminal flex-1 justify-center">Cancel</button>
             <button onClick={handleAdd} disabled={saving || (!selected && !search)} className="btn-primary flex-1 justify-center">
-              {saving ? 'Adding...' : 'Add to portfolio →'}
+              {saving ? 'Adding...' : 'Add to portfolio â'}
             </button>
           </div>
         )}
@@ -417,7 +417,7 @@ function AddDrawer({
   )
 }
 
-// ── Steam import panel ────────────────────────────────────
+// ââ Steam import panel ââââââââââââââââââââââââââââââââââââ
 function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; onImported: () => void }) {
   const [steamId, setSteamId]   = useState('')
   const [importing, setImporting] = useState(false)
@@ -426,35 +426,25 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
 
   async function handleImport() {
     if (!steamId.trim()) return
-    setImporting(true); setError(''); setResult(null)
-    // Fetch inventory from browser to avoid server-side Steam IP blocks
-    let inventory: any
+    setImporting(true)
+    setResult(null)
+    setImportError(null)
     try {
-      const invRes = await fetch(
-        'https://steamcommunity.com/inventory/' + steamId.trim() + '/730/2?l=english&count=5000',
-        { credentials: 'omit' }
-      )
-      if (!invRes.ok) {
-        setError('Steam returned ' + invRes.status + '. Make sure your inventory is set to Public in Steam privacy settings.')
-        setImporting(false); return
-      }
-      inventory = await invRes.json()
-    } catch (e: any) {
-      setError('Could not reach Steam: ' + (e.message ?? 'network error'))
-      setImporting(false); return
+      const res = await fetch('/api/holdings/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portfolio_id: portfolioId, steam_id: steamId.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Import failed')
+      setResult(data)
+      onImported()
+    } catch (err: any) {
+      setImportError(err.message)
+    } finally {
+      setImporting(false)
     }
-    const res = await fetch('/api/holdings/import', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ portfolio_id: portfolioId, inventory }),
-    })
-    const data = await res.json()
-    if (!res.ok) { setError(data.error ?? 'Import failed'); setImporting(false); return }
-    setImporting(false)
-    setResult(data)
-    onImported()
   }
-
   return (
     <div className="space-y-4">
       <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-xs text-blue-300">
@@ -470,7 +460,7 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
             placeholder="76561197995388346" className="input-terminal flex-1"
             style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }} />
           <button onClick={handleImport} disabled={importing || !steamId.trim()} className="btn-primary whitespace-nowrap">
-            {importing ? 'Importing…' : 'Import →'}
+            {importing ? 'Importingâ¦' : 'Import â'}
           </button>
         </div>
         <p className="font-mono text-[9px] text-muted-4 mt-1">
@@ -482,16 +472,16 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
 
       {result && (
         <div className="px-3 py-2 rounded border border-green/20 bg-green-soft font-mono text-xs text-green space-y-0.5">
-          <div>✓ {result.imported} rows imported</div>
-          <div className="text-muted-2">{result.skins} skins · {result.storage_units} storage units · {result.stackables} stackable types · {result.floats_fetched} floats fetched</div>
-          <div className="text-muted-3 mt-1">Click ↻ Prices to fetch current market prices.</div>
+          <div>â {result.imported} rows imported</div>
+          <div className="text-muted-2">{result.skins} skins Â· {result.storage_units} storage units Â· {result.stackables} stackable types Â· {result.floats_fetched} floats fetched</div>
+          <div className="text-muted-3 mt-1">Click â» Prices to fetch current market prices.</div>
         </div>
       )}
     </div>
   )
 }
 
-// ── Edit row inline ───────────────────────────────────────
+// ââ Edit row inline âââââââââââââââââââââââââââââââââââââââ
 function EditCell({ holding, onSave }: { holding: HoldingWithValue; onSave: () => void }) {
   const [qty, setQty]   = useState(String(holding.quantity))
   const [cost, setCost] = useState(holding.cost_basis.toFixed(2))
@@ -512,17 +502,17 @@ function EditCell({ holding, onSave }: { holding: HoldingWithValue; onSave: () =
     <div className="flex items-center gap-2 py-1">
       <input type="number" value={qty} min={1} onChange={e => setQty(e.target.value)}
         className="input-terminal w-16 text-center text-xs py-1" />
-      <span className="text-muted-4 text-xs">×</span>
+      <span className="text-muted-4 text-xs">Ã</span>
       <input type="number" value={cost} step="0.01" onChange={e => setCost(e.target.value)}
         className="input-terminal w-24 text-xs py-1" />
       <button onClick={save} disabled={saving} className="btn-terminal py-1 px-2 text-[10px]">
-        {saving ? '...' : '✓'}
+        {saving ? '...' : 'â'}
       </button>
     </div>
   )
 }
 
-// ── Allocation donut ──────────────────────────────────────
+// ââ Allocation donut ââââââââââââââââââââââââââââââââââââââ
 function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
   const totalValue = holdings.reduce((s, h) => s + h.total_value, 0)
 
@@ -547,7 +537,7 @@ function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
     return (
       <div className="bg-terminal-surface-2 border border-terminal-border-2 rounded p-2 shadow-lg">
         <div className="font-mono text-[11px] font-bold text-[var(--text)] capitalize">{d.cat}</div>
-        <div className="font-mono text-[11px] text-muted-2">{fmt$(d.value)} · {d.pct.toFixed(1)}%</div>
+        <div className="font-mono text-[11px] text-muted-2">{fmt$(d.value)} Â· {d.pct.toFixed(1)}%</div>
       </div>
     )
   }
@@ -590,12 +580,12 @@ function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
   )
 }
 
-// ── Main portfolio client ─────────────────────────────────
+// ââ Main portfolio client âââââââââââââââââââââââââââââââââ
 export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: Props) {
   const qc = useQueryClient()
   const { data: holdings = [], isLoading } = useHoldings(portfolioId)
 
-  // Sell signals — load once, map by holding_id for O(1) lookup in table
+  // Sell signals â load once, map by holding_id for O(1) lookup in table
   const { data: sellSignalsRaw = [] } = useQuery({
     queryKey: ['sell-signals', portfolioId],
     queryFn: async () => {
@@ -667,7 +657,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
 
   function refresh() { qc.invalidateQueries({ queryKey: ['holdings', portfolioId] }) }
 
-  // ── Refresh prices ────────────────────────────────────────
+  // ââ Refresh prices ââââââââââââââââââââââââââââââââââââââââ
   const [refreshingPrices, setRefreshingPrices] = useState(false)
   const [priceRefreshResult, setPriceRefreshResult] = useState<{ updated: number; failed: number } | null>(null)
 
@@ -687,7 +677,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
     }
   }
 
-  // ── Storage units ─────────────────────────────────────────
+  // ââ Storage units âââââââââââââââââââââââââââââââââââââââââ
   const [suOpen, setSuOpen] = useState(false)
   const [suLabels, setSuLabels] = useState<Record<string, string>>({})
   const [suEditId, setSuEditId] = useState<string | null>(null)
@@ -716,7 +706,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
       {/* KPI strip */}
       <div className="grid grid-cols-4 gap-3 flex-shrink-0">
         {[
-          { label: 'NAV', val: fmt$(totalValue), sub: `${regularHoldings.length} positions${storageUnits.length > 0 ? ` · ${storageUnits.length} units` : ''}`, col: undefined },
+          { label: 'NAV', val: fmt$(totalValue), sub: `${regularHoldings.length} positions${storageUnits.length > 0 ? ` Â· ${storageUnits.length} units` : ''}`, col: undefined },
           { label: 'Unrealized P&L', val: fmt$(unrealizedPnl, { sign: true }), sub: fmtPct(unrealizedPct), col: unrealizedPnl >= 0 ? 'var(--green)' : 'var(--red)' },
           { label: 'Cost basis', val: fmt$(totalCost), sub: 'Total invested', col: undefined },
           { label: 'Avg position', val: fmt$(regularHoldings.length > 0 ? totalValue / regularHoldings.length : 0), sub: 'per holding', col: undefined },
@@ -774,7 +764,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
               title={priceRefreshResult ? `Last: ${priceRefreshResult.updated} updated, ${priceRefreshResult.failed} failed` : 'Fetch current prices from Skinstrack'}
               className="btn-terminal text-xs py-1.5 px-3"
             >
-              {refreshingPrices ? '↻ …' : '↻ Prices'}
+              {refreshingPrices ? 'â» â¦' : 'â» Prices'}
             </button>
             <button onClick={() => setShowAdd(true)} className="btn-primary text-xs py-1.5">
               + Add holding
@@ -794,13 +784,13 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-8">
-              <span className="text-4xl text-muted-4">▤</span>
+              <span className="text-4xl text-muted-4">â¤</span>
               <p className="font-mono text-sm text-muted-2">
                 {holdings.length === 0 ? 'Portfolio is empty' : 'No holdings match filters'}
               </p>
               {holdings.length === 0 && (
                 <button onClick={() => setShowAdd(true)} className="btn-primary text-sm">
-                  Add first holding →
+                  Add first holding â
                 </button>
               )}
             </div>
@@ -851,7 +841,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                                   )}
                                   title={fa?.marketable_note}>
                                     {fmtFloat(h.float_value)}
-                                    {fa?.float_tier === 'gem' && ' 💎'}
+                                    {fa?.float_tier === 'gem' && ' ð'}
                                     {fa?.float_tier === 'low' && fa.float_premium_pct > 5 && ` +${fa.float_premium_pct.toFixed(0)}%`}
                                   </span>
                                 )
@@ -868,7 +858,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                                       : 'text-muted-2 border-terminal-border-2'
                                   )}>
                                     {dp.phase_label}
-                                    {dp.is_special && ' ⭐'}
+                                    {dp.is_special && ' â­'}
                                   </span>
                                 )
                               })()}
@@ -883,8 +873,8 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                                       ? 'text-amber border-amber/40 bg-amber/10 font-bold'
                                       : 'text-muted-2 border-terminal-border-2'
                                   )}
-                                  title={sv.warning ?? `Sticker value: $${sv.applied_value_min}–$${sv.applied_value_max}`}>
-                                    🏷 {sv.flagged_stickers[0]?.tier === 'legendary' ? 'LEGENDARY STICKER' : `+$${sv.applied_value_min}–${sv.applied_value_max}`}
+                                  title={sv.warning ?? `Sticker value: $${sv.applied_value_min}â$${sv.applied_value_max}`}>
+                                    ð· {sv.flagged_stickers[0]?.tier === 'legendary' ? 'LEGENDARY STICKER' : `+$${sv.applied_value_min}â${sv.applied_value_max}`}
                                   </span>
                                 )
                               })()}
@@ -893,7 +883,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                         </div>
                       </td>
 
-                      {/* Qty / cost — editable inline */}
+                      {/* Qty / cost â editable inline */}
                       {isEditing ? (
                         <td colSpan={2}>
                           <EditCell holding={h} onSave={() => { setEditId(null); refresh() }} />
@@ -948,11 +938,11 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                       <td className="term-num">
                         {(() => {
                           const sig = sellSignalMap.get(h.id)
-                          if (!sig) return <span className="font-mono text-[9px] text-muted-4">—</span>
+                          if (!sig) return <span className="font-mono text-[9px] text-muted-4">â</span>
                           const cfg = {
-                            high:   { label: '🔴 SELL',  color: '#ef4444' },
-                            medium: { label: '🟡 WATCH', color: '#f59e0b' },
-                            low:    { label: '🟢 NOTE',  color: '#00ff88' },
+                            high:   { label: 'ð´ SELL',  color: '#ef4444' },
+                            medium: { label: 'ð¡ WATCH', color: '#f59e0b' },
+                            low:    { label: 'ð¢ NOTE',  color: '#00ff88' },
                           }[sig.urgency] ?? null
                           if (!cfg) return null
                           return (
@@ -972,7 +962,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={() => setEditId(isEditing ? null : h.id)}
                             className="btn-terminal py-0.5 px-1.5 text-[9px]" title="Edit">
-                            {isEditing ? '✕' : '✎'}
+                            {isEditing ? 'â' : 'â'}
                           </button>
                           <button onClick={() => setSellHolding(h)}
                             className="btn-terminal py-0.5 px-1.5 text-[9px] hover:border-red/30 hover:text-red" title="Sell">
@@ -980,9 +970,9 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                           </button>
                           <a href={steamMarketUrl(h.item_name)} target="_blank" rel="noopener"
                             onClick={e => e.stopPropagation()}
-                            className="btn-terminal py-0.5 px-1.5 text-[9px]" title="Steam Market">↗</a>
+                            className="btn-terminal py-0.5 px-1.5 text-[9px]" title="Steam Market">â</a>
                           <button onClick={() => handleDelete(h.id)}
-                            className="btn-terminal py-0.5 px-1.5 text-[9px] hover:border-red/30 hover:text-red" title="Delete">✕</button>
+                            className="btn-terminal py-0.5 px-1.5 text-[9px] hover:border-red/30 hover:text-red" title="Delete">â</button>
                         </div>
                       </td>
                     </tr>
@@ -1006,7 +996,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
               const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
               a.download = `portfolio-${new Date().toISOString().slice(0,10)}.csv`; a.click()
             }} className="btn-terminal text-[10px] py-1">
-              ↓ CSV
+              â CSV
             </button>
           </div>
         </div>
@@ -1023,14 +1013,14 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
               Storage Units
               <span className="ml-2 text-green">{storageUnits.length}</span>
             </span>
-            <span className="text-muted-4">{suOpen ? '▲' : '▼'}</span>
+            <span className="text-muted-4">{suOpen ? 'â²' : 'â¼'}</span>
           </button>
 
           {suOpen && (
             <div className="border-t border-terminal-border divide-y divide-terminal-border">
               {storageUnits.map(su => (
                 <div key={su.id} className="flex items-center gap-3 px-4 py-2.5">
-                  <span className="text-muted-4 text-sm">📦</span>
+                  <span className="text-muted-4 text-sm">ð¦</span>
                   <div className="flex-1">
                     {suEditId === su.id ? (
                       <input
@@ -1050,7 +1040,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                         title="Click to rename"
                       >
                         {suLabels[su.id] ?? su.group_label ?? 'Storage Unit'}
-                        <span className="ml-1 text-muted-4 text-[9px]">✎</span>
+                        <span className="ml-1 text-muted-4 text-[9px]">â</span>
                       </button>
                     )}
                   </div>
@@ -1060,7 +1050,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                 </div>
               ))}
               <div className="px-4 py-2 font-mono text-[9px] text-muted-4">
-                Click a name to rename. Items inside storage units aren't tracked by Steam's inventory API — add them manually via + Add holding.
+                Click a name to rename. Items inside storage units aren't tracked by Steam's inventory API â add them manually via + Add holding.
               </div>
             </div>
           )}
