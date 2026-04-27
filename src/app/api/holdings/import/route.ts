@@ -17,60 +17,48 @@ function category(name: string): string {
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const portfolio_id: string = body.portfolio_id
-  const steam_id: string = body.steam_id
-  if (!portfolio_id || !steam_id) return NextResponse.json({ error: 'missing fields' }, { status: 400 })
+  // Accept raw Steam inventory JSON sent from browser
+  const inv = body.inventory
+  if (!portfolio_id || !inv) return NextResponse.json({ error: 'missing portfolio_id or inventory' }, { status: 400 })
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Fetch raw Steam inventory
-  const url = 'https://steamcommunity.com/inventory/' + steam_id + '/730/2?l=english&count=5000'
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(15000) })
-  if (!res.ok) return NextResponse.json({ error: 'Steam inventory fetch failed: ' + res.status }, { status: 502 })
-  const inv = await res.json()
   if (!inv?.assets || !inv?.descriptions) return NextResponse.json({ error: 'Inventory empty or private' }, { status: 400 })
 
-  // Build desc map
   const descMap = new Map<string, any>()
   for (const d of inv.descriptions) descMap.set(d.classid + '_' + d.instanceid, d)
 
-  // Process items
   const skins: any[] = []
   const storageUnits: any[] = []
   const stackable = new Map<string, number>()
 
   for (const asset of inv.assets) {
     const desc = descMap.get(asset.classid + '_' + asset.instanceid)
-    if (!desc || desc.tradable === 0 && desc.marketable === 0) continue
+    if (!desc) continue
     const name: string = desc.market_hash_name ?? desc.name ?? ''
     if (!name) continue
-
     if (name === 'Storage Unit') {
       storageUnits.push({ name, assetid: asset.assetid })
-    } else if (WEAR.some(w => name.includes(w))) {
-      // Individual skin
+    } else if (WEAR.some((w: string) => name.includes(w))) {
       const isST = name.startsWith('StatTrak')
-      const cond = WEAR.find(w => name.includes(w)) ?? null
+      const cond = WEAR.find((w: string) => name.includes(w)) ?? null
       skins.push({ name, assetid: asset.assetid, isST, cond })
     } else {
-      // Stackable
       stackable.set(name, (stackable.get(name) ?? 0) + parseInt(asset.amount ?? '1', 10))
     }
   }
 
   const rows: any[] = []
-
   for (const s of skins) {
     rows.push({ portfolio_id, item_name: s.name, item_condition: s.cond, item_category: category(s.name), quantity: 1, cost_basis: 0, is_stattrak: s.isST, steam_asset_id: s.assetid, group_label: s.name })
   }
-
   let suNum = 0
   for (const su of storageUnits) {
     suNum++
     rows.push({ portfolio_id, item_name: 'Storage Unit', item_category: 'storage_unit', quantity: 1, cost_basis: 0, steam_asset_id: su.assetid, group_label: 'Storage Unit #' + suNum })
   }
-
   for (const [name, qty] of stackable) {
     rows.push({ portfolio_id, item_name: name, item_category: category(name), quantity: qty, cost_basis: 0, group_label: name })
   }
