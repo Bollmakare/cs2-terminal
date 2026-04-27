@@ -451,7 +451,7 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
   return (
     <div className="space-y-4">
       <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-xs text-blue-300">
-        <p className="font-bold mb-1">Steam inventory import</p>
+        <p className="font-bold mb-1">Portfolio import</p>
         <p className="text-muted-2">Fetches your full CS2 inventory, groups stackable items (cases, capsules), and fetches float/pattern for each skin. Replaces existing holdings.</p>
         <p className="text-muted-2 mt-1">Inventory must be set to <strong>Public</strong> in Steam privacy settings.</p>
       </div>
