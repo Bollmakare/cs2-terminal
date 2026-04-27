@@ -439,15 +439,6 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
     onImported()
   }
 
-  function toggleItem(assetId: string) {
-    setSelected(prev => {
-      const next = new Set(prev)
-      if (next.has(assetId)) next.delete(assetId)
-      else next.add(assetId)
-      return next
-    })
-  }
-
   return (
     <div className="space-y-4">
       <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-xs text-blue-300">
