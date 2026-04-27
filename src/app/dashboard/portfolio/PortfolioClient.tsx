@@ -427,10 +427,26 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
   async function handleImport() {
     if (!steamId.trim()) return
     setImporting(true); setError(''); setResult(null)
+    // Fetch inventory from browser to avoid server-side Steam IP blocks
+    let inventory: any
+    try {
+      const invRes = await fetch(
+        'https://steamcommunity.com/inventory/' + steamId.trim() + '/730/2?l=english&count=5000',
+        { credentials: 'omit' }
+      )
+      if (!invRes.ok) {
+        setError('Steam returned ' + invRes.status + '. Make sure your inventory is set to Public in Steam privacy settings.')
+        setImporting(false); return
+      }
+      inventory = await invRes.json()
+    } catch (e: any) {
+      setError('Could not reach Steam: ' + (e.message ?? 'network error'))
+      setImporting(false); return
+    }
     const res = await fetch('/api/holdings/import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ portfolio_id: portfolioId, steam_id: steamId.trim() }),
+      body: JSON.stringify({ portfolio_id: portfolioId, inventory }),
     })
     const data = await res.json()
     if (!res.ok) { setError(data.error ?? 'Import failed'); setImporting(false); return }
