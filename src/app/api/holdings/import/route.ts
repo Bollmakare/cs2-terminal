@@ -14,14 +14,12 @@ function isStorageUnit(name: string): boolean {
 
 function getCategory(name: string): string {
   const n = name.toLowerCase()
-  if (n.includes('rifle') || n.includes('ak-47') || n.includes('m4a') || n.includes('aug') || n.includes('sg 553') || n.includes('famas') || n.includes('galil')) return 'rifle'
+  if (n.includes('ak-47') || n.includes('m4a') || n.includes('aug') || n.includes('sg 553') || n.includes('famas') || n.includes('galil')) return 'rifle'
   if (n.includes('awp') || n.includes('ssg 08') || n.includes('g3sg1') || n.includes('scar-20')) return 'sniper'
-  if (n.includes('pistol') || n.includes('glock') || n.includes('usp') || n.includes('p2000') || n.includes('p250') || n.includes('five-seven') || n.includes('tec-9') || n.includes('cz75') || n.includes('desert eagle') || n.includes('deagle') || n.includes('r8')) return 'pistol'
-  if (n.includes('knife') || n.includes('karambit') || n.includes('bayonet') || n.includes('butterfly') || n.includes('falchion') || n.includes('flip') || n.includes('gut') || n.includes('huntsman') || n.includes('m9') || n.includes('navaja') || n.includes('shadow daggers') || n.includes('stiletto') || n.includes('talon') || n.includes('ursus') || n.includes('paracord') || n.includes('survival') || n.includes('nomad') || n.includes('skeleton') || n.includes('classic knife')) return 'knife'
-  if (n.includes('gloves') || n.includes('wraps') || n.includes('hand wraps')) return 'gloves'
+  if (n.includes('glock') || n.includes('usp') || n.includes('p2000') || n.includes('p250') || n.includes('five-seven') || n.includes('tec-9') || n.includes('cz75') || n.includes('desert eagle') || n.includes('r8')) return 'pistol'
+  if (n.includes('knife') || n.includes('karambit') || n.includes('bayonet') || n.includes('butterfly') || n.includes('falchion') || n.includes('flip') || n.includes('gut ') || n.includes('huntsman') || n.includes('m9') || n.includes('navaja') || n.includes('shadow daggers') || n.includes('stiletto') || n.includes('talon') || n.includes('ursus') || n.includes('paracord') || n.includes('survival') || n.includes('nomad') || n.includes('skeleton') || n.includes('classic knife')) return 'knife'
+  if (n.includes('gloves') || n.includes('wraps')) return 'gloves'
   if (n.includes('case')) return 'case'
-  if (n.includes('sticker')) return 'sticker'
-  if (n.includes('capsule') || n.includes('package') || n.includes('patch') || n.includes('graffiti') || n.includes('music kit') || n.includes('pin') || n.includes('charm')) return 'other'
   return 'other'
 }
 
@@ -32,13 +30,11 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = await createClient()
-
-  // Auth check
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // Fetch Steam inventory
-  let items: Awaited<ReturnType<typeof fetchInventoryWithInspect>>
+  let items: any[]
   try {
     items = await fetchInventoryWithInspect(steam_id, 730, 2)
   } catch (e: any) {
@@ -49,28 +45,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Inventory empty or private' }, { status: 400 })
   }
 
-  // Separate items by type
-  const skins: typeof items = []
-  const storageUnitItems: typeof items = []
-  const stackableMap = new Map<string, { item: typeof items[0]; qty: number }>()
+  const skins: any[] = []
+  const storageUnitItems: any[] = []
+  const stackableMap = new Map<string, { item: any; qty: number }>()
 
   for (const item of items) {
-    const name = item.item_name
+    const name: string = item.item_name
     if (isStorageUnit(name)) {
       storageUnitItems.push(item)
     } else if (hasWearCondition(name)) {
       skins.push(item)
     } else {
       const existing = stackableMap.get(name)
-      if (existing) existing.qty += item.quantity
-      else stackableMap.set(name, { item, qty: item.quantity })
+      if (existing) existing.qty += (item.quantity ?? 1)
+      else stackableMap.set(name, { item, qty: item.quantity ?? 1 })
     }
   }
 
-  // Build rows to insert
   const rows: any[] = []
 
-  // Individual skins (no CSFloat — fast import)
   for (const skin of skins) {
     rows.push({
       portfolio_id,
@@ -80,12 +73,11 @@ export async function POST(req: NextRequest) {
       quantity: 1,
       cost_basis: 0,
       is_stattrak: skin.is_stattrak ?? false,
-      steam_asset_id: skin.asset_id ?? null,
+      steam_asset_id: skin.assetid ?? skin.asset_id ?? null,
       group_label: skin.item_name,
     })
   }
 
-  // Storage units
   let suCount = 0
   for (const su of storageUnitItems) {
     suCount++
@@ -95,12 +87,11 @@ export async function POST(req: NextRequest) {
       item_category: 'storage_unit',
       quantity: 1,
       cost_basis: 0,
-      steam_asset_id: su.asset_id ?? null,
-      group_label: `Storage Unit #${suCount}`,
+      steam_asset_id: su.assetid ?? su.asset_id ?? null,
+      group_label: 'Storage Unit #' + suCount,
     })
   }
 
-  // Stackables (grouped)
   for (const [name, { item, qty }] of stackableMap) {
     rows.push({
       portfolio_id,
@@ -112,10 +103,8 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Delete existing holdings for this portfolio and re-insert
   await supabase.from('holdings').delete().eq('portfolio_id', portfolio_id)
   const { error: insertError } = await supabase.from('holdings').insert(rows)
-
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 })
   }
