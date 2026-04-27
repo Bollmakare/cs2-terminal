@@ -4,9 +4,30 @@ import { createClient } from '@/lib/supabase/server'
 const SKINSTRACK_BASE = 'https://api.skinstrack.com/v1'
 const SKINSTRACK_KEY = process.env.SKINSTRACK_API_KEY ?? ''
 
+// Fetch price for a single item by exact market_hash_name
+async function fetchItemPrice(name: string): Promise<number | null> {
+  if (!SKINSTRACK_KEY) return null
+  try {
+    const r = await fetch(`${SKINSTRACK_BASE}/item?name=${encodeURIComponent(name)}`, {
+      headers: { 'x-api-key': SKINSTRACK_KEY },
+      // No cache here — we want fresh prices each time
+      cache: 'no-store',
+    })
+    if (!r.ok) return null
+    const data = await r.json()
+    // Response is the item object directly: { market_hash_name, price_usd, ... }
+    return data?.price_usd ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function POST() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   if (!SKINSTRACK_KEY) {
@@ -21,43 +42,36 @@ export async function POST() {
 
   if (!holdings?.length) return NextResponse.json({ updated: 0 })
 
-  // Fetch all prices from Skinstrack — response is { items: [...] }
-  let prices: { market_hash_name: string; price_usd: number }[] = []
-  try {
-    const r = await fetch(`${SKINSTRACK_BASE}/prices?limit=10000`, {
-      headers: { 'x-api-key': SKINSTRACK_KEY },
-      next: { revalidate: 300 },
-    })
-    if (r.ok) {
-      const data = await r.json()
-      prices = Array.isArray(data) ? data : (data.items ?? data.data ?? [])
-    }
-  } catch (e) {
-    console.error('Skinstrack fetch failed:', e)
-    return NextResponse.json({ error: 'Price fetch failed', updated: 0 }, { status: 502 })
-  }
-
-  if (!prices.length) {
-    return NextResponse.json({ updated: 0, message: 'Skinstrack returned no prices' })
-  }
-
-  const priceMap = new Map(prices.map(p => [p.market_hash_name, p.price_usd]))
-
+  // Fetch price per item — batch 5 at a time with small delay
+  const BATCH = 5
+  const DELAY = 200
   const now = new Date().toISOString()
-  const updates = holdings
-    .filter(h => priceMap.has(h.item_name))
-    .map(h => ({
-      id: h.id,
-      last_price: priceMap.get(h.item_name)!,
-      price_source: 'skinstrack',
-      price_updated_at: now,
-    }))
+  const updates: { id: string; last_price: number; price_source: string; price_updated_at: string }[] = []
+
+  for (let i = 0; i < holdings.length; i += BATCH) {
+    const batch = holdings.slice(i, i + BATCH)
+    const results = await Promise.all(batch.map(h => fetchItemPrice(h.item_name)))
+    for (let j = 0; j < batch.length; j++) {
+      const price = results[j]
+      if (price !== null && price > 0) {
+        updates.push({
+          id: batch[j].id,
+          last_price: price,
+          price_source: 'skinstrack',
+          price_updated_at: now,
+        })
+      }
+    }
+    if (i + BATCH < holdings.length) {
+      await new Promise(r => setTimeout(r, DELAY))
+    }
+  }
 
   if (!updates.length) {
     return NextResponse.json({
       updated: 0,
       total: holdings.length,
-      message: `No matches in ${prices.length} Skinstrack prices`,
+      message: `No prices found for ${holdings.length} items`,
     })
   }
 
