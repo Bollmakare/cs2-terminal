@@ -3,12 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
 
-  // Get user's portfolio
+  // Get user's default portfolio
   const { data: portfolio } = await supabase
     .from('portfolios')
     .select('id')
@@ -19,62 +20,92 @@ export async function POST(req: NextRequest) {
 
   if (!portfolio) return NextResponse.json({ error: 'No portfolio found' }, { status: 400 })
 
-  // Accept two formats:
-  // 1. Our bookmarklet format: { items: [{name, assetid}] }
+  // Accept three formats:
+  // 1. Bookmarklet format: { items: [{name, assetid}] }
   // 2. Raw Steam inventory JSON: { assets: [...], descriptions: [...] }
   // 3. Simple name list: { names: string[] }
 
   let items: { name: string; assetid?: string }[] = []
 
   if (body.items && Array.isArray(body.items)) {
-    // Bookmarklet format
     items = body.items
   } else if (body.assets && body.descriptions) {
     // Raw Steam inventory JSON — merge assets + descriptions
-    const descMap = new Map<string, Record<string, unknown>>()
-    for (const d of (body.descriptions as Record<string, unknown>[])) {
+    const descMap = new Map<string, { market_hash_name: string }>()
+    for (const d of body.descriptions) {
       descMap.set(`${d.classid}_${d.instanceid}`, d)
     }
-    for (const a of (body.assets as Record<string, string>[])) {
-      const d = descMap.get(`${a.classid}_${a.instanceid}`)
-      if (d?.marketable && d.market_hash_name) {
-        items.push({ name: d.market_hash_name as string, assetid: a.assetid })
+    for (const asset of body.assets) {
+      const key = `${asset.classid}_${asset.instanceid}`
+      const desc = descMap.get(key)
+      if (desc?.market_hash_name) {
+        items.push({ name: desc.market_hash_name, assetid: asset.assetid })
       }
     }
+  } else if (body.names && Array.isArray(body.names)) {
+    items = body.names.map((name: string) => ({ name }))
   }
 
-  if (!items.length) return NextResponse.json({ error: 'No items found in payload', imported: 0 }, { status: 400 })
+  if (items.length === 0) {
+    return NextResponse.json({ error: 'No items found in payload' }, { status: 400 })
+  }
 
-  // Look up prices from our items table
-  const names = [...new Set(items.map(i => i.name))]
-  const { data: priceRows } = await supabase
+  // DELETE existing Steam-imported holdings for this portfolio
+  // (keeps manually added items which have no steam_asset_id)
+  await supabase
+    .from('holdings')
+    .delete()
+    .eq('portfolio_id', portfolio.id)
+    .eq('user_id', user.id)
+    .not('steam_asset_id', 'is', null)
+
+  // Look up prices from items table
+  const names = items.map(i => i.name)
+  const { data: itemsData } = await supabase
     .from('items')
-    .select('id, market_hash_name, price_usd, condition')
-    .in('market_hash_name', names.slice(0, 500))
+    .select('id, market_hash_name, price_usd, category, condition')
+    .in('market_hash_name', names)
 
-  const priceMap = new Map<string, { id: string; price_usd: number | null; condition: string | null }>()
-  for (const p of (priceRows || [])) priceMap.set(p.market_hash_name, { id: p.id, price_usd: p.price_usd, condition: p.condition })
+  const itemMap = new Map(itemsData?.map(i => [i.market_hash_name, i]) ?? [])
 
-  // Upsert holdings
-  let imported = 0
-  for (const item of items) {
-    const price = priceMap.get(item.name)
-    const condMatch = item.name.match(/[(](Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)[)]/)
-    const condition = condMatch ? condMatch[1] : null
-    const baseName = item.name.replace(/ [(][^)]+[)]$/, '')
-
-    const { error } = await supabase.from('holdings').insert({
+  // Build holdings rows
+  const rows = items.map(item => {
+    const match = itemMap.get(item.name)
+    const nameLower = item.name.toLowerCase()
+    const condition = nameLower.includes('factory new') ? 'Factory New'
+      : nameLower.includes('minimal wear') ? 'Minimal Wear'
+      : nameLower.includes('field-tested') ? 'Field-Tested'
+      : nameLower.includes('well-worn') ? 'Well-Worn'
+      : nameLower.includes('battle-scarred') ? 'Battle-Scarred'
+      : null
+    return {
       portfolio_id: portfolio.id,
       user_id: user.id,
-      item_id: price?.id ?? null,
+      item_id: match?.id ?? null,
       item_name: item.name,
       item_condition: condition,
+      item_category: match?.category ?? null,
+      is_stattrak: item.name.toLowerCase().includes('stattrak'),
       quantity: 1,
-      cost_basis: price?.price_usd ?? 0,
+      cost_basis: 0,
+      last_price: match?.price_usd ?? null,
       steam_asset_id: item.assetid ?? null,
-    })
-    if (!error) imported++
+    }
+  })
+
+  const { data: inserted, error } = await supabase
+    .from('holdings')
+    .insert(rows)
+    .select('id')
+
+  if (error) {
+    console.error('Import error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, imported, total: items.length })
+  return NextResponse.json({
+    success: true,
+    imported: inserted?.length ?? 0,
+    total: items.length,
+  })
 }
