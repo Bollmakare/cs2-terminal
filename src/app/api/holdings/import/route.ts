@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchInventoryWithInspect } from '@/lib/api/steam'
 
-export const maxDuration = 60
-
 const WEAR_CONDITIONS = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred']
-const CSFLOAT_BASE = 'https://api.csgofloat.com'
 
 function hasWearCondition(name: string): boolean {
   return WEAR_CONDITIONS.some(c => name.includes(c))
@@ -15,189 +12,119 @@ function isStorageUnit(name: string): boolean {
   return name === 'Storage Unit'
 }
 
-interface CSFloatResult {
-  iteminfo?: {
-    floatvalue?: number
-    paintseed?: number
-  }
-}
-
-async function fetchCSFloat(inspectLink: string): Promise<CSFloatResult | null> {
-  const key = process.env.CSFLOAT_API_KEY
-  if (!key || !inspectLink) return null
-
-  try {
-    const url = `${CSFLOAT_BASE}/?url=${encodeURIComponent(inspectLink)}`
-    const res = await fetch(url, {
-      headers: { Authorization: key },
-      signal: AbortSignal.timeout(8000),
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch {
-    return null
-  }
-}
-
-async function sleep(ms: number) {
-  return new Promise(r => setTimeout(r, ms))
+function getCategory(name: string): string {
+  const n = name.toLowerCase()
+  if (n.includes('rifle') || n.includes('ak-47') || n.includes('m4a') || n.includes('aug') || n.includes('sg 553') || n.includes('famas') || n.includes('galil')) return 'rifle'
+  if (n.includes('awp') || n.includes('ssg 08') || n.includes('g3sg1') || n.includes('scar-20')) return 'sniper'
+  if (n.includes('pistol') || n.includes('glock') || n.includes('usp') || n.includes('p2000') || n.includes('p250') || n.includes('five-seven') || n.includes('tec-9') || n.includes('cz75') || n.includes('desert eagle') || n.includes('deagle') || n.includes('r8')) return 'pistol'
+  if (n.includes('knife') || n.includes('karambit') || n.includes('bayonet') || n.includes('butterfly') || n.includes('falchion') || n.includes('flip') || n.includes('gut') || n.includes('huntsman') || n.includes('m9') || n.includes('navaja') || n.includes('shadow daggers') || n.includes('stiletto') || n.includes('talon') || n.includes('ursus') || n.includes('paracord') || n.includes('survival') || n.includes('nomad') || n.includes('skeleton') || n.includes('classic knife')) return 'knife'
+  if (n.includes('gloves') || n.includes('wraps') || n.includes('hand wraps')) return 'gloves'
+  if (n.includes('case')) return 'case'
+  if (n.includes('sticker')) return 'sticker'
+  if (n.includes('capsule') || n.includes('package') || n.includes('patch') || n.includes('graffiti') || n.includes('music kit') || n.includes('pin') || n.includes('charm')) return 'other'
+  return 'other'
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const { portfolio_id, steam_id } = await req.json()
+  if (!portfolio_id || !steam_id) {
+    return NextResponse.json({ error: 'portfolio_id and steam_id required' }, { status: 400 })
+  }
+
+  const supabase = await createClient()
+
+  // Auth check
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
-  const { portfolio_id } = body
-
-  if (!portfolio_id) {
-    return NextResponse.json({ error: 'portfolio_id required' }, { status: 400 })
-  }
-
-  const { data: pf } = await supabase
-    .from('portfolios')
-    .select('id')
-    .eq('id', portfolio_id)
-    .eq('user_id', user.id)
-    .single()
-  if (!pf) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('steam_id')
-    .eq('id', user.id)
-    .single()
-
-  const steamId = body.steam_id ?? profile?.steam_id
-  if (!steamId) {
-    return NextResponse.json(
-      { error: 'No steam_id found — pass steam_id in request body' },
-      { status: 400 }
-    )
-  }
-
-  let rawItems: Awaited<ReturnType<typeof fetchInventoryWithInspect>>
+  // Fetch Steam inventory
+  let items: Awaited<ReturnType<typeof fetchInventoryWithInspect>>
   try {
-    rawItems = await fetchInventoryWithInspect(steamId)
-  } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 400 })
+    items = await fetchInventoryWithInspect(steam_id, 730, 2)
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message ?? 'Failed to fetch inventory' }, { status: 502 })
   }
 
-  const marketableItems = rawItems.filter(i => i.marketable)
+  if (!items.length) {
+    return NextResponse.json({ error: 'Inventory empty or private' }, { status: 400 })
+  }
 
-  type RawItem = (typeof marketableItems)[number]
-  const individualItems: RawItem[] = []
-  const stackableMap = new Map<string, { count: number; item: RawItem }>()
+  // Separate items by type
+  const skins: typeof items = []
+  const storageUnitItems: typeof items = []
+  const stackableMap = new Map<string, { item: typeof items[0]; qty: number }>()
 
-  for (const item of marketableItems) {
-    if (hasWearCondition(item.market_hash_name) || isStorageUnit(item.market_hash_name)) {
-      individualItems.push(item)
+  for (const item of items) {
+    const name = item.item_name
+    if (isStorageUnit(name)) {
+      storageUnitItems.push(item)
+    } else if (hasWearCondition(name)) {
+      skins.push(item)
     } else {
-      const existing = stackableMap.get(item.market_hash_name)
-      if (existing) {
-        existing.count++
-      } else {
-        stackableMap.set(item.market_hash_name, { count: 1, item })
-      }
+      const existing = stackableMap.get(name)
+      if (existing) existing.qty += item.quantity
+      else stackableMap.set(name, { item, qty: item.quantity })
     }
   }
 
-  const hasCsFloat = !!process.env.CSFLOAT_API_KEY
-  const floatMap = new Map<string, { float_value: number | null; pattern_id: number | null }>()
-
-  if (hasCsFloat) {
-    const itemsWithLinks = individualItems.filter(i => i.inspect_link && !isStorageUnit(i.market_hash_name))
-    const BATCH = 4
-    for (let i = 0; i < itemsWithLinks.length; i += BATCH) {
-      const batch = itemsWithLinks.slice(i, i + BATCH)
-      const results = await Promise.all(batch.map(item => fetchCSFloat(item.inspect_link!)))
-      for (let j = 0; j < batch.length; j++) {
-        const r = results[j]
-        floatMap.set(batch[j].asset_id, {
-          float_value: r?.iteminfo?.floatvalue ?? null,
-          pattern_id:  r?.iteminfo?.paintseed  ?? null,
-        })
-      }
-      if (i + BATCH < itemsWithLinks.length) await sleep(500)
-    }
-  }
-
-  const today = new Date().toISOString().slice(0, 10)
-  const slug  = (name: string) =>
-    name.toLowerCase().replace(/[★™]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-
+  // Build rows to insert
   const rows: any[] = []
 
-  let suIndex = 1
-  for (const item of individualItems) {
-    const floatData = floatMap.get(item.asset_id)
-    const isSU = isStorageUnit(item.market_hash_name)
-
+  // Individual skins (no CSFloat — fast import)
+  for (const skin of skins) {
     rows.push({
       portfolio_id,
-      user_id:        user.id,
-      item_id:        slug(item.market_hash_name),
-      item_name:      item.market_hash_name,
-      item_condition: item.condition,
-      item_category:  isSU ? 'storage_unit' : (item.category ?? 'other'),
-      is_stattrak:    item.is_stattrak,
-      quantity:       1,
-      cost_basis:     0,
-      acquired_at:    today,
-      steam_asset_id: item.asset_id,
-      float_value:    floatData?.float_value  ?? null,
-      pattern_id:     floatData?.pattern_id   ?? null,
-      group_label:    isSU ? `Storage Unit #${suIndex++}` : null,
-      storage_unit:   null,
+      item_name: skin.item_name,
+      item_condition: skin.item_condition ?? null,
+      item_category: getCategory(skin.item_name),
+      quantity: 1,
+      cost_basis: 0,
+      is_stattrak: skin.is_stattrak ?? false,
+      steam_asset_id: skin.asset_id ?? null,
+      group_label: skin.item_name,
     })
   }
 
-  for (const [name, { count, item }] of stackableMap.entries()) {
+  // Storage units
+  let suCount = 0
+  for (const su of storageUnitItems) {
+    suCount++
     rows.push({
       portfolio_id,
-      user_id:        user.id,
-      item_id:        slug(name),
-      item_name:      name,
-      item_condition: item.condition,
-      item_category:  item.category ?? 'other',
-      is_stattrak:    item.is_stattrak,
-      quantity:       count,
-      cost_basis:     0,
-      acquired_at:    today,
-      steam_asset_id: null,
-      float_value:    null,
-      pattern_id:     null,
-      group_label:    null,
-      storage_unit:   null,
+      item_name: 'Storage Unit',
+      item_category: 'storage_unit',
+      quantity: 1,
+      cost_basis: 0,
+      steam_asset_id: su.asset_id ?? null,
+      group_label: `Storage Unit #${suCount}`,
     })
   }
 
-  const { error: deleteErr } = await supabase
-    .from('holdings')
-    .delete()
-    .eq('portfolio_id', portfolio_id)
-    .eq('user_id', user.id)
+  // Stackables (grouped)
+  for (const [name, { item, qty }] of stackableMap) {
+    rows.push({
+      portfolio_id,
+      item_name: name,
+      item_category: getCategory(name),
+      quantity: qty,
+      cost_basis: 0,
+      group_label: name,
+    })
+  }
 
-  if (deleteErr) return NextResponse.json({ error: deleteErr.message }, { status: 500 })
+  // Delete existing holdings for this portfolio and re-insert
+  await supabase.from('holdings').delete().eq('portfolio_id', portfolio_id)
+  const { error: insertError } = await supabase.from('holdings').insert(rows)
 
-  const { data: inserted, error: insertErr } = await supabase
-    .from('holdings')
-    .insert(rows)
-    .select('id')
-
-  if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
-
-  const floatsFetched = floatMap.size
-  const storageUnits  = rows.filter(r => r.item_category === 'storage_unit').length
-  const stackables    = stackableMap.size
-  const skins         = individualItems.length - storageUnits
+  if (insertError) {
+    return NextResponse.json({ error: insertError.message }, { status: 500 })
+  }
 
   return NextResponse.json({
-    imported:      inserted?.length ?? 0,
-    skins,
-    storage_units: storageUnits,
-    stackables,
-    floats_fetched: floatsFetched,
+    imported: rows.length,
+    skins: skins.length,
+    storage_units: storageUnitItems.length,
+    stackables: stackableMap.size,
+    floats_fetched: 0,
   })
 }
