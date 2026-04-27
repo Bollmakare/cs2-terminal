@@ -21,7 +21,7 @@ interface Props {
 type SortCol = 'name' | 'value' | 'cost' | 'pnl' | 'pnl_pct' | 'days' | 'qty'
 type View    = 'holdings' | 'allocation' | 'steam'
 
-// Ã¢Â”Â€Ã¢Â”Â€ Data hook Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+// â”€â”€ Data hook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function useHoldings(portfolioId: string) {
   return useQuery({
     queryKey: ['holdings', portfolioId],
@@ -34,7 +34,7 @@ function useHoldings(portfolioId: string) {
   })
 }
 
-// Ã¢Â”Â€Ã¢Â”Â€ Sell modal Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+// â”€â”€ Sell modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SellModal({
   holding,
   fees,
@@ -102,7 +102,7 @@ function SellModal({
       <div className="modal-box w-full max-w-md">
         <div className="panel-header px-5 py-4">
           <span className="font-mono font-bold text-sm text-[var(--text)]">SELL POSITION</span>
-          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">Ã¢ÂœÂ•</button>
+          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">âœ•</button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -113,7 +113,7 @@ function SellModal({
             <div>
               <div className="font-mono text-sm font-bold text-[var(--text)]">{holding.item_name}</div>
               <div className="font-mono text-xs text-muted-3 mt-0.5">
-                {holding.item_condition ?? 'Ã¢Â€Â”'} Ã‚Â· ÃƒÂ—{holding.quantity} held Ã‚Â· cost {fmt$(holding.cost_basis)}/unit
+                {holding.item_condition ?? 'â€”'} Â· Ã—{holding.quantity} held Â· cost {fmt$(holding.cost_basis)}/unit
               </div>
             </div>
           </div>
@@ -162,7 +162,7 @@ function SellModal({
             </div>
             <div className="flex justify-between font-mono text-xs">
               <span className="text-muted-3">Fee ({feePct}%)</span>
-              <span className="text-red">Ã¢ÂˆÂ’{fmt$(feeAmount)}</span>
+              <span className="text-red">âˆ’{fmt$(feeAmount)}</span>
             </div>
             <div className="flex justify-between font-mono text-xs border-t border-terminal-border pt-1.5">
               <span className="text-muted-3">Net proceeds</span>
@@ -190,7 +190,7 @@ function SellModal({
         <div className="flex gap-3 px-5 py-4 border-t border-terminal-border">
           <button onClick={onClose} className="btn-terminal flex-1 justify-center">Cancel</button>
           <button onClick={handleSell} disabled={saving} className="btn-primary flex-1 justify-center">
-            {saving ? 'Selling...' : `Sell ÃƒÂ—${qty} Ã¢Â†Â’`}
+            {saving ? 'Selling...' : `Sell Ã—${qty} â†’`}
           </button>
         </div>
       </div>
@@ -198,7 +198,7 @@ function SellModal({
   )
 }
 
-// Ã¢Â”Â€Ã¢Â”Â€ Add holding drawer Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+// â”€â”€ Add holding drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function AddDrawer({
   portfolioId,
   onClose,
@@ -278,7 +278,7 @@ function AddDrawer({
 
         <div className="panel-header px-5 py-4 border-b border-terminal-border flex-shrink-0">
           <span className="font-mono font-bold text-sm text-[var(--text)]">ADD HOLDING</span>
-          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">Ã¢ÂœÂ•</button>
+          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">âœ•</button>
         </div>
 
         {/* Mode tabs */}
@@ -315,7 +315,7 @@ function AddDrawer({
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       <div className="flex-1 min-w-0">
                         <div className="font-mono text-xs text-[var(--text)] truncate">{item.market_hash_name}</div>
-                        <div className="font-mono text-[9px] text-muted-3">{item.category} Ã‚Â· {item.condition ?? 'no cond'}</div>
+                        <div className="font-mono text-[9px] text-muted-3">{item.category} Â· {item.condition ?? 'no cond'}</div>
                       </div>
                       <div className="font-mono text-xs text-muted-2 flex-shrink-0">{fmt$(item.price_usd)}</div>
                     </div>
@@ -332,11 +332,11 @@ function AddDrawer({
                   <div className="flex-1 min-w-0">
                     <div className="font-mono text-xs font-bold text-[var(--text)] truncate">{selected.market_hash_name}</div>
                     <div className="font-mono text-[9px] text-muted-3 mt-0.5">
-                      {selected.condition} Ã‚Â· Market: {fmt$(selected.price_usd)}
+                      {selected.condition} Â· Market: {fmt$(selected.price_usd)}
                     </div>
                   </div>
                   <button onClick={() => { setSelected(null); setSearch('') }}
-                    className="text-muted-3 hover:text-red text-sm transition-colors">Ã¢ÂœÂ•</button>
+                    className="text-muted-3 hover:text-red text-sm transition-colors">âœ•</button>
                 </div>
               )}
 
@@ -346,7 +346,7 @@ function AddDrawer({
                   <label className="block font-mono text-[9px] uppercase tracking-widest text-muted-3 mb-1.5">Qty</label>
                   <div className="flex">
                     <button onClick={() => setQty(q => Math.max(1, q - 1))}
-                      className="w-8 h-9 border border-terminal-border-2 bg-terminal-surface font-mono text-sm flex items-center justify-center rounded-l border-r-0 hover:bg-terminal-muted transition-colors text-muted-2">Ã¢ÂˆÂ’</button>
+                      className="w-8 h-9 border border-terminal-border-2 bg-terminal-surface font-mono text-sm flex items-center justify-center rounded-l border-r-0 hover:bg-terminal-muted transition-colors text-muted-2">âˆ’</button>
                     <input type="number" value={qty} min={1}
                       onChange={e => setQty(Math.max(1, parseInt(e.target.value) || 1))}
                       className="input-terminal text-center rounded-none w-full" />
@@ -408,7 +408,7 @@ function AddDrawer({
           <div className="flex gap-3 px-5 py-4 border-t border-terminal-border flex-shrink-0">
             <button onClick={onClose} className="btn-terminal flex-1 justify-center">Cancel</button>
             <button onClick={handleAdd} disabled={saving || (!selected && !search)} className="btn-primary flex-1 justify-center">
-              {saving ? 'Adding...' : 'Add to portfolio Ã¢Â†Â’'}
+              {saving ? 'Adding...' : 'Add to portfolio â†’'}
             </button>
           </div>
         )}
@@ -417,71 +417,112 @@ function AddDrawer({
   )
 }
 
-// Ã¢Â”Â€Ã¢Â”Â€ Steam import panel Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+// â”€â”€ Steam import panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; onImported: () => void }) {
+  const [mode, setMode]         = useState<'json' | 'steamid'>('json')
   const [steamId, setSteamId]   = useState('')
+  const [jsonText, setJsonText] = useState('')
   const [importing, setImporting] = useState(false)
   const [error, setError]       = useState('')
   const [result, setResult]     = useState<{ imported: number; skins: number; storage_units: number; stackables: number; floats_fetched: number } | null>(null)
 
   async function handleImport() {
-    if (!steamId.trim()) return
-    setImporting(true)
-    setResult(null)
-    setImportError(null)
+    setImporting(true); setError(''); setResult(null)
     try {
+      const body: any = { portfolio_id: portfolioId }
+      if (mode === 'json') {
+        if (!jsonText.trim()) { setError('Paste your inventory JSON first'); setImporting(false); return }
+        body.inventory_json = jsonText.trim()
+      } else {
+        if (!steamId.trim()) { setError('Enter your SteamID64'); setImporting(false); return }
+        body.steam_id = steamId.trim()
+      }
       const res = await fetch('/api/holdings/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portfolio_id: portfolioId, steam_id: steamId.trim() }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Import failed')
+      if (!res.ok) throw new Error(data.error ?? 'Import failed')
       setResult(data)
       onImported()
     } catch (err: any) {
-      setImportError(err.message)
+      setError(err.message)
     } finally {
       setImporting(false)
     }
   }
+
   return (
     <div className="space-y-4">
-      <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-xs text-blue-300">
-        <p className="font-bold mb-1">Portfolio import</p>
-        <p className="text-muted-2">Fetches your full CS2 inventory, groups stackable items (cases, capsules), and fetches float/pattern for each skin. Replaces existing holdings.</p>
-        <p className="text-muted-2 mt-1">Inventory must be set to <strong>Public</strong> in Steam privacy settings.</p>
+      {/* Mode tabs */}
+      <div className="flex gap-1 font-mono text-[10px]">
+        <button
+          onClick={() => setMode('json')}
+          className={`px-3 py-1 rounded border transition-colors ${mode === 'json' ? 'border-green/40 text-green bg-green/5' : 'border-border text-muted-3 hover:text-muted-1'}`}
+        >Paste JSON</button>
+        <button
+          onClick={() => setMode('steamid')}
+          className={`px-3 py-1 rounded border transition-colors ${mode === 'steamid' ? 'border-green/40 text-green bg-green/5' : 'border-border text-muted-3 hover:text-muted-1'}`}
+        >Steam ID</button>
       </div>
 
-      <div>
-        <label className="block font-mono text-[9px] uppercase tracking-widest text-muted-3 mb-1.5">SteamID64</label>
-        <div className="flex gap-2">
-          <input type="text" value={steamId} onChange={e => setSteamId(e.target.value)}
-            placeholder="76561197995388346" className="input-terminal flex-1"
-            style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }} />
-          <button onClick={handleImport} disabled={importing || !steamId.trim()} className="btn-primary whitespace-nowrap">
-            {importing ? 'ImportingÃ¢Â€Â¦' : 'Import Ã¢Â†Â’'}
+      {mode === 'json' ? (
+        <div className="space-y-2">
+          <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-[10px] text-blue-300 space-y-1">
+            <p className="font-bold">How to get your inventory JSON:</p>
+            <p>1. Open this URL in your browser (replace with your SteamID64):</p>
+            <p className="text-green break-all select-all">https://steamcommunity.com/inventory/76561198XXXXXXXX/730/2?l=english&count=5000</p>
+            <p>2. Select all (Ctrl+A) and copy the JSON</p>
+            <p>3. Paste it below and click Import</p>
+            <p className="text-muted-3">Find your SteamID64 at <a href="https://steamid.io" target="_blank" rel="noopener" className="text-green hover:underline">steamid.io</a></p>
+          </div>
+          <textarea
+            value={jsonText}
+            onChange={e => setJsonText(e.target.value)}
+            placeholder={`{"assets":[...],"descriptions":[...]}`}
+            rows={5}
+            className="input-terminal w-full resize-y"
+            style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}
+          />
+          <button onClick={handleImport} disabled={importing || !jsonText.trim()} className="btn-primary w-full">
+            {importing ? 'Importingâ€¦' : 'Import inventory â‚’'}
           </button>
         </div>
-        <p className="font-mono text-[9px] text-muted-4 mt-1">
-          Find at <a href="https://steamid.io" target="_blank" rel="noopener" className="text-green hover:underline">steamid.io</a>
-        </p>
-      </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-[10px] text-blue-300">
+            <p>Requires <code>STEAM_API_KEY</code> set in Vercel environment variables.</p>
+            <p className="text-muted-3 mt-1">Inventory must be Public in Steam privacy settings.</p>
+          </div>
+          <div className="flex gap-2">
+            <input type="text" value={steamId} onChange={e => setSteamId(e.target.value)}
+              placeholder="76561197995388346" className="input-terminal flex-1"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }} />
+            <button onClick={handleImport} disabled={importing || !steamId.trim()} className="btn-primary whitespace-nowrap">
+              {importing ? 'Importingâ€¦' : 'Import â†’'}
+            </button>
+          </div>
+          <p className="font-mono text-[9px] text-muted-4">
+            Find at <a href="https://steamid.io" target="_blank" rel="noopener" className="text-green hover:underline">steamid.io</a>
+          </p>
+        </div>
+      )}
 
       {error && <div className="px-3 py-2 rounded border border-red/30 bg-red-soft font-mono text-xs text-red">{error}</div>}
 
       {result && (
         <div className="px-3 py-2 rounded border border-green/20 bg-green-soft font-mono text-xs text-green space-y-0.5">
-          <div>Ã¢ÂœÂ“ {result.imported} rows imported</div>
-          <div className="text-muted-2">{result.skins} skins Ã‚Â· {result.storage_units} storage units Ã‚Â· {result.stackables} stackable types Ã‚Â· {result.floats_fetched} floats fetched</div>
-          <div className="text-muted-3 mt-1">Click Ã¢Â†Â» Prices to fetch current market prices.</div>
+          <div>âœ“ {result.imported} rows imported</div>
+          <div className="text-muted-2">{result.skins} skins Â· {result.storage_units} storage units Â· {result.stackables} stackable types</div>
+          <div className="text-muted-3 mt-1">Click â†» Prices to fetch current market prices.</div>
         </div>
       )}
     </div>
   )
 }
 
-// Ã¢Â”Â€Ã¢Â”Â€ Edit row inline Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+// â”€â”€ Edit row inline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EditCell({ holding, onSave }: { holding: HoldingWithValue; onSave: () => void }) {
   const [qty, setQty]   = useState(String(holding.quantity))
   const [cost, setCost] = useState(holding.cost_basis.toFixed(2))
@@ -502,17 +543,17 @@ function EditCell({ holding, onSave }: { holding: HoldingWithValue; onSave: () =
     <div className="flex items-center gap-2 py-1">
       <input type="number" value={qty} min={1} onChange={e => setQty(e.target.value)}
         className="input-terminal w-16 text-center text-xs py-1" />
-      <span className="text-muted-4 text-xs">ÃƒÂ—</span>
+      <span className="text-muted-4 text-xs">Ã—</span>
       <input type="number" value={cost} step="0.01" onChange={e => setCost(e.target.value)}
         className="input-terminal w-24 text-xs py-1" />
       <button onClick={save} disabled={saving} className="btn-terminal py-1 px-2 text-[10px]">
-        {saving ? '...' : 'Ã¢ÂœÂ“'}
+        {saving ? '...' : 'âœ“'}
       </button>
     </div>
   )
 }
 
-// Ã¢Â”Â€Ã¢Â”Â€ Allocation donut Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+// â”€â”€ Allocation donut â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
   const totalValue = holdings.reduce((s, h) => s + h.total_value, 0)
 
@@ -537,7 +578,7 @@ function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
     return (
       <div className="bg-terminal-surface-2 border border-terminal-border-2 rounded p-2 shadow-lg">
         <div className="font-mono text-[11px] font-bold text-[var(--text)] capitalize">{d.cat}</div>
-        <div className="font-mono text-[11px] text-muted-2">{fmt$(d.value)} Ã‚Â· {d.pct.toFixed(1)}%</div>
+        <div className="font-mono text-[11px] text-muted-2">{fmt$(d.value)} Â· {d.pct.toFixed(1)}%</div>
       </div>
     )
   }
@@ -580,12 +621,12 @@ function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
   )
 }
 
-// Ã¢Â”Â€Ã¢Â”Â€ Main portfolio client Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+// â”€â”€ Main portfolio client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: Props) {
   const qc = useQueryClient()
   const { data: holdings = [], isLoading } = useHoldings(portfolioId)
 
-  // Sell signals Ã¢Â€Â” load once, map by holding_id for O(1) lookup in table
+  // Sell signals â€” load once, map by holding_id for O(1) lookup in table
   const { data: sellSignalsRaw = [] } = useQuery({
     queryKey: ['sell-signals', portfolioId],
     queryFn: async () => {
@@ -657,7 +698,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
 
   function refresh() { qc.invalidateQueries({ queryKey: ['holdings', portfolioId] }) }
 
-  // Ã¢Â”Â€Ã¢Â”Â€ Refresh prices Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+  // â”€â”€ Refresh prices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [refreshingPrices, setRefreshingPrices] = useState(false)
   const [priceRefreshResult, setPriceRefreshResult] = useState<{ updated: number; failed: number } | null>(null)
 
@@ -677,7 +718,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
     }
   }
 
-  // Ã¢Â”Â€Ã¢Â”Â€ Storage units Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€Ã¢Â”Â€
+  // â”€â”€ Storage units â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [suOpen, setSuOpen] = useState(false)
   const [suLabels, setSuLabels] = useState<Record<string, string>>({})
   const [suEditId, setSuEditId] = useState<string | null>(null)
@@ -706,7 +747,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
       {/* KPI strip */}
       <div className="grid grid-cols-4 gap-3 flex-shrink-0">
         {[
-          { label: 'NAV', val: fmt$(totalValue), sub: `${regularHoldings.length} positions${storageUnits.length > 0 ? ` Ã‚Â· ${storageUnits.length} units` : ''}`, col: undefined },
+          { label: 'NAV', val: fmt$(totalValue), sub: `${regularHoldings.length} positions${storageUnits.length > 0 ? ` Â· ${storageUnits.length} units` : ''}`, col: undefined },
           { label: 'Unrealized P&L', val: fmt$(unrealizedPnl, { sign: true }), sub: fmtPct(unrealizedPct), col: unrealizedPnl >= 0 ? 'var(--green)' : 'var(--red)' },
           { label: 'Cost basis', val: fmt$(totalCost), sub: 'Total invested', col: undefined },
           { label: 'Avg position', val: fmt$(regularHoldings.length > 0 ? totalValue / regularHoldings.length : 0), sub: 'per holding', col: undefined },
@@ -764,7 +805,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
               title={priceRefreshResult ? `Last: ${priceRefreshResult.updated} updated, ${priceRefreshResult.failed} failed` : 'Fetch current prices from Skinstrack'}
               className="btn-terminal text-xs py-1.5 px-3"
             >
-              {refreshingPrices ? 'Ã¢Â†Â» Ã¢Â€Â¦' : 'Ã¢Â†Â» Prices'}
+              {refreshingPrices ? 'â†» â€¦' : 'â†» Prices'}
             </button>
             <button onClick={() => setShowAdd(true)} className="btn-primary text-xs py-1.5">
               + Add holding
@@ -784,13 +825,13 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-8">
-              <span className="text-4xl text-muted-4">Ã¢Â–Â¤</span>
+              <span className="text-4xl text-muted-4">â–¤</span>
               <p className="font-mono text-sm text-muted-2">
                 {holdings.length === 0 ? 'Portfolio is empty' : 'No holdings match filters'}
               </p>
               {holdings.length === 0 && (
                 <button onClick={() => setShowAdd(true)} className="btn-primary text-sm">
-                  Add first holding Ã¢Â†Â’
+                  Add first holding â†’
                 </button>
               )}
             </div>
@@ -805,267 +846,141 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                   <th className="term-num">Value</th>
                   <SortTh col="pnl"     label="P&L" right />
                   <SortTh col="pnl_pct" label="%" right />
-                  <SortTh col="days"    label="Days" right />
-                  <th className="term-num w-20">Signal</th>
-                  <th className="w-28 term-num">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map(h => {
-                  const up = h.unrealized_pnl >= 0
-                  const isEditing = editId === h.id
-                  return (
-                    <tr key={h.id} className={cn(deleting === h.id && 'opacity-40')}>
-                      {/* Item */}
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <div className="w-0.5 h-8 rounded-full flex-shrink-0" style={{ background: CAT_COLOR[h.item_category ?? 'other'] }} />
-                          <div className="min-w-0">
-                            <div className="font-mono text-[11px] text-[var(--text)] truncate max-w-[260px]">{h.item_name}</div>
-                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                              {h.item_condition && (
-                                <span className="font-mono text-[9px] text-muted-3">{h.item_condition}</span>
-                              )}
-                              {h.is_stattrak && (
-                                <span className="font-mono text-[9px] text-amber font-bold">ST</span>
-                              )}
-                              {h.float_value != null && (() => {
-                                const fa = h.item_condition
-                                  ? estimateFloatAdjustedPrice(h.current_price, h.float_value, h.item_condition, h.item_name)
-                                  : null
-                                return (
-                                  <span className={cn(
-                                    'font-mono text-[9px]',
-                                    fa?.float_tier === 'gem' ? 'text-amber font-bold' :
-                                    fa?.float_tier === 'low' ? 'text-green' : 'text-muted-4'
-                                  )}
-                                  title={fa?.marketable_note}>
-                                    {fmtFloat(h.float_value)}
-                                    {fa?.float_tier === 'gem' && ' Ã°ÂŸÂ’Â'}
-                                    {fa?.float_tier === 'low' && fa.float_premium_pct > 5 && ` +${fa.float_premium_pct.toFixed(0)}%`}
-                                  </span>
-                                )
-                              })()}
-                              {/* Doppler phase badge */}
-                              {(() => {
-                                const dp = detectDopplerPhase(h.item_name)
-                                if (!dp.is_doppler) return null
-                                return (
-                                  <span className={cn(
-                                    'font-mono text-[9px] px-1 py-0.5 rounded border',
-                                    dp.is_special
-                                      ? 'text-amber border-amber/30 bg-amber/10 font-bold'
-                                      : 'text-muted-2 border-terminal-border-2'
-                                  )}>
-                                    {dp.phase_label}
-                                    {dp.is_special && ' Ã¢Â­Â'}
-                                  </span>
-                                )
-                              })()}
-                              {/* Sticker value badge */}
-                              {(() => {
-                                const sv = estimateStickerValue(h.stickers as any)
-                                if (!sv.has_valuable_stickers) return null
-                                return (
-                                  <span className={cn(
-                                    'font-mono text-[9px] px-1 py-0.5 rounded border cursor-help',
-                                    sv.flagged_stickers[0]?.tier === 'legendary'
-                                      ? 'text-amber border-amber/40 bg-amber/10 font-bold'
-                                      : 'text-muted-2 border-terminal-border-2'
-                                  )}
-                                  title={sv.warning ?? `Sticker value: $${sv.applied_value_min}Ã¢Â€Â“$${sv.applied_value_max}`}>
-                                    Ã°ÂŸÂÂ· {sv.flagged_stickers[0]?.tier === 'legendary' ? 'LEGENDARY STICKER' : `+$${sv.applied_value_min}Ã¢Â€Â“${sv.applied_value_max}`}
-                                  </span>
-                                )
-                              })()}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
+                  <SortThÛÛH™^\ÈˆX™[H‘^\ÈˆšYÚÏ‚ˆÛ\ÜÓ˜[YOH\›K[[HËLŒ”ÚYÛ˜[İ‚ˆÛ\ÜÓ˜[YOHËL\›K[[HXİ[ÛœÏİ‚ˆİ‚ˆİXY‚ˆ›ÙO‚ˆİš\ÚX›K›X\
+OˆÂˆÛÛœİ\H[œ™X[^™YÜ›HˆÛÛœİ\ÑY][™ÈHY]YOOHšYˆ™]\›ˆ
+ˆˆÙ^O^ÚšYHÛ\ÜÓ˜[YO^ØÛŠ[][™ÈOOHšY	‰ˆ	ÛÜXÚ]KM	Ê_O‚ˆËÊˆ][H
+‹ßBˆ‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\Lˆ‚ˆ]ˆÛ\ÜÓ˜[YOHËLHN›İ[™YY[›^\Úš[šËLˆİ[O^ŞÈ˜XÚÙÜ›İ[™ˆĞUĞÓÓÔ–Úš][WØØ]YÛÜHÏÈ	Ûİ\‰×H_HÏ‚ˆ]ˆÛ\ÜÓ˜[YOH›Z[‹]ËL‚ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÌL\H^Vİ˜\ŠK]^
+WH[˜Ø]HX^]ËVÌŒHÚš][WÛ˜[Y_OÙ]‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\LKH]LH›^]Ü˜\‚ˆÚš][WØÛÛ™][Ûˆ	‰ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎ\H^[]]YLÈÚš][WØÛÛ™][ÛŸOÜÜ[‚ˆ
+_BˆÚš\×Üİ]˜ZÈ	‰ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎ\H^X[X™\ˆ›ÛX›Û”ÕÜÜ[‚ˆ
+_BˆÚ™›Ø]İ˜[YHOH[	‰ˆ
 
-                      {/* Qty / cost Ã¢Â€Â” editable inline */}
-                      {isEditing ? (
-                        <td colSpan={2}>
-                          <EditCell holding={h} onSave={() => { setEditId(null); refresh() }} />
-                        </td>
-                      ) : (
-                        <>
-                          <td className="term-num font-mono text-xs text-muted-2">{h.quantity}</td>
-                          <td className="term-num font-mono text-xs text-muted-2">{fmt$(h.cost_basis)}</td>
-                        </>
-                      )}
 
-                      <td className="term-num">
-                        <div className="font-mono text-xs">{fmt$(h.current_price)}</div>
-                        {(() => {
-                          // Float premium
-                          if (h.float_value != null && h.item_condition) {
-                            const fa = estimateFloatAdjustedPrice(h.current_price, h.float_value, h.item_condition, h.item_name)
-                            if (fa.float_premium_pct > 10) return (
-                              <div className="font-mono text-[8px] text-amber">~{fmt$(fa.adjusted_price)} float</div>
-                            )
-                          }
-                          // Doppler phase
-                          const dp = detectDopplerPhase(h.item_name)
-                          if (dp.is_special && dp.price_multiplier > 2) return (
-                            <div className="font-mono text-[8px] text-amber">~{fmt$(h.current_price * dp.price_multiplier)} phase</div>
-                          )
-                          return null
-                        })()}
-                      </td>
-                      <td className="term-num font-mono text-xs font-bold">{fmt$(h.total_value)}</td>
+HOˆÂˆÛÛœİ˜HHš][WØÛÛ™][Û‚ˆÈ\İ[X]Q›Ø]Y\İYšXÙJ˜İ\œ™[ÜšXÙK™›Ø]İ˜[YKš][WØÛÛ™][Û‹š][WÛ˜[YJBˆˆ[ˆ™]\›ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YO^ØÛŠˆ	Ù›Û[[Û›È^VÎ\IËˆ˜OË™›Ø]İY\ˆOOH	ÙÙ[IÈÈ	İ^X[X™\ˆ›ÛX›Û	È‚ˆ˜OË™›Ø]İY\ˆOOH	ÛİÉÈÈ	İ^YÜ™Y[‰Èˆ	İ^[]]YM	Âˆ
+_Bˆ]O^Ù˜OË›X\šÙ]X›WÛ›İ_O‚ˆÙ›]›Ø]
+™›Ø]İ˜[YJ_BˆÙ˜OË™›Ø]İY\ˆOOH	ÙÙ[IÈ	‰ˆ	È<'ä£‰ßBˆÙ˜OË™›Ø]İY\ˆOOH	ÛİÉÈ	‰ˆ˜K™›Ø]Ü™[Z][WÜİˆH	‰ˆ
+ÉÙ˜K™›Ø]Ü™[Z][WÜİÑš^Y
+
+_IXBˆÜÜ[‚ˆ
+BˆJJ
+_BˆËÊˆÜ\ˆ\ÙH˜YÙH
+‹ßBˆÊ
 
-                               <td className="term-num">
-                        <div className="font-mono text-xs font-bold" style={{ color: up ? 'var(--green)' : 'var(--red)' }}>
-                          {fmt$(h.unrealized_pnl, { sign: true })}
-                        </div>
-                        {/* P&L bar */}
-                        <div className="score-bar mt-1 w-16 ml-auto">
-                          <div className="score-bar-fill" style={{
-                            width: `${Math.min(100, Math.abs(h.unrealized_pnl_pct) * 3)}%`,
-                            background: up ? 'var(--green)' : 'var(--red)',
-                          }} />
-                        </div>
-                      </td>
+HOˆÂˆÛÛœİH]XİÜ\”\ÙJš][WÛ˜[YJBˆYˆ
+Yš\×ÙÜ\ŠH™]\›ˆ[ˆ™]\›ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YO^ØÛŠˆ	Ù›Û[[Û›È^VÎ\HLHKLH›İ[™Y›Ü™\‰Ëˆš\×ÜÜXÚX[ˆÈ	İ^X[X™\ˆ›Ü™\‹X[X™\‹ÌÌ™ËX[X™\‹ÌL›ÛX›Û	Âˆˆ	İ^[]]YLˆ›Ü™\‹]\›Z[˜[X›Ü™\‹L‰Âˆ
+_O‚ˆÙœ\ÙWÛX™[BˆÙš\×ÜÜXÚX[	‰ˆ	È8«d	ßBˆÜÜ[‚ˆ
+BˆJJ
+_BˆËÊˆİXÚÙ\ˆ˜[YH˜YÙH
+‹ßBˆÊ
 
-                      <td className="term-num font-mono text-xs" style={{ color: up ? 'var(--green)' : 'var(--red)' }}>
-                        {fmtPct(h.unrealized_pnl_pct)}
-                      </td>
+HOˆÂˆÛÛœİİˆH\İ[X]TİXÚÙ\•˜[YJœİXÚÙ\œÈ\È[JBˆYˆ
+\İ‹š\×İ˜[XX›WÜİXÚÙ\œÊH™]\›ˆ[ˆ™]\›ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YO^ØÛŠˆ	Ù›Û[[Û›È^VÎ\HLHKLH›İ[™Y›Ü™\ˆİ\œÛÜ‹Z[	Ëˆİ‹™›YÙÙYÜİXÚÙ\œÖÌOËY\ˆOOH	ÛYÙ[™\IÂˆÈ	İ^X[X™\ˆ›Ü™\‹X[X™\‹Í™ËX[X™\‹ÌL›ÛX›Û	Âˆˆ	İ^[]]YLˆ›Ü™\‹]\›Z[˜[X›Ü™\‹L‰Âˆ
+_Bˆ]O^Üİ‹Ø\›š[™ÈÏÈİXÚÙ\ˆ˜[YNˆ		Üİ‹˜\YYİ˜[YWÛZ[Ÿx $É	Üİ‹˜\YYİ˜[YWÛX^XO‚ˆ<'ãíÈÜİ‹™›YÙÙYÜİXÚÙ\œÖÌOËY\ˆOOH	ÛYÙ[™\IÈÈ	ÓQÑS‘T–HÕPÒÑT‰Èˆ
+É	Üİ‹˜\YYİ˜[YWÛZ[Ÿx $ÉÜİ‹˜\YYİ˜[YWÛX^XBˆÜÜ[‚ˆ
+BˆJJ
+_BˆÙ]‚ˆÙ]‚ˆÙ]‚ˆİ‚‚ˆËÊˆ]HÈÛÜİ8 %Y]X›H[›[™H
+‹ßBˆÚ\ÑY][™ÈÈ
+ˆÛÛÜ[^ÌŸO‚ˆY]Ù[Û[™Ï^ÚHÛ”Ø]™O^Ê
+HOˆÈÙ]Y]Y
+[
+NÈ™Yœ™\Ú
 
-                      <td className="term-num font-mono text-xs text-muted-3">{h.days_held}d</td>
+H_HÏ‚ˆİ‚ˆ
+Hˆ
+ˆ‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È^[]]YLˆÚœ]X[]_Oİ‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È^[]]YLˆÙ›]	
+˜ÛÜİØ˜\Ú\Ê_Oİ‚ˆÏ‚ˆ
+_B‚ˆÛ\ÜÓ˜[YOH\›K[[H‚ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^^ÈÙ›]	
+˜İ\œ™[ÜšXÙJ_OÙ]‚ˆÊ
 
-                      {/* Sell signal indicator */}
-                      <td className="term-num">
-                        {(() => {
-                          const sig = sellSignalMap.get(h.id)
-                          if (!sig) return <span className="font-mono text-[9px] text-muted-4">Ã¢Â€Â”</span>
-                          const cfg = {
-                            high:   { label: 'Ã°ÂŸÂ”Â´ SELL',  color: '#ef4444' },
-                            medium: { label: 'Ã°ÂŸÂŸÂ¡ WATCH', color: '#f59e0b' },
-                            low:    { label: 'Ã°ÂŸÂŸÂ¢ NOTE',  color: '#00ff88' },
-                          }[sig.urgency] ?? null
-                          if (!cfg) return null
-                          return (
-                            <button
-                              onClick={() => setSellHolding(h)}
-                              title={sig.recommendation}
-                              className="font-mono text-[8px] font-bold px-1.5 py-0.5 rounded border transition-all hover:opacity-80"
-                              style={{ color: cfg.color, borderColor: `${cfg.color}40`, background: `${cfg.color}10` }}>
-                              {cfg.label}
-                            </button>
-                          )
-                        })()}
-                      </td>
+HOˆÂˆËÈ›Ø]™[Z][BˆYˆ
+™›Ø]İ˜[YHOH[	‰ˆš][WØÛÛ™][ÛŠHÂˆÛÛœİ˜HH\İ[X]Q›Ø]Y\İYšXÙJ˜İ\œ™[ÜšXÙK™›Ø]İ˜[YKš][WØÛÛ™][Û‹š][WÛ˜[YJBˆYˆ
+˜K™›Ø]Ü™[Z][WÜİˆL
+H™]\›ˆ
+ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎH^X[X™\ˆŸÙ›]	
+˜K˜Y\İYÜšXÙJ_H›Ø]Ù]‚ˆ
+BˆBˆËÈÜ\ˆ\ÙBˆÛÛœİH]XİÜ\”\ÙJš][WÛ˜[YJBˆYˆ
+š\×ÜÜXÚX[	‰ˆœšXÙWÛ][\Y\ˆˆŠH™]\›ˆ
+ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎH^X[X™\ˆŸÙ›]	
+˜İ\œ™[ÜšXÙH
+ˆœšXÙWÛ][\Y\Š_H\ÙOÙ]‚ˆ
+Bˆ™]\›ˆ[ˆJJ
+_Bˆİ‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È›ÛX›ÛÙ›]	
+İ[İ˜[YJ_Oİ‚‚ˆÛ\ÜÓ˜[YOH\›K[[H‚ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^^È›ÛX›Ûˆİ[O^ŞÈÛÛÜˆ\È	İ˜\ŠKYÜ™Y[ŠIÈˆ	İ˜\ŠK\™Y
+IÈ_O‚ˆÙ›]	
+[œ™X[^™YÜ›ÈÚYÛˆYHJ_BˆÙ]‚ˆËÊˆ	“˜\ˆ
+‹ßBˆ]ˆÛ\ÜÓ˜[YOHœØÛÜ™KX˜\ˆ]LHËLMˆ[X]]È‚ˆ]ˆÛ\ÜÓ˜[YOHœØÛÜ™KX˜\‹Yš[ˆİ[O^ŞÂˆÚYˆ	ÓX]›Z[ŠLX]˜XœÊ[œ™X[^™YÜ›Üİ
+H
+ˆÊ_IXˆ˜XÚÙÜ›İ[™ˆ\È	İ˜\ŠKYÜ™Y[ŠIÈˆ	İ˜\ŠK\™Y
+IËˆ_HÏ‚ˆÙ]‚ˆİ‚‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^Èˆİ[O^ŞÈÛÛÜˆ\È	İ˜\ŠKYÜ™Y[ŠIÈˆ	İ˜\ŠK\™Y
+IÈ_O‚ˆÙ›]İ
+[œ™X[^™YÜ›Üİ
+_Bˆİ‚‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È^[]]YLÈÚ™^\×Ú[Yİ‚‚ˆËÊˆÙ[ÚYÛ˜[[™XØ]Üˆ
+‹ßBˆÛ\ÜÓ˜[YOH\›K[[H‚ˆÊ
 
-                      {/* Actions */}
-                      <td>
-                        <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => setEditId(isEditing ? null : h.id)}
-                            className="btn-terminal py-0.5 px-1.5 text-[9px]" title="Edit">
-                            {isEditing ? 'Ã¢ÂœÂ•' : 'Ã¢ÂœÂ'}
-                          </button>
-                          <button onClick={() => setSellHolding(h)}
-                            className="btn-terminal py-0.5 px-1.5 text-[9px] hover:border-red/30 hover:text-red" title="Sell">
-                            SELL
-                          </button>
-                          <a href={steamMarketUrl(h.item_name)} target="_blank" rel="noopener"
-                            onClick={e => e.stopPropagation()}
-                            className="btn-terminal py-0.5 px-1.5 text-[9px]" title="Steam Market">Ã¢Â†Â—</a>
-                          <button onClick={() => handleDelete(h.id)}
-                            className="btn-terminal py-0.5 px-1.5 text-[9px] hover:border-red/30 hover:text-red" title="Delete">Ã¢ÂœÂ•</button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-2 border-t border-terminal-border flex-shrink-0">
-          <span className="font-mono text-[10px] text-muted-3">{visible.length} positions shown</span>
-          <div className="flex items-center gap-3">
-            <button onClick={() => {
-              const rows = [['Item','Condition','Qty','Cost/unit','Current price','Total value','P&L','P&L %','Days held']]
-              for (const h of regularHoldings) {
-                rows.push([h.item_name, h.item_condition ?? '', String(h.quantity), h.cost_basis.toFixed(2), h.current_price.toFixed(2), h.total_value.toFixed(2), h.unrealized_pnl.toFixed(2), h.unrealized_pnl_pct.toFixed(2), String(h.days_held)])
-              }
-              const csv = rows.map(r => r.map(v => /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v).join(',')).join('\n')
-              const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
-              a.download = `portfolio-${new Date().toISOString().slice(0,10)}.csv`; a.click()
-            }} className="btn-terminal text-[10px] py-1">
-              Ã¢Â†Â“ CSV
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Storage Units section */}
-      {storageUnits.length > 0 && (
-        <div className="panel flex-shrink-0">
-          <button
-            onClick={() => setSuOpen(o => !o)}
-            className="w-full flex items-center justify-between px-4 py-3 font-mono text-xs"
-          >
-            <span className="text-muted-2 uppercase tracking-widest text-[10px]">
-              Storage Units
-              <span className="ml-2 text-green">{storageUnits.length}</span>
-            </span>
-            <span className="text-muted-4">{suOpen ? 'Ã¢Â–Â²' : 'Ã¢Â–Â¼'}</span>
-          </button>
-
-          {suOpen && (
-            <div className="border-t border-terminal-border divide-y divide-terminal-border">
-              {storageUnits.map(su => (
-                <div key={su.id} className="flex items-center gap-3 px-4 py-2.5">
-                  <span className="text-muted-4 text-sm">Ã°ÂŸÂ“Â¦</span>
-                  <div className="flex-1">
-                    {suEditId === su.id ? (
-                      <input
-                        autoFocus
-                        defaultValue={suLabels[su.id] ?? su.group_label ?? `Storage Unit`}
-                        className="input-terminal text-xs py-0.5 w-48"
-                        onBlur={e => renameStorageUnit(su.id, e.target.value || (su.group_label ?? 'Storage Unit'))}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') renameStorageUnit(su.id, (e.target as HTMLInputElement).value || (su.group_label ?? 'Storage Unit'))
-                          if (e.key === 'Escape') setSuEditId(null)
-                        }}
-                      />
-                    ) : (
-                      <button
-                        onClick={() => setSuEditId(su.id)}
-                        className="font-mono text-xs text-left hover:text-green transition-colors"
-                        title="Click to rename"
-                      >
-                        {suLabels[su.id] ?? su.group_label ?? 'Storage Unit'}
-                        <span className="ml-1 text-muted-4 text-[9px]">Ã¢ÂœÂ</span>
-                      </button>
-                    )}
-                  </div>
-                  <span className="font-mono text-[10px] text-muted-3">
-                    {su.steam_asset_id ? `#${su.steam_asset_id}` : ''}
-                  </span>
-                </div>
-              ))}
-              <div className="px-4 py-2 font-mono text-[9px] text-muted-4">
-                Click a name to rename. Items inside storage units aren't tracked by Steam's inventory API Ã¢Â€Â” add them manually via + Add holding.
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Modals */}
-      {sellHolding && (
-        <SellModal holding={sellHolding} fees={fees} onClose={() => setSellHolding(null)}
-          onSold={() => { setSellHolding(null); refresh() }} />
-      )}
-      {showAdd && (
-        <AddDrawer portfolioId={portfolioId} onClose={() => setShowAdd(false)}
-          onAdded={() => { setShowAdd(false); refresh() }} />
-      )}
-    </div>
-  )
-}
+HOˆÂˆÛÛœİÚYÈHÙ[ÚYÛ˜[X\™Ù]
+šY
+BˆYˆ
+\ÚYÊH™]\›ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎ\H^[]]YM¸ %ÜÜ[‚ˆÛÛœİÙ™ÈHÂˆYÚˆÈX™[ˆ	ü'å-ÑS	ËÛÛÜˆ	ÈÙY	ÈKˆYY][NˆÈX™[ˆ	ü'çèHĞUÒ	ËÛÛÜˆ	ÈÙNYL‰ÈKˆİÎˆÈX™[ˆ	ü'çèˆ“ÕIËÛÛÜˆ	ÈÌ™	ÈKˆVÜÚYË\™Ù[˜ŞWHÏÈ[ˆYˆ
+XÙ™ÊH™]\›ˆ[ˆ™]\›ˆ
+ˆ]Û‚ˆÛÛXÚÏ^Ê
+HOˆÙ]Ù[Û[™Ê
+_Bˆ]O^ÜÚYËœ™XÛÛ[Y[™][ÛŸBˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎH›ÛX›ÛLKHKLH›İ[™Y›Ü™\ˆ˜[œÚ][Û‹X[İ™\›ÜXÚ]KN‚ˆİ[O^ŞÈÛÛÜˆÙ™Ë˜ÛÛÜ‹›Ü™\ÛÛÜˆ	ØÙ™Ë˜ÛÛÜŸM˜XÚÙÜ›İ[™ˆ	ØÙ™Ë˜ÛÛÜŸLL_O‚ˆØÙ™Ë›X™[BˆØ]Û‚ˆ
+BˆJJ
+_Bˆİ‚‚ˆËÊˆXİ[ÛœÈ
+‹ßBˆ‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆ\İYKY[™Ø\LH‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆÙ]Y]Y
+\ÑY][™ÈÈ[ˆšY
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\Hˆ]OH‘Y]‚ˆÚ\ÑY][™ÈÈ	ø§%IÈˆ	ø§#‰ßBˆØ]Û‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆÙ]Ù[Û[™Ê
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\Hİ™\˜›Ü™\‹\™YÌÌİ™\^\™Yˆ]OH”Ù[‚ˆÑSˆØ]Û‚ˆH™Y^ÜİX[SX\šÙ]\›
+š][WÛ˜[YJ_H\™Ù]H—Ø›[šÈˆ™[H››ÛÜ[™\ˆ‚ˆÛÛXÚÏ^ÙHOˆKœİÜ›ÜYØ][ÛŠ
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\Hˆ]OH”İX[HX\šÙ]¸¡¥ÏØO‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆ[™Q[]JšY
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\Hİ™\˜›Ü™\‹\™YÌÌİ™\^\™Yˆ]OH‘[]H¸§%OØ]Û‚ˆÙ]‚ˆİ‚ˆİ‚ˆ
+BˆJ_Bˆİ›ÙO‚ˆİX›O‚ˆ
+_BˆÙ]‚‚ˆËÊˆ›Ûİ\ˆ
+‹ßBˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆ\İYKX™]ÙY[ˆMKLˆ›Ü™\‹]›Ü™\‹]\›Z[˜[X›Ü™\ˆ›^\Úš[šËL‚ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÌLH^[]]YLÈİš\ÚX›K›[™İHÜÚ][ÛœÈÚİÛÜÜ[‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\LÈ‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆÂˆÛÛœİ›İÜÈHÖÉÒ][IË	ĞÛÛ™][Û‰Ë	Ô]IË	ĞÛÜİİ[š]	Ë	Ğİ\œ™[šXÙIË	Õİ[˜[YIË	Ô	“	Ë	Ô	“	IË	Ñ^\È[	×WBˆ›Üˆ
+ÛÛœİÙˆ™Yİ[\’Û[™ÜÊHÂˆ›İÜËœ\Ú
+Úš][WÛ˜[YKš][WØÛÛ™][ÛˆÏÈ	ÉËİš[™Êœ]X[]JK˜ÛÜİØ˜\Ú\ËÑš^Y
+ŠK˜İ\œ™[ÜšXÙKÑš^Y
+ŠKİ[İ˜[YKÑš^Y
+ŠK[œ™X[^™YÜ›Ñš^Y
+ŠK[œ™X[^™YÜ›ÜİÑš^Y
+ŠKİš[™Ê™^\×Ú[
+WJBˆBˆÛÛœİÜİˆH›İÜË›X\
+ˆOˆ‹›X\
+ˆOˆÖÈ‹—KË\İ
+ŠHÈ‰İ‹œ™\XÙJÈ‹ÙË	Èˆ‰Ê_H˜ˆŠKš›Ú[Š	Ë	ÊJKš›Ú[Š	×‰ÊBˆÛÛœİHHØİ[Y[˜Ü™X]Q[[Y[
+	ØIÊNÈKš™YˆHT“˜Ü™X]SØš™XİT“
+™]È›ØŠØÜİ—KÈ\Nˆ	İ^ØÜİ‰ÈJJBˆK™İÛ›ØYHÜ›Û[ËIÛ™]È]J
+KÒTÓÔİš[™Ê
+KœÛXÙJL
+_K˜Üİ˜ÈK˜ÛXÚÊ
+Bˆ_HÛ\ÜÓ˜[YOH˜‹]\›Z[˜[^VÌLHKLH‚ˆø¡¤ÈÔÕ‚ˆØ]Û‚ˆÙ]‚ˆÙ]‚ˆÙ]‚‚ˆËÊˆİÜ˜YÙH[š]ÈÙXİ[Ûˆ
+‹ßBˆÜİÜ˜YÙU[š]Ë›[™İˆ	‰ˆ
+ˆ]ˆÛ\ÜÓ˜[YOHœ[™[›^\Úš[šËL‚ˆ]Û‚ˆÛÛXÚÏ^Ê
+HOˆÙ]İSÜ[ŠÈOˆ[Ê_BˆÛ\ÜÓ˜[YOHËY[›^][\ËXÙ[\ˆ\İYKX™]ÙY[ˆMKLÈ›Û[[Û›È^^È‚ˆ‚ˆÜ[ˆÛ\ÜÓ˜[YOH^[]]YLˆ\\˜Ø\ÙH˜XÚÚ[™Ë]ÚY\İ^VÌLH‚ˆİÜ˜YÙH[š]ÂˆÜ[ˆÛ\ÜÓ˜[YOH›[Lˆ^YÜ™Y[ˆÜİÜ˜YÙU[š]Ë›[™İOÜÜ[‚ˆÜÜ[‚ˆÜ[ˆÛ\ÜÓ˜[YOH^[]]YMÜİSÜ[ˆÈ	ø§,‰Èˆ	ø¥¯	ßOÜÜ[‚ˆØ]Û‚‚ˆÜİSÜ[ˆ	‰ˆ
+ˆ]ˆÛ\ÜÓ˜[YOH˜›Ü™\‹]›Ü™\‹]\›Z[˜[X›Ü™\ˆ]šYK^H]šYK]\›Z[˜[X›Ü™\ˆ‚ˆÜİÜ˜YÙU[š]Ë›X\
+İHOˆ
+ˆ]ˆÙ^O^ÜİKšYHÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\LÈMKL‹H‚ˆÜ[ˆÛ\ÜÓ˜[YOH^[]]YM^\ÛH¼'äéÜÜ[‚ˆ]ˆÛ\ÜÓ˜[YOH™›^LH‚ˆÜİQY]YOOHİKšYÈ
+ˆ[œ]ˆ]]Ñ›Øİ\ÂˆY˜][˜[YO^ÜİSX™[ÖÜİKšYHÏÈİK™Ü›İ\ÛX™[ÏÈİÜ˜YÙH[š]BˆÛ\ÜÓ˜[YOHš[œ]]\›Z[˜[^^ÈKLHËM‚ˆÛ›\^ÙHOˆ™[˜[YTİÜ˜YÙU[š]
+İKšYK\™Ù]˜[YH
+İK™Ü›İ\ÛX™[ÏÈ	ÔİÜ˜YÙH[š]	ÊJ_BˆÛ’Ù^QİÛ^ÙHOˆÂˆYˆ
+KšÙ^HOOH	Ñ[\‰ÊH™[˜[YTİÜ˜YÙU[š]
+İKšY
+K\™Ù]\ÈS[œ][[Y[
+K˜[YH
+İK™Ü›İ\ÛX™[ÏÈ	ÔİÜ˜YÙH[š]	ÊJBˆYˆ
+KšÙ^HOOH	Ñ\ØØ\IÊHÙ]İQY]Y
+[
+Bˆ_BˆÏ‚ˆ
+Hˆ
+ˆ]Û‚ˆÛÛXÚÏ^Ê
+HOˆÙ]İQY]Y
+İKšY
+_BˆÛ\ÜÓ˜[YOH™›Û[[Û›È^^È^[Yİ™\^YÜ™Y[ˆ˜[œÚ][Û‹XÛÛÜœÈ‚ˆ]OHÛXÚÈÈ™[˜[YH‚ˆ‚ˆÜİSX™[ÖÜİKšYHÏÈİK™Ü›İ\ÛX™[ÏÈ	ÔİÜ˜YÙH[š]	ßBˆÜ[ˆÛ\ÜÓ˜[YOH›[LH^[]]YM^VÎ\H¸§#ÜÜ[‚ˆÂö'WGFöãà¢—Ğ¢ÂöF—cà¢Ç7â6Æ74æÖSÒ&föçBÖÖöæòFW‡BÕ³…ÒFW‡BÖ×WFVBÓ2#à¢·7Rç7FVÕö76WEö–Bò2G·7Rç7FVÕö76WEö–GÖ¢rwĞ¢Â÷7ãà¢ÂöF—cà¢’—Ğ¢ÆF—b6Æ74æÖSÒ'‚ÓB’Ó"föçBÖÖöæòFW‡BÕ³—…ÒFW‡BÖ×WFVBÓB#à¢6Æ–6²æÖRFò&VæÖRâ—FV×2–ç6–FR7F÷&vRVæ—G2&VâwBG&6¶VB'’7FVÒw2–çfVçF÷'’’(	BFBF†VÒÖçVÆÇ’f–²FB†öÆF–ærà¢ÂöF—cà¢ÂöF—cà¢—Ğ¢ÂöF—cà¢—Ğ ¢²ò¢ÖöFÇ2¢÷Ğ¢·6VÆÄ†öÆF–ærbb€¢Å6VÆÄÖöFÂ†öÆF–æs×·6VÆÄ†öÆF–æwÒfVW3×¶fVW7Òöä6Æ÷6S×²‚’Óâ6WE6VÆÄ†öÆF–ær†çVÆÂ—Ğ¢öå6öÆC×²‚’Óâ²6WE6VÆÄ†öÆF–ær†çVÆÂ“²&Vg&W6‚‚’×Òóà¢—Ğ¢·6†÷tFBbb€¢ÄFDG&vW"÷'FföÆ–ô–C×·÷'FföÆ–ô–GÒöä6Æ÷6S×²‚’Óâ6WE6†÷tFB†fÇ6R—Ğ¢öäFFVC×²‚’Óâ²6WE6†÷tFB†fÇ6R“²&Vg&W6‚‚’×Òóà¢—Ğ¢ÂöF—cà¢§Ğ
