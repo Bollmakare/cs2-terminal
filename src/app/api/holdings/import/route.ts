@@ -66,10 +66,10 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
 
-  // Get user's default portfolio (including steam_id for inspect link construction)
+  // Get user's default portfolio
   const { data: portfolio } = await supabase
     .from('portfolios')
-    .select('id, steam_id')
+    .select('id')
     .eq('user_id', user.id)
     .order('created_at', { ascending: true })
     .limit(1)
@@ -77,8 +77,14 @@ export async function POST(req: NextRequest) {
 
   if (!portfolio) return NextResponse.json({ error: 'No portfolio found' }, { status: 400 })
 
-  // Steam ID to fill into inspect links
-  const steamId: string = body.steamId ?? (portfolio as any).steam_id ?? ''
+  // Get Steam ID from user profile (needed to construct inspect links)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('steam_id')
+    .eq('id', user.id)
+    .single()
+
+  const steamId: string = body.steamId ?? profile?.steam_id ?? ''
 
   // Accept three formats:
   // 1. Bookmarklet format: { items: [{name, assetid}] }
