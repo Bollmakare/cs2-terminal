@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase.from('holdings').select('*').eq('portfolio_id', pid).eq('user_id', user.id).order('last_price', { ascending: false, nullsFirst: false })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ holdings: data })
+  return NextResponse.json({ holdings: (data ?? []).map(h => ({ ...h, current_price: h.last_price ?? 0 })) })
 }
 
 export async function POST(req: NextRequest) {
