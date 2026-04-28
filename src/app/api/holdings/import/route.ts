@@ -107,14 +107,27 @@ export async function POST(req: NextRequest) {
     // ── Mode 1: fetch directly from Steam Community (no API key needed) ──
     const steamUrl = `https://steamcommunity.com/inventory/${body.steam_id}/730/2?l=english&count=5000`
     try {
-      const res = await fetch(steamUrl, { signal: AbortSignal.timeout(20000), cache: 'no-store' })
+      const res = await fetch(steamUrl, {
+        signal: AbortSignal.timeout(20000),
+        cache: 'no-store',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': 'application/json, text/javascript, */*; q=0.01',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://steamcommunity.com/',
+        },
+      })
       if (res.status === 403) return NextResponse.json({ error: 'Steam inventory is set to Private. Go to Steam → Privacy Settings → set Inventory to Public.' }, { status: 400 })
+      if (res.status === 400) return NextResponse.json({ error: 'Steam blocked this request (IP restriction). Use the Paste JSON tab instead: open https://steamcommunity.com/inventory/' + body.steam_id + '/730/2?l=english&count=5000 in your browser, press Ctrl+A then Ctrl+C, then switch to the Paste JSON tab.' }, { status: 400 })
       if (!res.ok) return NextResponse.json({ error: `Steam returned ${res.status}. Try again in a moment.` }, { status: 502 })
       inv = await res.json()
+      if (inv?.success === false || (!inv?.assets && !inv?.response?.assets)) {
+        return NextResponse.json({ error: 'Steam inventory appears empty or private.' }, { status: 400 })
+      }
     } catch (err: any) {
       return NextResponse.json({ error: `Could not reach Steam: ${err.message}` }, { status: 502 })
     }
-  } else if (body.inventory_json) {
+    } else if (body.inventory_json) {
     // ── Mode 2: pasted / pre-parsed inventory JSON ──
     // Frontend always sends a parsed object now, but handle string fallback
     if (typeof body.inventory_json === 'string') {
