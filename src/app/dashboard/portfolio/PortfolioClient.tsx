@@ -256,19 +256,33 @@ function ImportModal({ portfolioId, onClose, onDone }: {
   onClose: () => void
   onDone: () => void
 }) {
-  const [json, setJson]         = useState('')
+  const [mode, setMode] = useState<'steamid' | 'json'>('steamid')
+  const [steamId, setSteamId] = useState('')
+  const [json, setJson] = useState('')
   const [importing, setImporting] = useState(false)
-  const [error, setError]       = useState('')
-  const [result, setResult]     = useState<{ imported: number; skins: number } | null>(null)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState<{ imported: number; skins: number } | null>(null)
 
   async function doImport() {
-    if (!json.trim()) { setError('Paste your inventory JSON first'); return }
     setImporting(true); setError('')
     try {
+      const body: any = { portfolio_id: portfolioId }
+      if (mode === 'steamid') {
+        if (!steamId.trim()) { setError('Enter your SteamID64'); setImporting(false); return }
+        body.steam_id = steamId.trim()
+      } else {
+        if (!json.trim()) { setError('Paste your inventory JSON first'); setImporting(false); return }
+        let parsed: any
+        try { parsed = JSON.parse(json.trim()) } catch {
+          setError('Invalid JSON — copy the complete page (Ctrl+A then Ctrl+C)')
+          setImporting(false); return
+        }
+        body.inventory_json = parsed
+      }
       const res = await fetch('/api/holdings/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portfolio_id: portfolioId, inventory_json: json.trim() }),
+        body: JSON.stringify(body),
       })
       let data: any
       try { data = await res.json() } catch { data = {} }
@@ -289,46 +303,71 @@ function ImportModal({ portfolioId, onClose, onDone }: {
           <button onClick={onClose} className="text-muted-3 hover:text-muted-1 text-lg leading-none">×</button>
         </div>
 
-        <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-[10px] text-blue-300 space-y-1">
-          <p className="font-bold">How to get your inventory JSON:</p>
-          <p>1. Open this URL in your browser (replace with your SteamID64):</p>
-          <p className="text-green break-all select-all">
-            https://steamcommunity.com/inventory/76561198XXXXXXXX/730/2?l=english&count=5000
-          </p>
-          <p>2. Select all (Ctrl+A) and copy the JSON</p>
-          <p>3. Paste below and click Import</p>
-          <p className="text-muted-3">
-            Find your SteamID64 at{' '}
-            <a href="https://steamid.io" target="_blank" rel="noopener" className="text-green hover:underline">steamid.io</a>
-          </p>
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-border pb-2">
+          <button
+            onClick={() => { setMode('steamid'); setError('') }}
+            className={`font-mono text-[10px] px-2 py-1 rounded ${mode === 'steamid' ? 'bg-green/20 text-green' : 'text-muted-3 hover:text-muted-1'}`}
+          >SteamID (easiest)</button>
+          <button
+            onClick={() => { setMode('json'); setError('') }}
+            className={`font-mono text-[10px] px-2 py-1 rounded ${mode === 'json' ? 'bg-green/20 text-green' : 'text-muted-3 hover:text-muted-1'}`}
+          >Paste JSON</button>
         </div>
 
-        <textarea
-          value={json}
-          onChange={e => setJson(e.target.value)}
-          placeholder={'{"assets":[...],"descriptions":[...]}'}
-          rows={5}
-          className="input-terminal w-full resize-y font-mono text-[10px]"
-        />
+        {mode === 'steamid' ? (
+          <div className="space-y-2">
+            <p className="font-mono text-[10px] text-muted-2">
+              Enter your SteamID64 — we will fetch your CS2 inventory automatically.
+              Make sure your Steam inventory is set to Public.
+            </p>
+            <input
+              type="text"
+              value={steamId}
+              onChange={e => setSteamId(e.target.value)}
+              placeholder="e.g. 76561198012345678"
+              className="input-terminal w-full text-xs"
+            />
+            <p className="font-mono text-[10px] text-muted-3">
+              Find your SteamID64 at{' '}
+              <a href="https://steamid.io" target="_blank" rel="noopener" className="text-green hover:underline">steamid.io</a>
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="p-3 rounded border border-blue/20 bg-blue-soft font-mono text-[10px] text-blue-300 space-y-1">
+              <p className="font-bold">How to get your inventory JSON:</p>
+              <p>1. Open this URL (replace YOUR_STEAMID64):</p>
+              <p className="text-green break-all select-all">https://steamcommunity.com/inventory/YOUR_STEAMID64/730/2?l=english&count=5000</p>
+              <p>2. Press Ctrl+A, Ctrl+C to copy all, then paste below</p>
+            </div>
+            <textarea
+              value={json}
+              onChange={e => setJson(e.target.value)}
+              placeholder={'{"assets":[...],"descriptions":[...]}'}
+              rows={5}
+              className="input-terminal w-full resize-y font-mono text-[10px]"
+            />
+          </div>
+        )}
 
         {error && (
           <div className="px-3 py-2 rounded border border-red/30 bg-red-soft font-mono text-xs text-red">{error}</div>
         )}
         {result && (
           <div className="px-3 py-2 rounded border border-green/20 bg-green-soft font-mono text-xs text-green space-y-0.5">
-            <div>✓ {result.imported} items imported ({result.skins} skins)</div>
-            <div className="text-muted-2">Click ↻ Prices to fetch current market prices.</div>
+            <div>checkmark {result.imported} items imported ({result.skins} skins)</div>
+            <div className="text-muted-2">Click Prices to fetch current market prices.</div>
           </div>
         )}
-
         <div className="flex gap-2 justify-end">
           {result ? (
             <button onClick={onDone} className="btn-primary">Done</button>
           ) : (
             <>
               <button onClick={onClose} className="btn-terminal">Cancel</button>
-              <button onClick={doImport} disabled={importing || !json.trim()} className="btn-primary">
-                {importing ? 'Importing…' : 'Import →'}
+              <button onClick={doImport} disabled={importing} className="btn-primary">
+                {importing ? 'Importing...' : 'Import'}
               </button>
             </>
           )}
