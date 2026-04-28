@@ -21,7 +21,7 @@ interface Props {
 type SortCol = 'name' | 'value' | 'cost' | 'pnl' | 'pnl_pct' | 'days' | 'qty'
 type View    = 'holdings' | 'allocation' | 'steam'
 
-// ── Data hook ─────────────────────────────────────────────
+// â”€â”€ Data hook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function useHoldings(portfolioId: string) {
   return useQuery({
     queryKey: ['holdings', portfolioId],
@@ -34,7 +34,7 @@ function useHoldings(portfolioId: string) {
   })
 }
 
-// ── Sell modal ────────────────────────────────────────────
+// â”€â”€ Sell modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SellModal({
   holding,
   fees,
@@ -102,7 +102,7 @@ function SellModal({
       <div className="modal-box w-full max-w-md">
         <div className="panel-header px-5 py-4">
           <span className="font-mono font-bold text-sm text-[var(--text)]">SELL POSITION</span>
-          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">✕</button>
+          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">âœ•</button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -113,7 +113,7 @@ function SellModal({
             <div>
               <div className="font-mono text-sm font-bold text-[var(--text)]">{holding.item_name}</div>
               <div className="font-mono text-xs text-muted-3 mt-0.5">
-                {holding.item_condition ?? '—'} · ×{holding.quantity} held · cost {fmt$(holding.cost_basis)}/unit
+                {holding.item_condition ?? 'â€”'} Â· Ã—{holding.quantity} held Â· cost {fmt$(holding.cost_basis)}/unit
               </div>
             </div>
           </div>
@@ -162,7 +162,7 @@ function SellModal({
             </div>
             <div className="flex justify-between font-mono text-xs">
               <span className="text-muted-3">Fee ({feePct}%)</span>
-              <span className="text-red">−{fmt$(feeAmount)}</span>
+              <span className="text-red">âˆ’{fmt$(feeAmount)}</span>
             </div>
             <div className="flex justify-between font-mono text-xs border-t border-terminal-border pt-1.5">
               <span className="text-muted-3">Net proceeds</span>
@@ -190,7 +190,7 @@ function SellModal({
         <div className="flex gap-3 px-5 py-4 border-t border-terminal-border">
           <button onClick={onClose} className="btn-terminal flex-1 justify-center">Cancel</button>
           <button onClick={handleSell} disabled={saving} className="btn-primary flex-1 justify-center">
-            {saving ? 'Selling...' : `Sell ×${qty} →`}
+            {saving ? 'Selling...' : `Sell Ã—${qty} â†’`}
           </button>
         </div>
       </div>
@@ -198,7 +198,7 @@ function SellModal({
   )
 }
 
-// ── Add holding drawer ────────────────────────────────────
+// â”€â”€ Add holding drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function AddDrawer({
   portfolioId,
   onClose,
@@ -278,7 +278,7 @@ function AddDrawer({
 
         <div className="panel-header px-5 py-4 border-b border-terminal-border flex-shrink-0">
           <span className="font-mono font-bold text-sm text-[var(--text)]">ADD HOLDING</span>
-          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">✕</button>
+          <button onClick={onClose} className="text-muted-3 hover:text-red transition-colors ml-auto text-lg leading-none">âœ•</button>
         </div>
 
         {/* Mode tabs */}
@@ -315,7 +315,7 @@ function AddDrawer({
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       <div className="flex-1 min-w-0">
                         <div className="font-mono text-xs text-[var(--text)] truncate">{item.market_hash_name}</div>
-                        <div className="font-mono text-[9px] text-muted-3">{item.category} · {item.condition ?? 'no cond'}</div>
+                        <div className="font-mono text-[9px] text-muted-3">{item.category} Â· {item.condition ?? 'no cond'}</div>
                       </div>
                       <div className="font-mono text-xs text-muted-2 flex-shrink-0">{fmt$(item.price_usd)}</div>
                     </div>
@@ -332,11 +332,11 @@ function AddDrawer({
                   <div className="flex-1 min-w-0">
                     <div className="font-mono text-xs font-bold text-[var(--text)] truncate">{selected.market_hash_name}</div>
                     <div className="font-mono text-[9px] text-muted-3 mt-0.5">
-                      {selected.condition} · Market: {fmt$(selected.price_usd)}
+                      {selected.condition} Â· Market: {fmt$(selected.price_usd)}
                     </div>
                   </div>
                   <button onClick={() => { setSelected(null); setSearch('') }}
-                    className="text-muted-3 hover:text-red text-sm transition-colors">✕</button>
+                    className="text-muted-3 hover:text-red text-sm transition-colors">âœ•</button>
                 </div>
               )}
 
@@ -346,7 +346,7 @@ function AddDrawer({
                   <label className="block font-mono text-[9px] uppercase tracking-widest text-muted-3 mb-1.5">Qty</label>
                   <div className="flex">
                     <button onClick={() => setQty(q => Math.max(1, q - 1))}
-                      className="w-8 h-9 border border-terminal-border-2 bg-terminal-surface font-mono text-sm flex items-center justify-center rounded-l border-r-0 hover:bg-terminal-muted transition-colors text-muted-2">−</button>
+                      className="w-8 h-9 border border-terminal-border-2 bg-terminal-surface font-mono text-sm flex items-center justify-center rounded-l border-r-0 hover:bg-terminal-muted transition-colors text-muted-2">âˆ’</button>
                     <input type="number" value={qty} min={1}
                       onChange={e => setQty(Math.max(1, parseInt(e.target.value) || 1))}
                       className="input-terminal text-center rounded-none w-full" />
@@ -408,7 +408,7 @@ function AddDrawer({
           <div className="flex gap-3 px-5 py-4 border-t border-terminal-border flex-shrink-0">
             <button onClick={onClose} className="btn-terminal flex-1 justify-center">Cancel</button>
             <button onClick={handleAdd} disabled={saving || (!selected && !search)} className="btn-primary flex-1 justify-center">
-              {saving ? 'Adding...' : 'Add to portfolio →'}
+              {saving ? 'Adding...' : 'Add to portfolio â†’'}
             </button>
           </div>
         )}
@@ -417,7 +417,7 @@ function AddDrawer({
   )
 }
 
-// ── Steam import panel ────────────────────────────────────
+// â”€â”€ Steam import panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; onImported: () => void }) {
   const [mode, setMode]         = useState<'json' | 'steamid'>('json')
   const [steamId, setSteamId]   = useState('')
@@ -442,8 +442,9 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Import failed')
+      let data: any
+      try { data = await res.json() } catch { data = {} }
+      if (!res.ok) throw new Error(data.error ?? `Import failed (${res.status})`)
       setResult(data)
       onImported()
     } catch (err: any) {
@@ -486,7 +487,7 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
             style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}
           />
           <button onClick={handleImport} disabled={importing || !jsonText.trim()} className="btn-primary w-full">
-            {importing ? 'Importing…' : 'Import inventory ₒ'}
+            {importing ? 'Importingâ€¦' : 'Import inventory â‚’'}
           </button>
         </div>
       ) : (
@@ -500,7 +501,7 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
               placeholder="76561197995388346" className="input-terminal flex-1"
               style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }} />
             <button onClick={handleImport} disabled={importing || !steamId.trim()} className="btn-primary whitespace-nowrap">
-              {importing ? 'Importing…' : 'Import →'}
+              {importing ? 'Importingâ€¦' : 'Import â†’'}
             </button>
           </div>
           <p className="font-mono text-[9px] text-muted-4">
@@ -513,16 +514,16 @@ function SteamImportPanel({ portfolioId, onImported }: { portfolioId: string; on
 
       {result && (
         <div className="px-3 py-2 rounded border border-green/20 bg-green-soft font-mono text-xs text-green space-y-0.5">
-          <div>✓ {result.imported} rows imported</div>
-          <div className="text-muted-2">{result.skins} skins · {result.storage_units} storage units · {result.stackables} stackable types</div>
-          <div className="text-muted-3 mt-1">Click ↻ Prices to fetch current market prices.</div>
+          <div>âœ“ {result.imported} rows imported</div>
+          <div className="text-muted-2">{result.skins} skins Â· {result.storage_units} storage units Â· {result.stackables} stackable types</div>
+          <div className="text-muted-3 mt-1">Click â†» Prices to fetch current market prices.</div>
         </div>
       )}
     </div>
   )
 }
 
-// ── Edit row inline ───────────────────────────────────────
+// â”€â”€ Edit row inline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EditCell({ holding, onSave }: { holding: HoldingWithValue; onSave: () => void }) {
   const [qty, setQty]   = useState(String(holding.quantity))
   const [cost, setCost] = useState(holding.cost_basis.toFixed(2))
@@ -543,17 +544,17 @@ function EditCell({ holding, onSave }: { holding: HoldingWithValue; onSave: () =
     <div className="flex items-center gap-2 py-1">
       <input type="number" value={qty} min={1} onChange={e => setQty(e.target.value)}
         className="input-terminal w-16 text-center text-xs py-1" />
-      <span className="text-muted-4 text-xs">×</span>
+      <span className="text-muted-4 text-xs">Ã—</span>
       <input type="number" value={cost} step="0.01" onChange={e => setCost(e.target.value)}
         className="input-terminal w-24 text-xs py-1" />
       <button onClick={save} disabled={saving} className="btn-terminal py-1 px-2 text-[10px]">
-        {saving ? '...' : '✓'}
+        {saving ? '...' : 'âœ“'}
       </button>
     </div>
   )
 }
 
-// ── Allocation donut ──────────────────────────────────────
+// â”€â”€ Allocation donut â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
   const totalValue = holdings.reduce((s, h) => s + h.total_value, 0)
 
@@ -578,7 +579,7 @@ function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
     return (
       <div className="bg-terminal-surface-2 border border-terminal-border-2 rounded p-2 shadow-lg">
         <div className="font-mono text-[11px] font-bold text-[var(--text)] capitalize">{d.cat}</div>
-        <div className="font-mono text-[11px] text-muted-2">{fmt$(d.value)} · {d.pct.toFixed(1)}%</div>
+        <div className="font-mono text-[11px] text-muted-2">{fmt$(d.value)} Â· {d.pct.toFixed(1)}%</div>
       </div>
     )
   }
@@ -621,12 +622,12 @@ function AllocationView({ holdings }: { holdings: HoldingWithValue[] }) {
   )
 }
 
-// ── Main portfolio client ─────────────────────────────────
+// â”€â”€ Main portfolio client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: Props) {
   const qc = useQueryClient()
   const { data: holdings = [], isLoading } = useHoldings(portfolioId)
 
-  // Sell signals — load once, map by holding_id for O(1) lookup in table
+  // Sell signals â€” load once, map by holding_id for O(1) lookup in table
   const { data: sellSignalsRaw = [] } = useQuery({
     queryKey: ['sell-signals', portfolioId],
     queryFn: async () => {
@@ -698,7 +699,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
 
   function refresh() { qc.invalidateQueries({ queryKey: ['holdings', portfolioId] }) }
 
-  // ── Refresh prices ────────────────────────────────────────
+  // â”€â”€ Refresh prices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [refreshingPrices, setRefreshingPrices] = useState(false)
   const [priceRefreshResult, setPriceRefreshResult] = useState<{ updated: number; failed: number } | null>(null)
 
@@ -718,7 +719,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
     }
   }
 
-  // ── Storage units ─────────────────────────────────────────
+  // â”€â”€ Storage units â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [suOpen, setSuOpen] = useState(false)
   const [suLabels, setSuLabels] = useState<Record<string, string>>({})
   const [suEditId, setSuEditId] = useState<string | null>(null)
@@ -747,7 +748,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
       {/* KPI strip */}
       <div className="grid grid-cols-4 gap-3 flex-shrink-0">
         {[
-          { label: 'NAV', val: fmt$(totalValue), sub: `${regularHoldings.length} positions${storageUnits.length > 0 ? ` · ${storageUnits.length} units` : ''}`, col: undefined },
+          { label: 'NAV', val: fmt$(totalValue), sub: `${regularHoldings.length} positions${storageUnits.length > 0 ? ` Â· ${storageUnits.length} units` : ''}`, col: undefined },
           { label: 'Unrealized P&L', val: fmt$(unrealizedPnl, { sign: true }), sub: fmtPct(unrealizedPct), col: unrealizedPnl >= 0 ? 'var(--green)' : 'var(--red)' },
           { label: 'Cost basis', val: fmt$(totalCost), sub: 'Total invested', col: undefined },
           { label: 'Avg position', val: fmt$(regularHoldings.length > 0 ? totalValue / regularHoldings.length : 0), sub: 'per holding', col: undefined },
@@ -805,7 +806,7 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
               title={priceRefreshResult ? `Last: ${priceRefreshResult.updated} updated, ${priceRefreshResult.failed} failed` : 'Fetch current prices from Skinstrack'}
               className="btn-terminal text-xs py-1.5 px-3"
             >
-              {refreshingPrices ? '↻ …' : '↻ Prices'}
+              {refreshingPrices ? 'â†» â€¦' : 'â†» Prices'}
             </button>
             <button onClick={() => setShowAdd(true)} className="btn-primary text-xs py-1.5">
               + Add holding
@@ -825,13 +826,13 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
             </div>
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-8">
-              <span className="text-4xl text-muted-4">▤</span>
+              <span className="text-4xl text-muted-4">â–¤</span>
               <p className="font-mono text-sm text-muted-2">
                 {holdings.length === 0 ? 'Portfolio is empty' : 'No holdings match filters'}
               </p>
               {holdings.length === 0 && (
                 <button onClick={() => setShowAdd(true)} className="btn-primary text-sm">
-                  Add first holding →
+                  Add first holding â†’
                 </button>
               )}
             </div>
@@ -846,141 +847,145 @@ export function PortfolioClient({ portfolioId, portfolioName, steamId, fees }: P
                   <th className="term-num">Value</th>
                   <SortTh col="pnl"     label="P&L" right />
                   <SortTh col="pnl_pct" label="%" right />
-                  <SortTh��H�^\ȈX�[H�^\Ȉ�Y�ς��\�Ә[YOH�\�K[�[H�L����Yۘ[����\�Ә[YOH��L�\�K[�[H��X�[ۜ���������XY����O��ݚ\�X�K�X\
-O��ۜ�\H�[��X[^�Y���H��ۜ�\�Y][��HY]YOOH�Y��]\��
-���^O^��YH�\�Ә[YO^�ۊ[][��OOH�Y	��	��X�]KM	�_O���ʈ][H
-��B���]��\�Ә[YOH��^][\�X�[�\��\L����]��\�Ә[YOH��L�HN��[�YY�[�^\��[��L��[O^���X��ܛ�[���U���Ԗ��][W��]Y�ܞH��	��\��H_Hς�]��\�Ә[YOH�Z[�]�L���]��\�Ә[YOH��۝[[ۛ�^V�L\H^Vݘ\�K]^
-WH�[��]HX^]�V̍�H����][Wۘ[Y_O�]���]��\�Ә[YOH��^][\�X�[�\��\LK�H]L�H�^]ܘ\�����][W��ۙ][ۈ	��
-��[��\�Ә[YOH��۝[[ۛ�^V�\H^[]]YLȏ���][W��ۙ][۟O��[���
-_B���\���]�Z�	��
-��[��\�Ә[YOH��۝[[ۛ�^V�\H^X[X�\��۝X�������[���
-_B�����]ݘ[YHOH�[	��
+                  <SortThÛÛH™^\ÈˆX™[H‘^\ÈˆšYÚÏ‚ˆÛ\ÜÓ˜[YOH\›K[[HËLŒ”ÚYÛ˜[Ý‚ˆÛ\ÜÓ˜[YOHËLŽ\›K[[HXÝ[ÛœÏÝ‚ˆÝ‚ˆÝXY‚ˆ›ÙO‚ˆÝš\ÚX›K›X\
+OˆÂˆÛÛœÝ\H[œ™X[^™YÜ›HˆÛÛœÝ\ÑY][™ÈHY]YOOHšYˆ™]\›ˆ
+ˆˆÙ^O^ÚšYHÛ\ÜÓ˜[YO^ØÛŠ[][™ÈOOHšY	‰ˆ	ÛÜXÚ]KM	Ê_O‚ˆËÊˆ][H
+‹ßBˆ‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\Lˆ‚ˆ]ˆÛ\ÜÓ˜[YOHËLHN›Ý[™YY[›^\Úš[šËLˆÝ[O^ÞÈ˜XÚÙÜ›Ý[™ˆÐUÐÓÓÔ–Úš][WØØ]YÛÜžHÏÈ	ÛÝ\‰×H_HÏ‚ˆ]ˆÛ\ÜÓ˜[YOH›Z[‹]ËL‚ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÌL\H^VÝ˜\ŠK]^
+WH[˜Ø]HX^]ËVÌŒHžÚš][WÛ˜[Y_OÙ]‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\LKH]LH›^]Ü˜\‚ˆÚš][WØÛÛ™][Ûˆ	‰ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎ\H^[]]YLÈžÚš][WØÛÛ™][ÛŸOÜÜ[‚ˆ
+_BˆÚš\×ÜÝ]˜ZÈ	‰ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎ\H^X[X™\ˆ›ÛX›Û”ÕÜÜ[‚ˆ
+_BˆÚ™›Ø]Ý˜[YHOH[	‰ˆ
 
 
-HO��ۜ��HH�][W��ۙ][ۂ��\�[X]Q��]Y�\�Y�X�J��\��[���X�K���]ݘ[YK�][W��ۙ][ۋ�][Wۘ[YJB���[��]\��
-��[��\�Ә[YO^�ۊ�	ٛ۝[[ۛ�^V�\I���O˙��]�Y\�OOH	��[I��	�^X[X�\��۝X��	����O˙��]�Y\�OOH	�����	�^YܙY[���	�^[]]YM	
-_B�]O^٘O˛X\��]X�Wۛ�_O��ٛ]��]
-���]ݘ[YJ_B�٘O˙��]�Y\�OOH	��[I�	��	�<'䣉�B�٘O˙��]�Y\�OOH	����	���K���]��[Z][W���H	��
-�٘K���]��[Z][W���њ^Y
+HOˆÂˆÛÛœÝ˜HHš][WØÛÛ™][Û‚ˆÈ\Ý[X]Q›Ø]Y\ÝYšXÙJ˜Ý\œ™[ÜšXÙK™›Ø]Ý˜[YKš][WØÛÛ™][Û‹š][WÛ˜[YJBˆˆ[ˆ™]\›ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YO^ØÛŠˆ	Ù›Û[[Û›È^VÎ\IËˆ˜OË™›Ø]ÝY\ˆOOH	ÙÙ[IÈÈ	Ý^X[X™\ˆ›ÛX›Û	È‚ˆ˜OË™›Ø]ÝY\ˆOOH	ÛÝÉÈÈ	Ý^YÜ™Y[‰Èˆ	Ý^[]]YM	Âˆ
+_Bˆ]O^Ù˜OË›X\šÙ]X›WÛ›Ý_O‚ˆÙ›]›Ø]
+™›Ø]Ý˜[YJ_BˆÙ˜OË™›Ø]ÝY\ˆOOH	ÙÙ[IÈ	‰ˆ	È<'ä£‰ßBˆÙ˜OË™›Ø]ÝY\ˆOOH	ÛÝÉÈ	‰ˆ˜K™›Ø]Ü™[Z][WÜÝˆ
+H	‰ˆ
+ÉÙ˜K™›Ø]Ü™[Z][WÜÝÑš^Y
 
-_IXB���[���
-B�JJ
-_B��ʈ�\�\�H�Y�H
-��B��
+_IXBˆÜÜ[‚ˆ
+BˆJJ
+_BˆËÊˆÜ\ˆ\ÙH˜YÙH
+‹ßBˆÊ
 
-HO��ۜ�H]X��\�\�J�][Wۘ[YJB�Y�
-Y�\���\�H�]\���[��]\��
-��[��\�Ә[YO^�ۊ�	ٛ۝[[ۛ�^V�\HLHKL�H��[�Y�ܙ\����\���X�X[��	�^X[X�\��ܙ\�X[X�\�����X[X�\��L�۝X��	�	�^[]]YL��ܙ\�]\�Z[�[X�ܙ\�L�
-_O����\�W�X�[B���\���X�X[	��	�8�d	�B���[���
-B�JJ
-_B��ʈ�X��\��[YH�Y�H
-��B��
+HOˆÂˆÛÛœÝH]XÝÜ\”\ÙJš][WÛ˜[YJBˆYˆ
+Yš\×ÙÜ\ŠH™]\›ˆ[ˆ™]\›ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YO^ØÛŠˆ	Ù›Û[[Û›È^VÎ\HLHKLH›Ý[™Y›Ü™\‰Ëˆš\×ÜÜXÚX[ˆÈ	Ý^X[X™\ˆ›Ü™\‹X[X™\‹ÌÌ™ËX[X™\‹ÌL›ÛX›Û	Âˆˆ	Ý^[]]YLˆ›Ü™\‹]\›Z[˜[X›Ü™\‹L‰Âˆ
+_O‚ˆÙœ\ÙWÛX™[BˆÙš\×ÜÜXÚX[	‰ˆ	È8«d	ßBˆÜÜ[‚ˆ
+BˆJJ
+_BˆËÊˆÝXÚÙ\ˆ˜[YH˜YÙH
+‹ßBˆÊ
 
-HO��ۜ�݈H\�[X]T�X��\��[YJ��X��\��\�[�JB�Y�
-\݋�\�ݘ[XX�W��X��\��H�]\���[��]\��
-��[��\�Ә[YO^�ۊ�	ٛ۝[[ۛ�^V�\HLHKL�H��[�Y�ܙ\��\��܋Z[	��݋��Y��Y��X��\���O˝Y\�OOH	�Y�[�\�I�	�^X[X�\��ܙ\�X[X�\����X[X�\��L�۝X��	�	�^[]]YL��ܙ\�]\�Z[�[X�ܙ\�L�
-_B�]O^�݋��\��[�����X��\��[YN�		�݋�\YYݘ[YW�Z[�x�$�	�݋�\YYݘ[YW�X^XO��<'����݋��Y��Y��X��\���O˝Y\�OOH	�Y�[�\�I��	�Q�S�T�H�P��T���
-�	�݋�\YYݘ[YW�Z[�x�$��݋�\YYݘ[YW�X^XB���[���
-B�JJ
-_B��]����]����]��������ʈ]H����8�%Y]X�H[�[�H
-��B��\�Y][���
-����[�^̟O��Y]�[�[��^�H۔�]�O^�
-HO���]Y]Y
-�[
-N��Y��\�
+HOˆÂˆÛÛœÝÝˆH\Ý[X]TÝXÚÙ\•˜[YJœÝXÚÙ\œÈ\È[žJBˆYˆ
+\Ý‹š\×Ý˜[XX›WÜÝXÚÙ\œÊH™]\›ˆ[ˆ™]\›ˆ
+ˆÜ[ˆÛ\ÜÓ˜[YO^ØÛŠˆ	Ù›Û[[Û›È^VÎ\HLHKLH›Ý[™Y›Ü™\ˆÝ\œÛÜ‹Z[	ËˆÝ‹™›YÙÙYÜÝXÚÙ\œÖÌOËY\ˆOOH	ÛYÙ[™\žIÂˆÈ	Ý^X[X™\ˆ›Ü™\‹X[X™\‹Í™ËX[X™\‹ÌL›ÛX›Û	Âˆˆ	Ý^[]]YLˆ›Ü™\‹]\›Z[˜[X›Ü™\‹L‰Âˆ
+_Bˆ]O^ÜÝ‹Ø\›š[™ÈÏÈÝXÚÙ\ˆ˜[YNˆ		ÜÝ‹˜\YYÝ˜[YWÛZ[Ÿx $É	ÜÝ‹˜\YYÝ˜[YWÛX^XO‚ˆ<'ãíÈÜÝ‹™›YÙÙYÜÝXÚÙ\œÖÌOËY\ˆOOH	ÛYÙ[™\žIÈÈ	ÓQÑS‘T–HÕPÒÑT‰Èˆ
+É	ÜÝ‹˜\YYÝ˜[YWÛZ[Ÿx $ÉÜÝ‹˜\YYÝ˜[YWÛX^XBˆÜÜ[‚ˆ
+BˆJJ
+_BˆÙ]‚ˆÙ]‚ˆÙ]‚ˆÝ‚‚ˆËÊˆ]HÈÛÜÝ8 %Y]X›H[›[™H
+‹ßBˆÚ\ÑY][™ÈÈ
+ˆÛÛÜ[^ÌŸO‚ˆY]Ù[Û[™Ï^ÚHÛ”Ø]™O^Ê
+HOˆÈÙ]Y]Y
+[
+NÈ™Yœ™\Ú
 
-H_Hς����
-H�
-����\�Ә[YOH�\�K[�[H�۝[[ۛ�^^�^[]]YL�����]X[�]_O����\�Ә[YOH�\�K[�[H�۝[[ۛ�^^�^[]]YL���ٛ]	
-����ؘ\�\�_O���ς�
-_B���\�Ә[YOH�\�K[�[H���]��\�Ә[YOH��۝[[ۛ�^^ȏ�ٛ]	
-��\��[���X�J_O�]����
+H_HÏ‚ˆÝ‚ˆ
+Hˆ
+ˆ‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È^[]]YLˆžÚœ]X[]_OÝ‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È^[]]YLˆžÙ›]	
+˜ÛÜÝØ˜\Ú\Ê_OÝ‚ˆÏ‚ˆ
+_B‚ˆÛ\ÜÓ˜[YOH\›K[[H‚ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^^ÈžÙ›]	
+˜Ý\œ™[ÜšXÙJ_OÙ]‚ˆÊ
 
-HO�����]�[Z][B�Y�
-���]ݘ[YHOH�[	���][W��ۙ][ۊH�ۜ��HH\�[X]Q��]Y�\�Y�X�J��\��[���X�K���]ݘ[YK�][W��ۙ][ۋ�][Wۘ[YJB�Y�
-�K���]��[Z][W���L
-H�]\��
-�]��\�Ә[YOH��۝[[ۛ�^V�H^X[X�\����ٛ]	
-�K�Y�\�Y��X�J_H��]�]���
-B�B����\�\�B��ۜ�H]X��\�\�J�][Wۘ[YJB�Y�
-�\���X�X[	����X�W�][\Y\���H�]\��
-�]��\�Ә[YOH��۝[[ۛ�^V�H^X[X�\����ٛ]	
-��\��[���X�H
-���X�W�][\Y\�_H\�O�]���
-B��]\���[�JJ
-_B�����\�Ә[YOH�\�K[�[H�۝[[ۛ�^^��۝X����ٛ]	
-��[ݘ[YJ_O�����\�Ә[YOH�\�K[�[H���]��\�Ә[YOH��۝[[ۛ�^^��۝X����[O^����܎�\�	ݘ\�KYܙY[�I��	ݘ\�K\�Y
-I�_O��ٛ]	
-�[��X[^�Y����Yێ��YHJ_B��]����ʈ	��\�
-��B�]��\�Ә[YOH���ܙKX�\�]LH�LM�[X]]ȏ��]��\�Ә[YOH���ܙKX�\�Y�[��[O^��Y�	�X]�Z[�LX]�X���[��X[^�Y����
+HOˆÂˆËÈ›Ø]™[Z][BˆYˆ
+™›Ø]Ý˜[YHOH[	‰ˆš][WØÛÛ™][ÛŠHÂˆÛÛœÝ˜HH\Ý[X]Q›Ø]Y\ÝYšXÙJ˜Ý\œ™[ÜšXÙK™›Ø]Ý˜[YKš][WØÛÛ™][Û‹š][WÛ˜[YJBˆYˆ
+˜K™›Ø]Ü™[Z][WÜÝˆL
+H™]\›ˆ
+ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎH^X[X™\ˆŸžÙ›]	
+˜K˜Y\ÝYÜšXÙJ_H›Ø]Ù]‚ˆ
+BˆBˆËÈÜ\ˆ\ÙBˆÛÛœÝH]XÝÜ\”\ÙJš][WÛ˜[YJBˆYˆ
+š\×ÜÜXÚX[	‰ˆœšXÙWÛ][\Y\ˆˆŠH™]\›ˆ
+ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎH^X[X™\ˆŸžÙ›]	
+˜Ý\œ™[ÜšXÙH
+ˆœšXÙWÛ][\Y\Š_H\ÙOÙ]‚ˆ
+Bˆ™]\›ˆ[ˆJJ
+_BˆÝ‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È›ÛX›ÛžÙ›]	
+Ý[Ý˜[YJ_OÝ‚‚ˆÛ\ÜÓ˜[YOH\›K[[H‚ˆ]ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^^È›ÛX›ÛˆÝ[O^ÞÈÛÛÜŽˆ\È	Ý˜\ŠKYÜ™Y[ŠIÈˆ	Ý˜\ŠK\™Y
+IÈ_O‚ˆÙ›]	
+[œ™X[^™YÜ›ÈÚYÛŽˆYHJ_BˆÙ]‚ˆËÊˆ	“˜\ˆ
+‹ßBˆ]ˆÛ\ÜÓ˜[YOHœØÛÜ™KX˜\ˆ]LHËLMˆ[X]]È‚ˆ]ˆÛ\ÜÓ˜[YOHœØÛÜ™KX˜\‹Yš[ˆÝ[O^ÞÂˆÚYˆ	ÓX]›Z[ŠLX]˜XœÊ[œ™X[^™YÜ›ÜÝ
 H
-��_IX��X��ܛ�[��\�	ݘ\�KYܙY[�I��	ݘ\�K\�Y
-I��_Hς��]��������\�Ә[YOH�\�K[�[H�۝[[ۛ�^^Ȉ�[O^����܎�\�	ݘ\�KYܙY[�I��	ݘ\�K\�Y
-I�_O��ٛ]�
-�[��X[^�Y����
-_B������\�Ә[YOH�\�K[�[H�۝[[ۛ�^^�^[]]YLȏ���^\��[Y�����ʈ�[�Yۘ[[�X�]܈
-��B��\�Ә[YOH�\�K[�[H����
+ˆÊ_IXˆ˜XÚÙÜ›Ý[™ˆ\È	Ý˜\ŠKYÜ™Y[ŠIÈˆ	Ý˜\ŠK\™Y
+IËˆ_HÏ‚ˆÙ]‚ˆÝ‚‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^ÈˆÝ[O^ÞÈÛÛÜŽˆ\È	Ý˜\ŠKYÜ™Y[ŠIÈˆ	Ý˜\ŠK\™Y
+IÈ_O‚ˆÙ›]Ý
+[œ™X[^™YÜ›ÜÝ
+_BˆÝ‚‚ˆÛ\ÜÓ˜[YOH\›K[[H›Û[[Û›È^^È^[]]YLÈžÚ™^\×Ú[YÝ‚‚ˆËÊˆÙ[ÚYÛ˜[[™XØ]Üˆ
+‹ßBˆÛ\ÜÓ˜[YOH\›K[[H‚ˆÊ
 
-HO��ۜ��Y�H�[�Yۘ[X\��]
-�Y
-B�Y�
-\�Y�H�]\���[��\�Ә[YOH��۝[[ۛ�^V�\H^[]]YM���%��[����ۜ�ٙ�HY���X�[�	�'�-�S	���܎�	��Y�	�K�YY][N��X�[�	�'��H�U�	���܎�	�ٍNYL��K��Έ�X�[�	�'����I���܎�	����	�K�V��Y˝\��[��WH���[�Y�
-Xٙ�H�]\���[��]\��
-��]ۂ�ې�X��^�
-HO��]�[�[��
-_B�]O^��Y˜�X��[Y[�][۟B��\�Ә[YOH��۝[[ۛ�^V�H�۝X��LK�HKL�H��[�Y�ܙ\��[��][ۋX[ݙ\���X�]KN���[O^����܎�ٙ˘��܋�ܙ\���܎�	�ٙ˘��ܟM�X��ܛ�[��	�ٙ˘��ܟLL_O���ٙ˛X�[B�؝]ۏ��
-B�JJ
-_B������ʈX�[ۜ�
-��B���]��\�Ә[YOH��^][\�X�[�\��\�Y�KY[��\LH����]ۈې�X��^�
-HO��]Y]Y
-\�Y][����[��Y
-_B��\�Ә[YOH���]\�Z[�[KL�HLK�H^V�\H�]OH�Y]����\�Y][���	��%I��	��#��B�؝]ۏ���]ۈې�X��^�
-HO��]�[�[��
-_B��\�Ә[YOH���]\�Z[�[KL�HLK�H^V�\Hݙ\���ܙ\�\�Y��ݙ\��^\�Y�]OH��[����S�؝]ۏ��H�Y�^��X[SX\��]\�
-�][Wۘ[YJ_H\��]H�؛[�Ȉ�[H����[�\���ې�X��^�HO�K�����Y�][ۊ
-_B��\�Ә[YOH���]\�Z[�[KL�HLK�H^V�\H�]OH��X[HX\��]������O���]ۈې�X��^�
-HO�[�Q[]J�Y
-_B��\�Ә[YOH���]\�Z[�[KL�HLK�H^V�\Hݙ\���ܙ\�\�Y��ݙ\��^\�Y�]OH�[]H���%O؝]ۏ���]����������
-B�J_B����O���X�O��
-_B��]�����ʈ���\�
-��B�]��\�Ә[YOH��^][\�X�[�\��\�Y�KX�]�Y[�MKL��ܙ\�]�ܙ\�]\�Z[�[X�ܙ\��^\��[��L����[��\�Ә[YOH��۝[[ۛ�^V�LH^[]]YLȏ�ݚ\�X�K�[��H��][ۜ���ۏ��[���]��\�Ә[YOH��^][\�X�[�\��\Lȏ���]ۈې�X��^�
-HO��ۜ�����H���][I�	��ۙ][ۉ�	�]I�	�����[�]	�	��\��[��X�I�	��[�[YI�	�	�	�	�	�	I�	�^\�[	�WB��܈
-�ۜ�و�Y�[\��[���H���˜\�
-��][Wۘ[YK�][W��ۙ][ۈ��	����[���]X[�]JK����ؘ\�\˝њ^Y
-�K��\��[���X�K�њ^Y
-�K��[ݘ[YK�њ^Y
-�K�[��X[^�Y���њ^Y
-�K�[��X[^�Y�����њ^Y
-�K��[���^\��[
-WJB�B��ۜ��݈H���˛X\
-�O���X\
-�O��ȋ�K˝\�
-�H��݋��\X�Jȋ��	Ȉ��_H���K���[�	�	�JK���[�	���B��ۜ�HH��[Y[��ܙX]Q[[Y[�
-	�I�N�K��Y�HT��ܙX]Sؚ�X�T�
-�]��؊��ݗK�\N�	�^��݉�JJB�K��ۛ�YHܝ��[�Iۙ]�]J
-K��T����[��
-K��X�JL
-_K��ݘ�K��X��
-B�_H�\�Ә[YOH���]\�Z[�[^V�LHKLH��������Ղ�؝]ۏ���]����]����]�����ʈ�ܘY�H[�]��X�[ۈ
-��B���ܘY�U[�]˛[���	��
-�]��\�Ә[YOH�[�[�^\��[��L����]ۂ�ې�X��^�
-HO��]�S�[��O�[�_B��\�Ә[YOH��Y�[�^][\�X�[�\��\�Y�KX�]�Y[�MKL��۝[[ۛ�^^Ȃ����[��\�Ә[YOH�^[]]YL�\\��\�H�X��[��]�Y\�^V�LH����ܘY�H[�]�[��\�Ә[YOH�[L�^YܙY[�����ܘY�U[�]˛[��O��[�����[����[��\�Ә[YOH�^[]]YM����S�[��	��,���	���	�O��[���؝]ۏ�����S�[�	��
-�]��\�Ә[YOH��ܙ\�]�ܙ\�]\�Z[�[X�ܙ\�]�YK^H]�YK]\�Z[�[X�ܙ\������ܘY�U[�]˛X\
-�HO�
-�]��^O^��K�YH�\�Ә[YOH��^][\�X�[�\��\L�MKL��H����[��\�Ә[YOH�^[]]YM^\�H��'����[���]��\�Ә[YOH��^LH�����QY]YOOH�K�Y�
-�[�]�]]ћ��\Y�][�[YO^��SX�[���K�YH���K�ܛ�\�X�[���ܘY�H[�]B��\�Ә[YOH�[�]]\�Z[�[^^�KL�H�M��ې�\�^�HO��[�[YT�ܘY�U[�]
-�K�YK�\��]��[YH
-�K�ܛ�\�X�[��	��ܘY�H[�]	�J_B�ے�^Q�ۏ^�HO�Y�
-K��^HOOH	�[�\��H�[�[YT�ܘY�U[�]
-�K�Y
-K�\��]\�S[�][[Y[�
-K��[YH
-�K�ܛ�\�X�[��	��ܘY�H[�]	�JB�Y�
-K��^HOOH	�\��\I�H�]�QY]Y
-�[
-B�_B�ς�
-H�
-��]ۂ�ې�X��^�
-HO��]�QY]Y
-�K�Y
-_B��\�Ә[YOH��۝[[ۛ�^^�^[Y�ݙ\��^YܙY[��[��][ۋX��ܜȂ�]OH��X����[�[YH������SX�[���K�YH���K�ܛ�\�X�[��	��ܘY�H[�]	�B��[��\�Ә[YOH�[LH^[]]YM^V�\H���#���[�����'WGF����Т��F�c��7�6�74��S�&f��B�����FW�Bճ��FW�B��WFVB�2#��7R�7FV��76WE��B�2G�7R�7FV��76WE��G��rwТ��7����F�c���Т�F�b6�74��S�'��B��"f��B�����FW�Bճ���FW�B��WFVB�B#�6Ɩ6���RF�&V��R��FV�2��6�FR7F�&vRV�G2&V�wBG&6�VB'�7FV�w2��fV�F�'��(	BFBF�V���V�ǒf��FB���F��r���F�c���F�c��Т��F�c��Р�����F�2��Т�6V�Ć��F��rbb���6V����F����F��s׷6V�Ć��F��w�fVW3׶fVW7���6��6Sײ����6WE6V�Ć��F��r��V�Т��6��Cײ�����6WE6V�Ć��F��r��V��&Vg&W6��������Т�6��tFBbb���FDG&vW"�'Ff�Ɩ��C׷�'Ff�Ɩ��G���6��6Sײ����6WE6��tFB�f�6R�Т��FFVCײ�����6WE6��tFB�f�6R��&Vg&W6��������Т��F�c����
+HOˆÂˆÛÛœÝÚYÈHÙ[ÚYÛ˜[X\™Ù]
+šY
+BˆYˆ
+\ÚYÊH™]\›ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎ\H^[]]YM¸ %ÜÜ[‚ˆÛÛœÝÙ™ÈHÂˆYÚˆÈX™[ˆ	ü'å-ÑS	ËÛÛÜŽˆ	ÈÙY
+
+
+	ÈKˆYY][NˆÈX™[ˆ	ü'çèHÐUÒ	ËÛÛÜŽˆ	ÈÙNYL‰ÈKˆÝÎˆÈX™[ˆ	ü'çèˆ“ÕIËÛÛÜŽˆ	ÈÌ™Ž	ÈKˆVÜÚYË\™Ù[˜ÞWHÏÈ[ˆYˆ
+XÙ™ÊH™]\›ˆ[ˆ™]\›ˆ
+ˆ]Û‚ˆÛÛXÚÏ^Ê
+HOˆÙ]Ù[Û[™Ê
+_Bˆ]O^ÜÚYËœ™XÛÛ[Y[™][ÛŸBˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÎH›ÛX›ÛLKHKLH›Ý[™Y›Ü™\ˆ˜[œÚ][Û‹X[Ý™\Ž›ÜXÚ]KN‚ˆÝ[O^ÞÈÛÛÜŽˆÙ™Ë˜ÛÛÜ‹›Ü™\ÛÛÜŽˆ	ØÙ™Ë˜ÛÛÜŸM˜XÚÙÜ›Ý[™ˆ	ØÙ™Ë˜ÛÛÜŸLL_O‚ˆØÙ™Ë›X™[BˆØ]Û‚ˆ
+BˆJJ
+_BˆÝ‚‚ˆËÊˆXÝ[ÛœÈ
+‹ßBˆ‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆ\ÝYžKY[™Ø\LH‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆÙ]Y]Y
+\ÑY][™ÈÈ[ˆšY
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\Hˆ]OH‘Y]‚ˆÚ\ÑY][™ÈÈ	ø§%IÈˆ	ø§#‰ßBˆØ]Û‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆÙ]Ù[Û[™Ê
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\HÝ™\Ž˜›Ü™\‹\™YÌÌÝ™\Ž^\™Yˆ]OH”Ù[‚ˆÑSˆØ]Û‚ˆH™Y^ÜÝX[SX\šÙ]\›
+š][WÛ˜[YJ_H\™Ù]H—Ø›[šÈˆ™[H››ÛÜ[™\ˆ‚ˆÛÛXÚÏ^ÙHOˆKœÝÜ›ÜYØ][ÛŠ
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\Hˆ]OH”ÝX[HX\šÙ]¸¡¥ÏØO‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆ[™Q[]JšY
+_BˆÛ\ÜÓ˜[YOH˜‹]\›Z[˜[KLHLKH^VÎ\HÝ™\Ž˜›Ü™\‹\™YÌÌÝ™\Ž^\™Yˆ]OH‘[]H¸§%OØ]Û‚ˆÙ]‚ˆÝ‚ˆÝ‚ˆ
+BˆJ_BˆÝ›ÙO‚ˆÝX›O‚ˆ
+_BˆÙ]‚‚ˆËÊˆ›ÛÝ\ˆ
+‹ßBˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆ\ÝYžKX™]ÙY[ˆMKLˆ›Ü™\‹]›Ü™\‹]\›Z[˜[X›Ü™\ˆ›^\Úš[šËL‚ˆÜ[ˆÛ\ÜÓ˜[YOH™›Û[[Û›È^VÌLH^[]]YLÈžÝš\ÚX›K›[™ÝHÜÚ][ÛœÈÚÝÛÜÜ[‚ˆ]ˆÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\LÈ‚ˆ]ÛˆÛÛXÚÏ^Ê
+HOˆÂˆÛÛœÝ›ÝÜÈHÖÉÒ][IË	ÐÛÛ™][Û‰Ë	Ô]IË	ÐÛÜÝÝ[š]	Ë	ÐÝ\œ™[šXÙIË	ÕÝ[˜[YIË	Ô	“	Ë	Ô	“	IË	Ñ^\È[	×WBˆ›Üˆ
+ÛÛœÝÙˆ™YÝ[\’Û[™ÜÊHÂˆ›ÝÜËœ\Ú
+Úš][WÛ˜[YKš][WØÛÛ™][ÛˆÏÈ	ÉËÝš[™Êœ]X[]JK˜ÛÜÝØ˜\Ú\ËÑš^Y
+ŠK˜Ý\œ™[ÜšXÙKÑš^Y
+ŠKÝ[Ý˜[YKÑš^Y
+ŠK[œ™X[^™YÜ›Ñš^Y
+ŠK[œ™X[^™YÜ›ÜÝÑš^Y
+ŠKÝš[™Ê™^\×Ú[
+WJBˆBˆÛÛœÝÜÝˆH›ÝÜË›X\
+ˆOˆ‹›X\
+ˆOˆÖÈ‹—KË\Ý
+ŠHÈ‰Ý‹œ™\XÙJÈ‹ÙË	Èˆ‰Ê_H˜ˆŠKš›Ú[Š	Ë	ÊJKš›Ú[Š	×‰ÊBˆÛÛœÝHHØÝ[Y[˜Ü™X]Q[[Y[
+	ØIÊNÈKš™YˆHT“˜Ü™X]SØš™XÝT“
+™]È›ØŠØÜÝ—KÈ\Nˆ	Ý^ØÜÝ‰ÈJJBˆK™ÝÛ›ØYHÜ›Û[ËIÛ™]È]J
+KÒTÓÔÝš[™Ê
+KœÛXÙJL
+_K˜ÜÝ˜ÈK˜ÛXÚÊ
+Bˆ_HÛ\ÜÓ˜[YOH˜‹]\›Z[˜[^VÌLHKLH‚ˆø¡¤ÈÔÕ‚ˆØ]Û‚ˆÙ]‚ˆÙ]‚ˆÙ]‚‚ˆËÊˆÝÜ˜YÙH[š]ÈÙXÝ[Ûˆ
+‹ßBˆÜÝÜ˜YÙU[š]Ë›[™Ýˆ	‰ˆ
+ˆ]ˆÛ\ÜÓ˜[YOHœ[™[›^\Úš[šËL‚ˆ]Û‚ˆÛÛXÚÏ^Ê
+HOˆÙ]ÝSÜ[ŠÈOˆ[Ê_BˆÛ\ÜÓ˜[YOHËY[›^][\ËXÙ[\ˆ\ÝYžKX™]ÙY[ˆMKLÈ›Û[[Û›È^^È‚ˆ‚ˆÜ[ˆÛ\ÜÓ˜[YOH^[]]YLˆ\\˜Ø\ÙH˜XÚÚ[™Ë]ÚY\Ý^VÌLH‚ˆÝÜ˜YÙH[š]ÂˆÜ[ˆÛ\ÜÓ˜[YOH›[Lˆ^YÜ™Y[ˆžÜÝÜ˜YÙU[š]Ë›[™ÝOÜÜ[‚ˆÜÜ[‚ˆÜ[ˆÛ\ÜÓ˜[YOH^[]]YMžÜÝSÜ[ˆÈ	ø§,‰Èˆ	ø¥¯	ßOÜÜ[‚ˆØ]Û‚‚ˆÜÝSÜ[ˆ	‰ˆ
+ˆ]ˆÛ\ÜÓ˜[YOH˜›Ü™\‹]›Ü™\‹]\›Z[˜[X›Ü™\ˆ]šYK^H]šYK]\›Z[˜[X›Ü™\ˆ‚ˆÜÝÜ˜YÙU[š]Ë›X\
+ÝHOˆ
+ˆ]ˆÙ^O^ÜÝKšYHÛ\ÜÓ˜[YOH™›^][\ËXÙ[\ˆØ\LÈMKL‹H‚ˆÜ[ˆÛ\ÜÓ˜[YOH^[]]YM^\ÛH¼'äéÜÜ[‚ˆ]ˆÛ\ÜÓ˜[YOH™›^LH‚ˆÜÝQY]YOOHÝKšYÈ
+ˆ[œ]ˆ]]Ñ›ØÝ\ÂˆY˜][˜[YO^ÜÝSX™[ÖÜÝKšYHÏÈÝK™Ü›Ý\ÛX™[ÏÈÝÜ˜YÙH[š]BˆÛ\ÜÓ˜[YOHš[œ]]\›Z[˜[^^ÈKLHËM‚ˆÛ›\^ÙHOˆ™[˜[YTÝÜ˜YÙU[š]
+ÝKšYK\™Ù]˜[YH
+ÝK™Ü›Ý\ÛX™[ÏÈ	ÔÝÜ˜YÙH[š]	ÊJ_BˆÛ’Ù^QÝÛ^ÙHOˆÂˆYˆ
+KšÙ^HOOH	Ñ[\‰ÊH™[˜[YTÝÜ˜YÙU[š]
+ÝKšY
+K\™Ù]\ÈS[œ][[Y[
+K˜[YH
+ÝK™Ü›Ý\ÛX™[ÏÈ	ÔÝÜ˜YÙH[š]	ÊJBˆYˆ
+KšÙ^HOOH	Ñ\ØØ\IÊHÙ]ÝQY]Y
+[
+Bˆ_BˆÏ‚ˆ
+Hˆ
+ˆ]Û‚ˆÛÛXÚÏ^Ê
+HOˆÙ]ÝQY]Y
+ÝKšY
+_BˆÛ\ÜÓ˜[YOH™›Û[[Û›È^^È^[YÝ™\Ž^YÜ™Y[ˆ˜[œÚ][Û‹XÛÛÜœÈ‚ˆ]OHÛXÚÈÈ™[˜[YH‚ˆ‚ˆÜÝSX™[ÖÜÝKšYHÏÈÝK™Ü›Ý\ÛX™[ÏÈ	ÔÝÜ˜YÙH[š]	ßBˆÜ[ˆÛ\ÜÓ˜[YOH›[LH^[]]YM^VÎ\H¸§#ÜÜ[‚ˆÂö'WGFöãà¢—Ð¢ÂöF—cà¢Ç7â6Æ74æÖSÒ&föçBÖÖöæòFW‡BÕ³…ÒFW‡BÖ×WFVBÓ2#à¢·7Rç7FVÕö76WEö–Bò2G·7Rç7FVÕö76WEö–GÖ¢rwÐ¢Â÷7ãà¢ÂöF—cà¢’—Ð¢ÆF—b6Æ74æÖSÒ'‚ÓB’Ó"föçBÖÖöæòFW‡BÕ³—…ÒFW‡BÖ×WFVBÓB#à¢6Æ–6²æÖRFò&VæÖRâ—FV×2–ç6–FR7F÷&vRVæ—G2&VâwBG&6¶VB'’7FVÒw2–çfVçF÷'’’(	BFBF†VÒÖçVÆÇ’f–²FB†öÆF–ærà¢ÂöF—cà¢ÂöF—cà¢—Ð¢ÂöF—cà¢—Ð ¢²ò¢ÖöFÇ2¢÷Ð¢·6VÆÄ†öÆF–ærbb€¢Å6VÆÄÖöFÂ†öÆF–æs×·6VÆÄ†öÆF–æwÒfVW3×¶fVW7Òöä6Æ÷6S×²‚’Óâ6WE6VÆÄ†öÆF–ær†çVÆÂ—Ð¢öå6öÆC×²‚’Óâ²6WE6VÆÄ†öÆF–ær†çVÆÂ“²&Vg&W6‚‚’×Òóà¢—Ð¢·6†÷tFBbb€¢ÄFDG&vW"÷'FföÆ–ô–C×·÷'FföÆ–ô–GÒöä6Æ÷6S×²‚’Óâ6WE6†÷tFB†fÇ6R—Ð¢öäFFVC×²‚’Óâ²6WE6†÷tFB†fÇ6R“²&Vg&W6‚‚’×Òóà¢—Ð¢ÂöF—cà¢§Ð
