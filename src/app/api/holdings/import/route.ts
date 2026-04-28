@@ -3,17 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 
 export const maxDuration = 60
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 const WEAR = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle-Scarred']
 
 function parseCondition(name: string): string | null {
   for (const w of WEAR) if (name.includes(w)) return w
   return null
-}
-
-function isStatTrak(name: string) {
-  return name.includes('StatTrak')
 }
 
 function category(name: string): string {
@@ -30,82 +24,8 @@ function category(name: string): string {
 }
 
 function slug(name: string) {
-  return name.toLowerCase().replace(/[★™]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  return name.toLowerCase().replace(/[★]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
-
-function processRawInventory(inv: any, portfolio_id: string, user_id: string) {
-  const response = inv?.response ?? inv
-  const assets: any[] = response?.assets ?? []
-  const descriptions: any[] = response?.descriptions ?? []
-
-  const descMap = new Map<string, any>()
-  for (const d of descriptions) {
-    descMap.set(`${d.classid}_${d.instanceid}`, d)
-  }
-
-  const today = new Date().toISOString().slice(0, 10)
-  const rows: any[] = []
-  let skinsCount = 0
-  let storageUnitsCount = 0
-  let stackablesCount = 0
-  const stackableMap = new Map<string, { count: number; desc: any }>()
-
-  for (const asset of assets) {
-    const desc = descMap.get(`${asset.classid}_${asset.instanceid}`)
-    if (!desc) continue
-    if (!desc.marketable) continue
-
-    const name: string = desc.market_hash_name ?? desc.name ?? ''
-    const condition = parseCondition(name)
-    const cat = category(name)
-    const isStat = isStatTrak(name)
-    const assetId = asset.assetid ?? asset.asset_id ?? null
-
-    if (cat === 'storage_unit') {
-      storageUnitsCount++
-      rows.push({
-        portfolio_id, user_id,
-        item_id: slug(name) + '-' + assetId,
-        item_name: name, item_condition: null,
-        item_category: 'storage_unit', is_stattrak: false,
-        quantity: 1, cost_basis: 0, acquired_at: today,
-        steam_asset_id: assetId, float_value: null, pattern_id: null,
-        group_label: `Storage Unit #${storageUnitsCount}`, storage_unit: null,
-      })
-    } else if (condition) {
-      skinsCount++
-      rows.push({
-        portfolio_id, user_id,
-        item_id: slug(name) + '-' + assetId,
-        item_name: name, item_condition: condition,
-        item_category: cat, is_stattrak: isStat,
-        quantity: 1, cost_basis: 0, acquired_at: today,
-        steam_asset_id: assetId, float_value: null, pattern_id: null,
-        group_label: null, storage_unit: null,
-      })
-    } else {
-      const existing = stackableMap.get(name)
-      if (existing) { existing.count++ }
-      else { stackableMap.set(name, { count: 1, desc }) }
-    }
-  }
-
-  for (const [name, { count }] of stackableMap.entries()) {
-    stackablesCount++
-    rows.push({
-      portfolio_id, user_id,
-      item_id: slug(name), item_name: name, item_condition: null,
-      item_category: category(name), is_stattrak: isStatTrak(name),
-      quantity: count, cost_basis: 0, acquired_at: today,
-      steam_asset_id: null, float_value: null, pattern_id: null,
-      group_label: null, storage_unit: null,
-    })
-  }
-
-  return { rows, skinsCount, storageUnitsCount, stackablesCount }
-}
-
-// ── Main handler ──────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -118,56 +38,81 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Invalid request body — expected JSON' }, { status: 400 })
   }
-  const portfolio_id: string = body.portfolio_id
+
+  const portfolio_id: string = body?.portfolio_id
   if (!portfolio_id) return NextResponse.json({ error: 'missing portfolio_id' }, { status: 400 })
 
-  // Verify portfolio belongs to user
   const { data: pf } = await supabase
     .from('portfolios').select('id')
     .eq('id', portfolio_id).eq('user_id', user.id).single()
   if (!pf) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
 
-  let inv: any
+  if (!body.inventory_json) {
+    return NextResponse.json({ error: 'Provide inventory_json' }, { status: 400 })
+  }
 
-  if (body.inventory_json) {
-    // ── Mode 1: Pasted inventory JSON ─────────────────────────────────────────
-    try {
-      inv = typeof body.inventory_json === 'string'
-        ? JSON.parse(body.inventory_json)
-        : body.inventory_json
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON — make sure you copied the full inventory response' }, { status: 400 })
-    }
-  } else if (body.steam_id) {
-    // ── Mode 2: Fetch via official Steam Web API (requires STEAM_API_KEY) ─────
-    const apiKey = process.env.STEAM_API_KEY
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'STEAM_API_KEY not set. Either add it in Vercel env vars, or paste your inventory JSON instead.' },
-        { status: 500 }
-      )
-    }
-    const steamUrl =
-      `https://api.steampowered.com/IEconService/GetInventoryItemsWithDescriptions/v1/` +
-      `?key=${apiKey}&steamid=${body.steam_id}&appid=730&contextid=2&count=5000&language=english`
-    try {
-      const res = await fetch(steamUrl, { signal: AbortSignal.timeout(20000), cache: 'no-store' })
-      if (!res.ok) return NextResponse.json({ error: `Steam API returned ${res.status}` }, { status: 502 })
-      inv = await res.json()
-    } catch (err: any) {
-      return NextResponse.json({ error: `Steam fetch failed: ${err.message}` }, { status: 502 })
-    }
-  } else {
-    return NextResponse.json({ error: 'Provide steam_id or paste inventory_json' }, { status: 400 })
+  let inv: any
+  try {
+    inv = typeof body.inventory_json === 'string'
+      ? JSON.parse(body.inventory_json)
+      : body.inventory_json
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON — make sure you copied the full inventory response' }, { status: 400 })
   }
 
   const response = inv?.response ?? inv
   const assets: any[] = response?.assets ?? []
+  const descriptions: any[] = response?.descriptions ?? []
+
   if (!assets.length) {
     return NextResponse.json({ error: 'No items found. Make sure your inventory is Public and the JSON is complete.' }, { status: 400 })
   }
 
-  const { rows, skinsCount, storageUnitsCount, stackablesCount } = processRawInventory(inv, portfolio_id, user.id)
+  const descMap = new Map<string, any>()
+  for (const d of descriptions) descMap.set(`${d.classid}_${d.instanceid}`, d)
+
+  const today = new Date().toISOString().slice(0, 10)
+  const rows: any[] = []
+  let skinsCount = 0
+  const stackableMap = new Map<string, number>()
+
+  for (const asset of assets) {
+    const desc = descMap.get(`${asset.classid}_${asset.instanceid}`)
+    if (!desc || !desc.marketable) continue
+
+    const name: string = desc.market_hash_name ?? desc.name ?? ''
+    const condition = parseCondition(name)
+    const cat = category(name)
+    const assetId = asset.assetid ?? asset.asset_id ?? null
+
+    if (cat === 'storage_unit') continue
+
+    if (condition) {
+      skinsCount++
+      rows.push({
+        portfolio_id, user_id: user.id,
+        item_id: slug(name) + '-' + assetId,
+        item_name: name, item_condition: condition,
+        item_category: cat, is_stattrak: name.includes('StatTrak'),
+        quantity: 1, cost_basis: 0, acquired_at: today,
+        steam_asset_id: assetId, float_value: null, pattern_id: null,
+        group_label: null, storage_unit: null,
+      })
+    } else {
+      stackableMap.set(name, (stackableMap.get(name) ?? 0) + 1)
+    }
+  }
+
+  for (const [name, count] of stackableMap.entries()) {
+    rows.push({
+      portfolio_id, user_id: user.id,
+      item_id: slug(name), item_name: name, item_condition: null,
+      item_category: category(name), is_stattrak: name.includes('StatTrak'),
+      quantity: count, cost_basis: 0, acquired_at: today,
+      steam_asset_id: null, float_value: null, pattern_id: null,
+      group_label: null, storage_unit: null,
+    })
+  }
 
   if (rows.length === 0) {
     return NextResponse.json({ error: 'No marketable items found in inventory' }, { status: 400 })
@@ -184,8 +129,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     imported: rows.length,
     skins: skinsCount,
-    storage_units: storageUnitsCount,
-    stackables: stackablesCount,
-    floats_fetched: 0,
+    stackables: stackableMap.size,
   })
 }
