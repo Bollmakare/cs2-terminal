@@ -27,46 +27,12 @@ function slug(name: string) {
   return name.toLowerCase().replace(/[★]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
 
-export async function POST(req: NextRequest) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  let body: any
-  try {
-    body = await req.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body — expected JSON' }, { status: 400 })
-  }
-
-  const portfolio_id: string = body?.portfolio_id
-  if (!portfolio_id) return NextResponse.json({ error: 'missing portfolio_id' }, { status: 400 })
-
-  const { data: pf } = await supabase
-    .from('portfolios').select('id')
-    .eq('id', portfolio_id).eq('user_id', user.id).single()
-  if (!pf) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
-
-  if (!body.inventory_json) {
-    return NextResponse.json({ error: 'Provide inventory_json' }, { status: 400 })
-  }
-
-  let inv: any
-  try {
-    inv = typeof body.inventory_json === 'string'
-      ? JSON.parse(body.inventory_json)
-      : body.inventory_json
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON — make sure you copied the full inventory response' }, { status: 400 })
-  }
-
+function processInventory(inv: any, portfolio_id: string, user_id: string) {
   const response = inv?.response ?? inv
   const assets: any[] = response?.assets ?? []
   const descriptions: any[] = response?.descriptions ?? []
 
-  if (!assets.length) {
-    return NextResponse.json({ error: 'No items found. Make sure your inventory is Public and the JSON is complete.' }, { status: 400 })
-  }
+  if (!assets.length) return null
 
   const descMap = new Map<string, any>()
   for (const d of descriptions) descMap.set(`${d.classid}_${d.instanceid}`, d)
@@ -90,7 +56,7 @@ export async function POST(req: NextRequest) {
     if (condition) {
       skinsCount++
       rows.push({
-        portfolio_id, user_id: user.id,
+        portfolio_id, user_id,
         item_id: slug(name) + '-' + assetId,
         item_name: name, item_condition: condition,
         item_category: cat, is_stattrak: name.includes('StatTrak'),
@@ -105,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   for (const [name, count] of stackableMap.entries()) {
     rows.push({
-      portfolio_id, user_id: user.id,
+      portfolio_id, user_id,
       item_id: slug(name), item_name: name, item_condition: null,
       item_category: category(name), is_stattrak: name.includes('StatTrak'),
       quantity: count, cost_basis: 0, acquired_at: today,
@@ -114,21 +80,66 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  if (rows.length === 0) {
-    return NextResponse.json({ error: 'No marketable items found in inventory' }, { status: 400 })
+  return { rows, skinsCount, stackablesCount: stackableMap.size }
+}
+
+export async function POST(req: NextRequest) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  let body: any
+  try { body = await req.json() } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
+  const portfolio_id: string = body?.portfolio_id
+  if (!portfolio_id) return NextResponse.json({ error: 'missing portfolio_id' }, { status: 400 })
+
+  const { data: pf } = await supabase
+    .from('portfolios').select('id')
+    .eq('id', portfolio_id).eq('user_id', user.id).single()
+  if (!pf) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
+
+  let inv: any
+
+  if (body.steam_id) {
+    // ── Mode 1: fetch directly from Steam Community (no API key needed) ──
+    const steamUrl = `https://steamcommunity.com/inventory/${body.steam_id}/730/2?l=english&count=5000`
+    try {
+      const res = await fetch(steamUrl, { signal: AbortSignal.timeout(20000), cache: 'no-store' })
+      if (res.status === 403) return NextResponse.json({ error: 'Steam inventory is set to Private. Go to Steam → Privacy Settings → set Inventory to Public.' }, { status: 400 })
+      if (!res.ok) return NextResponse.json({ error: `Steam returned ${res.status}. Try again in a moment.` }, { status: 502 })
+      inv = await res.json()
+    } catch (err: any) {
+      return NextResponse.json({ error: `Could not reach Steam: ${err.message}` }, { status: 502 })
+    }
+  } else if (body.inventory_json) {
+    // ── Mode 2: pasted / pre-parsed inventory JSON ──
+    // Frontend always sends a parsed object now, but handle string fallback
+    if (typeof body.inventory_json === 'string') {
+      try { inv = JSON.parse(body.inventory_json) } catch {
+        return NextResponse.json({ error: 'Invalid JSON — make sure you copied the complete inventory response' }, { status: 400 })
+      }
+    } else {
+      inv = body.inventory_json
+    }
+  } else {
+    return NextResponse.json({ error: 'Provide steam_id or inventory_json' }, { status: 400 })
+  }
+
+  const result = processInventory(inv, portfolio_id, user.id)
+  if (!result) return NextResponse.json({ error: 'No items found. Make sure your inventory is Public.' }, { status: 400 })
+
+  const { rows, skinsCount, stackablesCount } = result
+  if (rows.length === 0) return NextResponse.json({ error: 'No marketable items found in inventory' }, { status: 400 })
+
   const { error: deleteErr } = await supabase
-    .from('holdings').delete()
-    .eq('portfolio_id', portfolio_id).eq('user_id', user.id)
+    .from('holdings').delete().eq('portfolio_id', portfolio_id).eq('user_id', user.id)
   if (deleteErr) return NextResponse.json({ error: deleteErr.message }, { status: 500 })
 
   const { error: insertErr } = await supabase.from('holdings').insert(rows)
   if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 })
 
-  return NextResponse.json({
-    imported: rows.length,
-    skins: skinsCount,
-    stackables: stackableMap.size,
-  })
+  return NextResponse.json({ imported: rows.length, skins: skinsCount, stackables: stackablesCount })
 }
