@@ -112,7 +112,12 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body — expected JSON' }, { status: 400 })
+  }
   const portfolio_id: string = body.portfolio_id
   if (!portfolio_id) return NextResponse.json({ error: 'missing portfolio_id' }, { status: 400 })
 
