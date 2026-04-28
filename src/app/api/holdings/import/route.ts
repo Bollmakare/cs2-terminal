@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
 
   if (body.steam_id) {
     // ── Mode 1: fetch directly from Steam Community (no API key needed) ──
-    const steamUrl = `https://steamcommunity.com/inventory/${body.steam_id}/730/2?l=english&count=5000`
+    const steamUrl = `https://steamcommunity.com/inventory/${body.steam_id}/730/2`
     try {
       const res = await fetch(steamUrl, {
         signal: AbortSignal.timeout(20000),
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
         },
       })
       if (res.status === 403) return NextResponse.json({ error: 'Steam inventory is set to Private. Go to Steam → Privacy Settings → set Inventory to Public.' }, { status: 400 })
-      if (res.status === 400) return NextResponse.json({ error: 'Steam blocked this request (IP restriction). Use the Paste JSON tab instead: open https://steamcommunity.com/inventory/' + body.steam_id + '/730/2?l=english&count=5000 in your browser, press Ctrl+A then Ctrl+C, then switch to the Paste JSON tab.' }, { status: 400 })
+      if (res.status === 400) return NextResponse.json({ error: 'Steam blocked this request (IP restriction). Use the Paste JSON tab instead: open https://steamcommunity.com/inventory/' + body.steam_id + '/730/2 in your browser, press Ctrl+A then Ctrl+C, then switch to the Paste JSON tab.' }, { status: 400 })
       if (!res.ok) return NextResponse.json({ error: `Steam returned ${res.status}. Try again in a moment.` }, { status: 502 })
       inv = await res.json()
       if (inv?.success === false || (!inv?.assets && !inv?.response?.assets)) {
