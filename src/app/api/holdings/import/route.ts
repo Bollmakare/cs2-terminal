@@ -57,7 +57,7 @@ function processInventory(inv: any, portfolio_id: string, user_id: string) {
       skinsCount++
       rows.push({
         portfolio_id, user_id,
-        item_id: slug(name) + '-' + assetId,
+        item_id: null,
         item_name: name, item_condition: condition,
         item_category: cat, is_stattrak: name.includes('StatTrak'),
         quantity: 1, cost_basis: 0, acquired_at: today,
@@ -72,7 +72,7 @@ function processInventory(inv: any, portfolio_id: string, user_id: string) {
   for (const [name, count] of stackableMap.entries()) {
     rows.push({
       portfolio_id, user_id,
-      item_id: slug(name), item_name: name, item_condition: null,
+      item_id: null, item_name: name, item_condition: null,
       item_category: category(name), is_stattrak: name.includes('StatTrak'),
       quantity: count, cost_basis: 0, acquired_at: today,
       steam_asset_id: null, float_value: null, pattern_id: null,
