@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { updateItem } from '../lib/api.js'
 import { fmt } from '../lib/utils.js'
 import { useToast } from './Toast.jsx'
+import { useEscapeKey } from '../lib/hooks.js'
 
 function todayInput() {
   return new Date().toISOString().split('T')[0]
@@ -13,6 +14,7 @@ function blankEntry(type) {
 
 export default function ItemLedgerModal({ item, onClose, onItemUpdate }) {
   const toast = useToast()
+  useEscapeKey(onClose)
   const [entries, setEntries] = useState(() => [...(item.metadata?.ledger ?? [])].sort((a, b) => b.date.localeCompare(a.date)))
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)

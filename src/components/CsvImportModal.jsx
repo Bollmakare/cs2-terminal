@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { useEscapeKey } from '../lib/hooks.js'
 import { addItem } from '../lib/api.js'
 import { useToast } from './Toast.jsx'
 import { downloadCsv } from '../lib/utils.js'
@@ -81,6 +82,7 @@ const TEMPLATES = {
 
 export default function CsvImportModal({ vertical, userId, onClose, onImported }) {
   const toast = useToast()
+  useEscapeKey(onClose)
   const fileRef = useRef(null)
   const [rows, setRows] = useState(null)
   const [importing, setImporting] = useState(false)

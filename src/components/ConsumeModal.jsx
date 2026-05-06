@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { fmt, effectiveValue } from '../lib/utils.js'
 import { addConsumedItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from './Toast.jsx'
+import { useEscapeKey } from '../lib/hooks.js'
 
 function todayInput() {
   return new Date().toISOString().split('T')[0]
@@ -9,6 +10,7 @@ function todayInput() {
 
 export default function ConsumeModal({ item, userId, onClose, onConsumed }) {
   const toast = useToast()
+  useEscapeKey(onClose)
   const [qty, setQty] = useState('1')
   const [date, setDate] = useState(todayInput())
   const [notes, setNotes] = useState('')

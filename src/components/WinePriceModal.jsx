@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useEscapeKey } from '../lib/hooks.js'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
 import { getItemPriceHistory, addPriceHistory, deletePriceHistory, updateItem } from '../lib/api.js'
 import { fmt } from '../lib/utils.js'
@@ -24,6 +25,7 @@ function CustomTooltip({ active, payload, label }) {
 
 export default function WinePriceModal({ item, userId, onClose, onItemUpdate }) {
   const toast = useToast()
+  useEscapeKey(onClose)
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useEscapeKey } from '../lib/hooks.js'
 import { fmt, fmts, effectiveValue } from '../lib/utils.js'
 import { addSoldItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from './Toast.jsx'
@@ -9,6 +10,7 @@ function todayInput() {
 
 export default function SellModal({ item, userId, onClose, onSold }) {
   const toast = useToast()
+  useEscapeKey(onClose)
   const [salePrice, setSalePrice] = useState('')
   const [qty, setQty] = useState('1')
   const [date, setDate] = useState(todayInput())

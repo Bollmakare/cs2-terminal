@@ -273,9 +273,9 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
       render: row => {
         const { abs, pct: p } = calcPnl(row.cost ?? 0, effectiveValue(row), row.qty)
         return (
-          <div className={sgn(abs)}>
-            <div className="mono" style={{ fontSize: 13 }}>{pct(p)}</div>
-            <div className="mono" style={{ fontSize: 11, opacity: 0.7 }}>{fmts(abs)}</div>
+          <div>
+            <span className={`pnl-chip ${sgn(abs)}`}>{pct(p)}</span>
+            <div className="mono" style={{ fontSize: 11, color: 'var(--mut)', marginTop: 2 }}>{fmts(abs)}</div>
           </div>
         )
       }

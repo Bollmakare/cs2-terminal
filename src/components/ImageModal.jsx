@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { useEscapeKey } from '../lib/hooks.js'
 import { addPhotoToItem, removePhotoFromItem, MAX_PHOTOS } from '../lib/storage.js'
 import { useToast } from './Toast.jsx'
 import ConfirmDialog from './ConfirmDialog.jsx'
@@ -52,6 +53,7 @@ function Lightbox({ images, startIndex, onClose, onDelete }) {
 
 export default function ImageModal({ item, userId, onClose, onUpdate }) {
   const toast = useToast()
+  useEscapeKey(onClose)
   const fileRef = useRef()
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)

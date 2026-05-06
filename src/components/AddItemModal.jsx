@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useEscapeKey } from '../lib/hooks.js'
 
 const WEAR_OPTIONS = ['FN', 'MW', 'FT', 'WW', 'BS']
 const WEAR_LABELS = { FN: 'Factory New (0.00–0.07)', MW: 'Minimal Wear (0.07–0.15)', FT: 'Field-Tested (0.15–0.38)', WW: 'Well-Worn (0.38–0.45)', BS: 'Battle-Scarred (0.45–1.00)' }
@@ -125,6 +126,7 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose }
   const [f, setF] = useState(() => defaultFields(vertical, item))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  useEscapeKey(onClose)
 
   function set(key, val) {
     setF(prev => ({ ...prev, [key]: val }))

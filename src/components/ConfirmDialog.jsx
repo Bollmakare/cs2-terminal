@@ -1,4 +1,7 @@
+import { useEscapeKey } from '../lib/hooks.js'
+
 export default function ConfirmDialog({ title, message, onConfirm, onCancel, dangerous }) {
+  useEscapeKey(onCancel)
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal confirm-dialog" onClick={e => e.stopPropagation()}>

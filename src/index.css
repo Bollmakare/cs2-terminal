@@ -297,7 +297,7 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
   vertical-align: middle;
 }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(255,255,255,0.015); }
+.data-table tr:hover td { background: rgba(255,255,255,0.028); }
 .data-table .mono { font-family: 'JetBrains Mono', monospace; }
 
 /* ── Badges ── */
@@ -471,7 +471,9 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
   width: 100%;
   max-width: 520px;
   position: relative;
+  animation: modal-in 0.15s ease;
 }
+@keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
 
 .modal-title {
   font-family: 'Cormorant Garamond', serif;
@@ -777,10 +779,11 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
 /* ── Dashboard ── */
 .greeting {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 26px;
-  font-weight: 600;
+  font-size: 38px;
+  font-weight: 700;
   margin-bottom: 20px;
   color: var(--txt);
+  line-height: 1.15;
 }
 .greeting span { color: var(--gold); }
 
@@ -877,6 +880,20 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
 .sort-icon.active { opacity: 1; color: var(--gold); }
 .data-table tr.sub-row td { background: rgba(255,255,255,0.012); }
 .data-table tr.sub-row td:first-child { padding-left: 28px; }
+
+/* ── P&L chip ── */
+.pnl-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg3);
+  color: var(--mut);
+}
+.pnl-chip.pos { background: rgba(61,214,140,0.15); color: var(--grn); }
+.pnl-chip.neg { background: rgba(255,92,92,0.15); color: var(--red); }
 
 /* ── Float highlight ── */
 .float-low { color: var(--grn); font-weight: 600; }
