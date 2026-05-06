@@ -13,6 +13,7 @@ import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { openWineSearcher } from '../lib/pricing/wine.js'
 import { useToast } from '../components/Toast.jsx'
 import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
+import SpinTheBottle from '../components/SpinTheBottle.jsx'
 
 export default function WineView({ items: initItems, userId, onItemsChange }) {
   const toast = useToast()
@@ -30,6 +31,7 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
   const [selected, setSelected] = useState([])
   const [bulkCost, setBulkCost] = useState('')
   const [bulkSaving, setBulkSaving] = useState(false)
+  const [spinBottle, setSpinBottle] = useState(false)
 
   useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
@@ -242,6 +244,7 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
         <div className="view-actions">
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setSpinBottle(true)}>🍾 Spin</button>
           <button className="btn btn-primary btn-sm" style={{ background: 'var(--wine)' }} onClick={() => setModal({ item: null })}>
             + Add Bottle
           </button>
@@ -381,6 +384,13 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
             setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
             setLedgerItem(updated)
           }}
+        />
+      )}
+
+      {spinBottle && (
+        <SpinTheBottle
+          items={items}
+          onClose={() => setSpinBottle(false)}
         />
       )}
     </div>

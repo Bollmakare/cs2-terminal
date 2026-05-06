@@ -13,6 +13,7 @@ import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
 import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 import SetGridPanel from '../components/SetGridPanel.jsx'
+import PackSimulatorModal from '../components/PackSimulatorModal.jsx'
 
 const PORTFOLIOS = ['brun single', 'green single', 'Single svart', 'Main']
 const ITEM_TYPE_LABELS = { card: 'Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Sealed' }
@@ -35,6 +36,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [bulkSaving, setBulkSaving] = useState(false)
   const [viewMode, setViewMode] = useState('table')
   const [gridSet, setGridSet] = useState('')
+  const [packSim, setPackSim] = useState(false)
 
   useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
@@ -276,6 +278,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           </button>
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setPackSim(true)}>📦 Open Packs</button>
           <button className="btn btn-primary btn-sm" style={{ background: 'var(--pkm)', color: '#000' }} onClick={() => setModal({ item: null })}>
             + Add Card
           </button>
@@ -443,6 +446,13 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
             setSellItem(null)
             onItemsChange?.()
           }}
+        />
+      )}
+
+      {packSim && (
+        <PackSimulatorModal
+          sets={sets}
+          onClose={() => setPackSim(false)}
         />
       )}
     </div>

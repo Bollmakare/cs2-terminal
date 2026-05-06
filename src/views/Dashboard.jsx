@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import StatCards from '../components/StatCards.jsx'
+import AchievementsPanel from '../components/AchievementsPanel.jsx'
+import WhatCanIBuy from '../components/WhatCanIBuy.jsx'
 import { fmt, fmts, pct, sgn, greetingTime, calcPnl, effectiveValue } from '../lib/utils.js'
 
 const THIS_YEAR = new Date().getFullYear()
@@ -106,6 +108,9 @@ export default function Dashboard({ items, snapshots, user }) {
       </div>
 
       <StatCards cards={statCards} />
+
+      <AchievementsPanel items={items} />
+      <WhatCanIBuy value={totals.value} />
 
       <div className="vertical-cards">
         {byVertical.map(({ v, val, cost, count, pnlPct }) => {
