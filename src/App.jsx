@@ -26,6 +26,7 @@ export default function App() {
   const [cs2Status, setCS2Status] = useState('idle')
   const [pkmnStatus, setPkmnStatus] = useState('idle')
   const [usage, setUsage] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     getSession().then(s => {
@@ -144,7 +145,8 @@ export default function App() {
 
   return (
     <div className="app-layout">
-      <Sidebar user={session.user} netWorth={netWorth} />
+      <div className={`sidebar-backdrop${sidebarOpen ? ' open' : ''}`} onClick={() => setSidebarOpen(false)} />
+      <Sidebar user={session.user} netWorth={netWorth} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="main-area">
         <StatusBar
           cs2Status={cs2Status}
@@ -152,6 +154,7 @@ export default function App() {
           usage={usage}
           onRefreshCS2={() => refreshCS2()}
           onRefreshPkm={refreshPokemon}
+          onMenuClick={() => setSidebarOpen(o => !o)}
         />
         <main className="page-content">
           {loading ? (

@@ -1,4 +1,4 @@
-export default function StatusBar({ cs2Status, pkmnStatus, usage, onRefreshCS2, onRefreshPkm }) {
+export default function StatusBar({ cs2Status, pkmnStatus, usage, onRefreshCS2, onRefreshPkm, onMenuClick }) {
   const day = usage?.day ?? 0
   const month = usage?.month ?? 0
   const dayLimit = usage?.dayLimit ?? 95
@@ -8,6 +8,7 @@ export default function StatusBar({ cs2Status, pkmnStatus, usage, onRefreshCS2, 
 
   return (
     <div className="status-bar">
+      <button className="hamburger" onClick={onMenuClick} aria-label="Menu">☰</button>
       <span className={`status-dot ${cs2Status === 'ok' ? 'green' : cs2Status === 'loading' ? 'yellow' : 'red'}`} />
       <span className="status-label">
         CS2{' '}

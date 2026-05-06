@@ -11,6 +11,7 @@ import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
+import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 
 const PORTFOLIOS = ['brun single', 'green single', 'Single svart', 'Main']
 const ITEM_TYPE_LABELS = { card: 'Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Sealed' }
@@ -315,7 +316,9 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         extraActions={row => (
           <>
             <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
-            <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+            <MoreMenu>
+              <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
+            </MoreMenu>
           </>
         )}
         emptyMessage="No Pokémon cards match your filters."

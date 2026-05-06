@@ -12,6 +12,7 @@ import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { openWineSearcher } from '../lib/pricing/wine.js'
 import { useToast } from '../components/Toast.jsx'
+import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 
 export default function WineView({ items: initItems, userId, onItemsChange }) {
   const toast = useToast()
@@ -201,8 +202,10 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
           <>
             <button className="btn-icon" title="Price history" onClick={() => setPriceItem(row)}>📈</button>
             <button className="btn-icon" title="Open a bottle" onClick={() => setConsumeItem(row)}>🍷</button>
-            <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
-            <button className="btn-icon" title="Search on Wine-Searcher" onClick={() => openWineSearcher(row.name, row.metadata?.vintage, row.metadata?.producer)}>🔍</button>
+            <MoreMenu>
+              <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
+              <MoreMenuItem onClick={() => openWineSearcher(row.name, row.metadata?.vintage, row.metadata?.producer)}>🔍 Wine-Searcher</MoreMenuItem>
+            </MoreMenu>
           </>
         )}
         emptyMessage="No wine bottles added yet."

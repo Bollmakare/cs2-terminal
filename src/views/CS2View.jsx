@@ -10,6 +10,7 @@ import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
+import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 
 const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }
 
@@ -220,7 +221,9 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         extraActions={row => (
           <>
             <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
-            <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+            <MoreMenu>
+              <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
+            </MoreMenu>
           </>
         )}
         emptyMessage="No CS2 skins added yet."
