@@ -419,6 +419,10 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         extraActions={row => (
           <>
             <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
+            <button className="btn-icon" title="View on pokemoncard.io" onClick={() => {
+              const q = [row.name, row.metadata?.set_name, row.metadata?.card_number].filter(Boolean).join(' ')
+              window.open(`https://pokemoncard.io/?q=${encodeURIComponent(q)}`, '_blank')
+            }}>🔗</button>
             <MoreMenu>
               <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
             </MoreMenu>

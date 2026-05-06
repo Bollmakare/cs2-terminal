@@ -156,11 +156,30 @@ function defaultFields(vertical, item) {
   return {}
 }
 
+async function fetchPokemonCardFromUrl(url) {
+  try {
+    const u = new URL(url.trim())
+    if (!u.hostname.includes('pokemoncard.io')) return null
+    const match = u.pathname.match(/\/card\/(.+)/)
+    if (!match) return null
+    const segments = match[1].replace(/\/$/, '').split('-')
+    if (segments.length < 3) return null
+    const number = segments[segments.length - 1]
+    const setId = segments[segments.length - 2]
+    const res = await fetch(`https://api.pokemontcg.io/v2/cards/${setId}-${number}`)
+    if (!res.ok) return null
+    const { data } = await res.json()
+    if (!data) return null
+    return { name: data.name, set_name: data.set?.name ?? '', card_number: data.number, rarity: data.rarity ?? '' }
+  } catch { return null }
+}
+
 export default function AddItemModal({ vertical, item, userId, onSave, onClose, prefill }) {
   const isEdit = !!item
   const [f, setF] = useState(() => { const base = defaultFields(vertical, item); return prefill ? { ...base, ...prefill } : base })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [cardUrlLoading, setCardUrlLoading] = useState(false)
   useEscapeKey(onClose)
 
   function set(key, val) {
@@ -303,6 +322,27 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
 
             {/* ── POKÉMON ── */}
             {vertical === 'pokemon' && <>
+              <SectionDivider label="Quick Add from pokemoncard.io" />
+              <Field label="pokemoncard.io URL" full
+                hint="Paste a link e.g. pokemoncard.io/card/mewtwo-basep-14 — name, set and number fill automatically">
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    className="form-input"
+                    placeholder="https://pokemoncard.io/card/mewtwo-basep-14"
+                    style={{ fontSize: 11 }}
+                    onChange={async e => {
+                      const url = e.target.value
+                      if (!url.includes('pokemoncard.io/card/')) return
+                      setCardUrlLoading(true)
+                      const card = await fetchPokemonCardFromUrl(url)
+                      setCardUrlLoading(false)
+                      if (card) setF(prev => ({ ...prev, name: card.name, set_name: card.set_name, card_number: card.card_number, rarity: card.rarity || prev.rarity }))
+                    }}
+                  />
+                  {cardUrlLoading && <span className="loading-spin" style={{ flexShrink: 0, marginTop: 8 }} />}
+                </div>
+              </Field>
+
               <SectionDivider label="Card Identity" />
               <Field label="Card Name" full
                 hint="Exact English name as it appears on the card. Used for auto-price lookup.">
