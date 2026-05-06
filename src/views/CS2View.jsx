@@ -69,27 +69,20 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
     const orderedKeys = []
 
     for (const item of filtered) {
-      const hasFloat = item.metadata?.float != null
-      if (hasFloat) {
-        groupMap.set(item.id, { single: true, item })
-        orderedKeys.push(item.id)
-      } else {
-        const key = `${item.name}||${item.metadata?.wear ?? ''}||${item.metadata?.stattrak ? '1' : '0'}`
-        if (!groupMap.has(key)) {
-          groupMap.set(key, { single: false, key, items: [] })
-          orderedKeys.push(key)
-        }
-        groupMap.get(key).items.push(item)
+      const key = `${item.name}||${item.metadata?.wear ?? ''}||${item.metadata?.stattrak ? '1' : '0'}`
+      if (!groupMap.has(key)) {
+        groupMap.set(key, { key, items: [] })
+        orderedKeys.push(key)
       }
+      groupMap.get(key).items.push(item)
     }
 
     const flat = []
     for (const k of orderedKeys) {
-      const entry = groupMap.get(k)
-      if (entry.single || entry.items.length === 1) {
-        flat.push(entry.single ? entry.item : entry.items[0])
+      const { items: its, key } = groupMap.get(k)
+      if (its.length === 1) {
+        flat.push(its[0])
       } else {
-        const { items: its, key } = entry
         const totalQty = its.reduce((s, i) => s + i.qty, 0)
         const totalCostAbs = its.reduce((s, i) => s + (i.cost ?? 0) * i.qty, 0)
         const totalVal = its.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
@@ -324,7 +317,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
           className={`btn btn-sm ${groupView ? 'btn-primary' : 'btn-secondary'}`}
           style={groupView ? { background: 'var(--cs)' } : {}}
           onClick={() => { setGroupView(v => !v); setExpandedGroups(new Set()) }}
-          title="Group identical skins (those without individual floats)"
+          title="Group skins by name + wear into collapsible rows"
         >
           ◈ {groupView ? 'Grouped' : 'Group'}
         </button>
