@@ -224,6 +224,7 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
           <div>
             <div className="mono" style={{ fontSize: 12, color: 'var(--mut)' }}>{dur ?? '—'}</div>
             {ann != null && <div className="mono" style={{ fontSize: 11, color: ann >= 0 ? 'var(--grn)' : 'var(--red)' }}>{ann >= 0 ? '+' : ''}{ann.toFixed(1)}%/yr</div>}
+            {row.updated_at && <div style={{ fontSize: 10, color: 'var(--mut)', marginTop: 2 }} title={new Date(row.updated_at).toLocaleString()}>↻ {ago(row.updated_at)}</div>}
           </div>
         )
       }
