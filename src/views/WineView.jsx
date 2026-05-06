@@ -46,10 +46,16 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
 
   async function handleDelete() {
     if (!deleteTarget) return
-    await deleteItem(deleteTarget.id)
-    setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
-    onItemsChange?.()
-    setDeleteTarget(null); toast('Bottle deleted', 'success')
+    try {
+      await deleteItem(deleteTarget.id)
+      setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
+      onItemsChange?.()
+      toast('Bottle deleted', 'success')
+    } catch (err) {
+      toast(err.message, 'error')
+    } finally {
+      setDeleteTarget(null)
+    }
   }
 
   function handlePhotoUpdate(updated) {

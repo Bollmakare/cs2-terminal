@@ -47,11 +47,16 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
 
   async function handleDelete() {
     if (!deleteTarget) return
-    await deleteItem(deleteTarget.id)
-    setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
-    onItemsChange?.()
-    setDeleteTarget(null)
-    toast('Skin deleted', 'success')
+    try {
+      await deleteItem(deleteTarget.id)
+      setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
+      onItemsChange?.()
+      toast('Skin deleted', 'success')
+    } catch (err) {
+      toast(err.message, 'error')
+    } finally {
+      setDeleteTarget(null)
+    }
   }
 
   function handlePhotoUpdate(updated) {

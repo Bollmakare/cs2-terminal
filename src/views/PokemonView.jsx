@@ -69,16 +69,22 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
 
   async function handleDelete() {
     if (!deleteTarget) return
-    await deleteItem(deleteTarget.id)
-    setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
-    onItemsChange?.()
-    setDeleteTarget(null); toast('Card deleted', 'success')
+    try {
+      await deleteItem(deleteTarget.id)
+      setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
+      onItemsChange?.()
+      toast('Card deleted', 'success')
+    } catch (err) {
+      toast(err.message, 'error')
+    } finally {
+      setDeleteTarget(null)
+    }
   }
 
   async function applyBulkCost() {
     if (!selected.length || bulkCost === '') return
     const cost = parseFloat(bulkCost)
-    if (isNaN(cost)) return
+    if (isNaN(cost)) { toast('Enter a valid number', 'error'); return }
     setBulkSaving(true)
     try {
       const updates = await Promise.all(selected.map(id => updateItem(id, { cost })))

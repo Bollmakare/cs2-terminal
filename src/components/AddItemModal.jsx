@@ -35,7 +35,7 @@ function mkMeta(vertical, f) {
   if (vertical === 'cs2') {
     return {
       wear: f.wear,
-      float: f.float ? parseFloat(f.float) : null,
+      float: f.float !== '' ? parseFloat(f.float) : null,
       stattrak: f.stattrak === 'true',
       inspect_link: f.inspect_link.trim() || null,
       notes: f.notes.trim() || null,
@@ -135,12 +135,20 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose }
     setError(null)
     setSaving(true)
     try {
+      const qty = parseInt(f.qty, 10)
+      if (!qty || qty < 1) { setError('Quantity must be at least 1'); setSaving(false); return }
+
+      const floatVal = f.float !== '' ? parseFloat(f.float) : null
+      if (floatVal != null && (isNaN(floatVal) || floatVal < 0 || floatVal > 1)) {
+        setError('Float must be a number between 0 and 1'); setSaving(false); return
+      }
+
       const payload = {
         vertical,
         name: f.name.trim(),
         cost: parseFloat(f.cost) || 0,
         value: f.value !== '' ? parseFloat(f.value) : null,
-        qty: parseInt(f.qty) || 1,
+        qty,
         metadata: mkMeta(vertical, f),
         user_id: userId,
       }
