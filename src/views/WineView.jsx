@@ -24,6 +24,9 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
   const [consumeItem, setConsumeItem] = useState(null)
   const [ledgerItem, setLedgerItem] = useState(null)
   const [csvImport, setCsvImport] = useState(false)
+  const [search, setSearch] = useState('')
+  const [filterRegion, setFilterRegion] = useState('')
+  const [filterFormat, setFilterFormat] = useState('')
 
   useEffect(() => setItems(initItems ?? []), [initItems])
 
@@ -38,6 +41,25 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
     }, null)
     return { value, cost, pnl: pnlAbs, pct: pnlPct, best }
   }, [items])
+
+  const regions = useMemo(() => {
+    const s = new Set(items.map(i => i.metadata?.region).filter(Boolean))
+    return [...s].sort()
+  }, [items])
+
+  const formats = useMemo(() => {
+    const s = new Set(items.map(i => i.metadata?.format).filter(Boolean))
+    return [...s].sort()
+  }, [items])
+
+  const filtered = useMemo(() => {
+    return items.filter(i => {
+      if (search && !i.name.toLowerCase().includes(search.toLowerCase())) return false
+      if (filterRegion && i.metadata?.region !== filterRegion) return false
+      if (filterFormat && i.metadata?.format !== filterFormat) return false
+      return true
+    })
+  }, [items, search, filterRegion, filterFormat])
 
   async function handleSave(payload) {
     if (modal.item) {
@@ -192,9 +214,27 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
 
       <StatCards cards={statCards} />
 
+      <div className="filters-row">
+        <input
+          className="search-input"
+          placeholder="Search wines…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <select className="filter-select" value={filterRegion} onChange={e => setFilterRegion(e.target.value)}>
+          <option value="">All regions</option>
+          {regions.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+        <select className="filter-select" value={filterFormat} onChange={e => setFilterFormat(e.target.value)}>
+          <option value="">All formats</option>
+          {formats.map(f => <option key={f} value={f}>{f}</option>)}
+        </select>
+        <span style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 'auto' }}>{filtered.length} / {items.length}</span>
+      </div>
+
       <ItemTable
         columns={columns}
-        rows={items}
+        rows={filtered}
         onEdit={item => setModal({ item })}
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}

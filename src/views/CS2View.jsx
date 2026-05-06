@@ -23,6 +23,9 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const [ledgerItem, setLedgerItem] = useState(null)
   const [sellItem, setSellItem] = useState(null)
   const [csvImport, setCsvImport] = useState(false)
+  const [search, setSearch] = useState('')
+  const [filterWear, setFilterWear] = useState('')
+  const [filterST, setFilterST] = useState('')
 
   useEffect(() => setItems(initItems ?? []), [initItems])
 
@@ -37,6 +40,16 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
     }, null)
     return { value, cost, pnl: pnlAbs, pct: pnlPct, best }
   }, [items])
+
+  const filtered = useMemo(() => {
+    return items.filter(i => {
+      if (search && !i.name.toLowerCase().includes(search.toLowerCase())) return false
+      if (filterWear && i.metadata?.wear !== filterWear) return false
+      if (filterST === 'yes' && !i.metadata?.stattrak) return false
+      if (filterST === 'no' && i.metadata?.stattrak) return false
+      return true
+    })
+  }, [items, search, filterWear, filterST])
 
   async function handleSave(payload) {
     if (modal.item) {
@@ -212,9 +225,28 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
 
       <StatCards cards={statCards} />
 
+      <div className="filters-row">
+        <input
+          className="search-input"
+          placeholder="Search skins…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <select className="filter-select" value={filterWear} onChange={e => setFilterWear(e.target.value)}>
+          <option value="">All wear</option>
+          {['FN', 'MW', 'FT', 'WW', 'BS'].map(w => <option key={w} value={w}>{w}</option>)}
+        </select>
+        <select className="filter-select" value={filterST} onChange={e => setFilterST(e.target.value)}>
+          <option value="">All types</option>
+          <option value="yes">StatTrak only</option>
+          <option value="no">Non-ST only</option>
+        </select>
+        <span style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 'auto' }}>{filtered.length} / {items.length}</span>
+      </div>
+
       <ItemTable
         columns={columns}
-        rows={items}
+        rows={filtered}
         onEdit={item => setModal({ item })}
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}
