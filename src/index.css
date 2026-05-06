@@ -875,6 +875,8 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
 .data-table th.sortable:hover { color: var(--txt); }
 .sort-icon { font-size: 10px; opacity: 0.3; }
 .sort-icon.active { opacity: 1; color: var(--gold); }
+.data-table tr.sub-row td { background: rgba(255,255,255,0.012); }
+.data-table tr.sub-row td:first-child { padding-left: 28px; }
 
 /* ── Float highlight ── */
 .float-low { color: var(--grn); font-weight: 600; }

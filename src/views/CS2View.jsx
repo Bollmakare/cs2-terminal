@@ -26,6 +26,8 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const [search, setSearch] = useState('')
   const [filterWear, setFilterWear] = useState('')
   const [filterST, setFilterST] = useState('')
+  const [groupView, setGroupView] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState(new Set())
 
   useEffect(() => setItems(initItems ?? []), [initItems])
 
@@ -50,6 +52,66 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
       return true
     })
   }, [items, search, filterWear, filterST])
+
+  function toggleGroup(key) {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const displayRows = useMemo(() => {
+    if (!groupView) return filtered
+
+    const groupMap = new Map()
+    const orderedKeys = []
+
+    for (const item of filtered) {
+      const hasFloat = item.metadata?.float != null
+      if (hasFloat) {
+        groupMap.set(item.id, { single: true, item })
+        orderedKeys.push(item.id)
+      } else {
+        const key = `${item.name}||${item.metadata?.wear ?? ''}||${item.metadata?.stattrak ? '1' : '0'}`
+        if (!groupMap.has(key)) {
+          groupMap.set(key, { single: false, key, items: [] })
+          orderedKeys.push(key)
+        }
+        groupMap.get(key).items.push(item)
+      }
+    }
+
+    const flat = []
+    for (const k of orderedKeys) {
+      const entry = groupMap.get(k)
+      if (entry.single || entry.items.length === 1) {
+        flat.push(entry.single ? entry.item : entry.items[0])
+      } else {
+        const { items: its, key } = entry
+        const totalQty = its.reduce((s, i) => s + i.qty, 0)
+        const totalCostAbs = its.reduce((s, i) => s + (i.cost ?? 0) * i.qty, 0)
+        const totalVal = its.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
+        flat.push({
+          _isGroup: true,
+          _groupKey: key,
+          _groupCount: its.length,
+          id: `group-${key}`,
+          name: its[0].name,
+          metadata: { wear: its[0].metadata?.wear, stattrak: its[0].metadata?.stattrak },
+          qty: totalQty,
+          cost: totalQty > 0 ? totalCostAbs / totalQty : 0,
+          value: totalQty > 0 ? totalVal / totalQty : 0,
+          last_price_fetched_at: its.some(i => i.last_price_fetched_at) ? true : null,
+        })
+        if (expandedGroups.has(key)) {
+          its.forEach(i => flat.push({ ...i, _isSubRow: true }))
+        }
+      }
+    }
+    return flat
+  }, [filtered, groupView, expandedGroups])
 
   async function handleSave(payload) {
     if (modal.item) {
@@ -107,15 +169,18 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
       sortValue: row => row.name,
       render: row => (
         <div className="item-name-cell">
-          {row.metadata?.images?.[0]
-            ? <img className="thumb" src={row.metadata.images[0]} alt="" onClick={() => setPhotoItem(row)} />
-            : <div className="thumb-placeholder" />}
+          {row._isGroup
+            ? <div className="thumb-placeholder" style={{ opacity: 0.3 }} />
+            : row.metadata?.images?.[0]
+              ? <img className="thumb" src={row.metadata.images[0]} alt="" onClick={() => setPhotoItem(row)} />
+              : <div className="thumb-placeholder" />}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <span>{row.name}</span>
               {row.metadata?.stattrak && <span className="badge badge-sttrack" style={{ fontSize: 9 }}>ST</span>}
+              {row._isGroup && <span style={{ fontSize: 10, color: 'var(--gold)', fontFamily: 'JetBrains Mono' }}>{row._groupCount} lots</span>}
             </div>
-            {row.metadata?.inspect_link && (
+            {!row._isGroup && row.metadata?.inspect_link && (
               <a
                 href={row.metadata.inspect_link}
                 title="Inspect in game"
@@ -149,7 +214,12 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
     {
       key: 'cost', label: 'Cost',
       sortValue: row => row.cost ?? 0,
-      render: row => <span className="mono">{fmt(row.cost)}</span>
+      render: row => (
+        <span className="mono">
+          {fmt(row.cost)}
+          {row._isGroup && <span style={{ fontSize: 9, color: 'var(--mut)', marginLeft: 3 }}>avg</span>}
+        </span>
+      )
     },
     {
       key: 'value', label: 'Market Value',
@@ -197,8 +267,9 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
     },
     {
       key: 'held', label: 'Held',
-      sortValue: row => new Date(row.created_at).getTime(),
+      sortValue: row => row.created_at ? new Date(row.created_at).getTime() : 0,
       render: row => {
+        if (row._isGroup) return <span style={{ color: 'var(--mut)', fontSize: 12 }}>—</span>
         const dur = holdDuration(row.created_at)
         const ann = annualizedReturn(row.cost, effectiveValue(row), row.created_at)
         return (
@@ -249,22 +320,41 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
           <option value="yes">StatTrak only</option>
           <option value="no">Non-ST only</option>
         </select>
+        <button
+          className={`btn btn-sm ${groupView ? 'btn-primary' : 'btn-secondary'}`}
+          style={groupView ? { background: 'var(--cs)' } : {}}
+          onClick={() => { setGroupView(v => !v); setExpandedGroups(new Set()) }}
+          title="Group identical skins (those without individual floats)"
+        >
+          ◈ {groupView ? 'Grouped' : 'Group'}
+        </button>
         <span style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 'auto' }}>{filtered.length} / {items.length}</span>
       </div>
 
       <ItemTable
+        key={groupView ? 'grouped' : 'individual'}
         columns={columns}
-        rows={filtered}
+        rows={displayRows}
         onEdit={item => setModal({ item })}
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}
         extraActions={row => (
-          <>
-            <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
-            <MoreMenu>
-              <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
-            </MoreMenu>
-          </>
+          row._isGroup ? (
+            <button
+              className="btn-icon"
+              title={expandedGroups.has(row._groupKey) ? 'Collapse' : `Show ${row._groupCount} lots`}
+              onClick={() => toggleGroup(row._groupKey)}
+            >
+              {expandedGroups.has(row._groupKey) ? '▼' : '▶'}
+            </button>
+          ) : (
+            <>
+              {!row._isSubRow && <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>}
+              <MoreMenu>
+                <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
+              </MoreMenu>
+            </>
+          )
         )}
         emptyMessage={filtered.length === 0 && items.length > 0 ? 'No skins match your filters.' : 'No CS2 skins added yet.'}
       />

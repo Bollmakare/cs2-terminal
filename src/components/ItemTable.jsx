@@ -87,7 +87,7 @@ export default function ItemTable({
               </td>
             </tr>
           ) : sorted.map(row => (
-            <tr key={row.id}>
+            <tr key={row.id} className={row._isSubRow ? 'sub-row' : ''}>
               {selectable && (
                 <td>
                   <input
@@ -103,10 +103,10 @@ export default function ItemTable({
               ))}
               <td>
                 <div className="action-btns">
-                  {onEdit && <button className="btn-icon" title="Edit" onClick={() => onEdit(row)}>✎</button>}
-                  {onPhoto && <button className="btn-icon" title="Photos" onClick={() => onPhoto(row)}>🖼</button>}
+                  {onEdit && !row._isGroup && <button className="btn-icon" title="Edit" onClick={() => onEdit(row)}>✎</button>}
+                  {onPhoto && !row._isGroup && <button className="btn-icon" title="Photos" onClick={() => onPhoto(row)}>🖼</button>}
                   {extraActions?.(row)}
-                  {onDelete && <button className="btn-icon danger" title="Delete" onClick={() => onDelete(row)}>✕</button>}
+                  {onDelete && !row._isGroup && <button className="btn-icon danger" title="Delete" onClick={() => onDelete(row)}>✕</button>}
                 </div>
               </td>
             </tr>
