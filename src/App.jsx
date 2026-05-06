@@ -16,6 +16,7 @@ import WineView from './views/WineView.jsx'
 import CellarLogView from './views/CellarLogView.jsx'
 import SoldView from './views/SoldView.jsx'
 import WishlistView from './views/WishlistView.jsx'
+import FunView from './views/FunView.jsx'
 
 export default function App() {
   const toast = useToast()
@@ -170,6 +171,7 @@ export default function App() {
               <Route path="/cellar-log" element={<CellarLogView />} />
               <Route path="/sold" element={<SoldView />} />
               <Route path="/wishlist" element={<WishlistView userId={userId} />} />
+              <Route path="/fun" element={<FunView items={items} />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           )}
