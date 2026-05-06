@@ -18,6 +18,50 @@ import PackSimulatorModal from '../components/PackSimulatorModal.jsx'
 const PORTFOLIOS = ['brun single', 'green single', 'Single svart', 'Main']
 const ITEM_TYPE_LABELS = { card: 'Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Sealed' }
 
+const IMG_TTL = 7 * 24 * 60 * 60 * 1000
+
+function PokemonCardImage({ setName, cardNumber, onClick }) {
+  const num = cardNumber ? String(cardNumber).split('/')[0] : null
+  const cacheKey = setName && num
+    ? `pkm_img_${setName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${num}`
+    : null
+
+  const [src, setSrc] = useState(() => {
+    if (!cacheKey) return null
+    try {
+      const c = localStorage.getItem(cacheKey)
+      if (c) { const { ts, url } = JSON.parse(c); if (Date.now() - ts < IMG_TTL) return url }
+    } catch {}
+    return null
+  })
+
+  useEffect(() => {
+    if (src || !setName || !num || !cacheKey) return
+    const save = url => {
+      setSrc(url)
+      try { localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), url })) } catch {}
+    }
+    // Check grid cache first (populated by SetGridPanel)
+    try {
+      const grid = localStorage.getItem(`pkm_grid_${setName.toLowerCase().replace(/\s+/g, '_')}`)
+      if (grid) {
+        const { data } = JSON.parse(grid)
+        const normalNum = num.replace(/^0+/, '') || '0'
+        const card = data.find(c => (String(c.number).replace(/^0+/, '') || '0') === normalNum || String(c.number) === num)
+        if (card?.images?.small) { save(card.images.small); return }
+      }
+    } catch {}
+    // Fallback: single card API call
+    fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`set.name:"${setName}" number:${num}`)}&select=id,images&pageSize=1`)
+      .then(r => r.json())
+      .then(json => { const url = json.data?.[0]?.images?.small; if (url) save(url) })
+      .catch(() => {})
+  }, [setName, num, cacheKey, src])
+
+  if (!src) return <div className="thumb-placeholder" />
+  return <img className="thumb" src={src} alt="" onClick={onClick} style={{ cursor: 'pointer' }} />
+}
+
 export default function PokemonView({ items: initItems, userId, onItemsChange }) {
   const toast = useToast()
   const [items, setItems] = useState(initItems ?? [])
@@ -155,7 +199,11 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           <div className="item-name-cell">
             {imgs[0]
               ? <img className="thumb" src={imgs[0]} alt="" onClick={() => setPhotoItem(row)} />
-              : <div className="thumb-placeholder" />}
+              : <PokemonCardImage
+                  setName={row.metadata?.set_name}
+                  cardNumber={row.metadata?.card_number}
+                  onClick={() => setPhotoItem(row)}
+                />}
             <div>
               <div>{row.name}</div>
               <div style={{ fontSize: 11, color: 'var(--mut)' }}>
@@ -251,6 +299,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           <div>
             <div className="mono" style={{ fontSize: 12, color: 'var(--mut)' }}>{dur ?? '—'}</div>
             {ann != null && <div className="mono" style={{ fontSize: 11, color: ann >= 0 ? 'var(--grn)' : 'var(--red)' }}>{ann >= 0 ? '+' : ''}{ann.toFixed(1)}%/yr</div>}
+            {row.updated_at && <div style={{ fontSize: 10, color: 'var(--mut)', marginTop: 2 }} title={new Date(row.updated_at).toLocaleString()}>↻ {ago(row.updated_at)}</div>}
           </div>
         )
       }

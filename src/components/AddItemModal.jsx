@@ -13,6 +13,23 @@ const ITEM_TYPE_LABELS = { card: 'Single Card', booster_box: 'Booster Box', etb:
 const PORTFOLIO_OPTIONS = ['brun single', 'green single', 'Single svart', 'Main']
 const FORMAT_OPTIONS = ['750ml', '375ml (Half)', '1.5L Magnum', '3L Double Magnum', '6L Imperial', '9L Salmanazar', '12L Balthazar']
 
+const WEAR_FROM_LABEL = { 'Factory New': 'FN', 'Minimal Wear': 'MW', 'Field-Tested': 'FT', 'Well-Worn': 'WW', 'Battle-Scarred': 'BS' }
+
+function parseSteamUrl(url) {
+  try {
+    const u = new URL(url.trim())
+    const parts = u.pathname.split('/')
+    const name = decodeURIComponent(parts[parts.length - 1])
+    if (!name || name === '730') return null
+    let wear = null
+    for (const [label, code] of Object.entries(WEAR_FROM_LABEL)) {
+      if (name.includes(`(${label})`)) { wear = code; break }
+    }
+    const stattrak = name.toLowerCase().includes('stattrak')
+    return { name, wear, stattrak }
+  } catch { return null }
+}
+
 function Field({ label, hint, children, full }) {
   return (
     <div className={`form-group ${full ? 'full' : ''}`}>
@@ -199,9 +216,30 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
 
             {/* ── CS2 ── */}
             {vertical === 'cs2' && <>
+              <SectionDivider label="Quick Add from Steam" />
+              <Field label="Steam Market URL" full
+                hint="Paste a link from steamcommunity.com/market — name, wear and StatTrak™ fill automatically">
+                <input
+                  className="form-input"
+                  placeholder="https://steamcommunity.com/market/listings/730/AK-47 | Redline (Field-Tested)"
+                  style={{ fontSize: 11 }}
+                  onChange={e => {
+                    const parsed = parseSteamUrl(e.target.value)
+                    if (parsed) {
+                      setF(prev => ({
+                        ...prev,
+                        name: parsed.name,
+                        ...(parsed.wear ? { wear: parsed.wear } : {}),
+                        stattrak: parsed.stattrak ? 'true' : 'false',
+                      }))
+                    }
+                  }}
+                />
+              </Field>
+
               <SectionDivider label="Identity" />
               <Field label="Skin Name — exact Steam market name" full
-                hint='Copy from Steam Market. Format: "Weapon | Skin Name (Wear)" e.g. AK-47 | Redline (Field-Tested)'>
+                hint='Or type manually. Format: "Weapon | Skin Name (Wear)" e.g. AK-47 | Redline (Field-Tested)'>
                 <input className="form-input" required value={f.name}
                   onChange={e => set('name', e.target.value)}
                   placeholder="AK-47 | Redline (Field-Tested)" />

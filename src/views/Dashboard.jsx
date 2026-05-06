@@ -1,17 +1,21 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
 import StatCards from '../components/StatCards.jsx'
 import { fmt, fmts, pct, sgn, greetingTime, calcPnl, effectiveValue } from '../lib/utils.js'
 
 const THIS_YEAR = new Date().getFullYear()
+const PERIODS = [{ key: '1w', label: '1W', days: 7 }, { key: '1m', label: '1M', days: 30 }, { key: '3m', label: '3M', days: 90 }, { key: '1y', label: '1Y', days: 365 }, { key: 'all', label: 'All', days: Infinity }]
 
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label, mode }) {
   if (!active || !payload?.length) return null
+  const v = payload[0].value
   return (
     <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px' }}>
       <div style={{ fontSize: 11, color: 'var(--mut)', marginBottom: 3 }}>{label}</div>
-      <div style={{ fontFamily: 'JetBrains Mono', fontSize: 14, color: 'var(--gold)' }}>{fmt(payload[0].value)}</div>
+      <div style={{ fontFamily: 'JetBrains Mono', fontSize: 14, color: v >= 0 ? 'var(--gold)' : 'var(--red)' }}>
+        {mode === 'pct' ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : fmt(v)}
+      </div>
     </div>
   )
 }
@@ -59,13 +63,31 @@ export default function Dashboard({ items, snapshots, user }) {
       .map(i => ({ ...i, pctOfTotal: (i.holding / totals.value) * 100 }))
   }, [items, totals.value])
 
+  const [chartMode, setChartMode] = useState('eur')
+  const [chartPeriod, setChartPeriod] = useState('all')
+
   const chartData = useMemo(() => {
     if (!snapshots?.length) return []
-    return snapshots.map(s => ({
+    const days = PERIODS.find(p => p.key === chartPeriod)?.days ?? Infinity
+    const cutoff = Date.now() - days * 86400000
+    const filtered = chartPeriod === 'all' ? snapshots : snapshots.filter(s => new Date(s.recorded_at).getTime() >= cutoff)
+    if (!filtered.length) return []
+    const base = filtered[0].price
+    return filtered.map(s => ({
       date: new Date(s.recorded_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
       value: s.price,
+      pct: base > 0 ? ((s.price - base) / base) * 100 : 0,
     }))
-  }, [snapshots])
+  }, [snapshots, chartPeriod])
+
+  const chartChange = useMemo(() => {
+    if (chartData.length < 2) return null
+    const first = chartData[0].value
+    const last = chartData[chartData.length - 1].value
+    const abs = last - first
+    const rel = first > 0 ? (abs / first) * 100 : 0
+    return { abs, rel }
+  }, [chartData])
 
   const vert = { cs2: { label: 'CS2 Skins', color: 'var(--cs)', to: '/cs2' }, pokemon: { label: 'Pokémon TCG', color: 'var(--pkm)', to: '/pokemon' }, wine: { label: 'Wine Cellar', color: 'var(--wine)', to: '/wine' } }
 
@@ -172,14 +194,51 @@ export default function Dashboard({ items, snapshots, user }) {
 
       {chartData.length > 1 && (
         <div className="chart-wrap" style={{ marginBottom: 20 }}>
-          <div className="section-title" style={{ marginBottom: 14 }}>Portfolio History</div>
-          <ResponsiveContainer width="100%" height={200}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+            <div className="section-title" style={{ flex: 1 }}>Portfolio History</div>
+            {chartChange && (
+              <span className={`pnl-chip ${chartChange.abs >= 0 ? 'pos' : 'neg'}`}>
+                {chartChange.abs >= 0 ? '+' : ''}{fmts(chartChange.abs)} ({chartChange.abs >= 0 ? '+' : ''}{chartChange.rel.toFixed(2)}%)
+              </span>
+            )}
+            <div style={{ display: 'flex', gap: 3 }}>
+              {PERIODS.map(p => (
+                <button key={p.key} onClick={() => setChartPeriod(p.key)} style={{
+                  fontSize: 10, padding: '2px 7px', borderRadius: 3, cursor: 'pointer',
+                  background: chartPeriod === p.key ? 'var(--gold)' : 'var(--bg3)',
+                  color: chartPeriod === p.key ? '#0b0d12' : 'var(--mut)',
+                  border: '1px solid var(--border)', fontFamily: 'JetBrains Mono',
+                }}>{p.label}</button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {[{ key: 'eur', label: '€' }, { key: 'pct', label: '%' }].map(m => (
+                <button key={m.key} onClick={() => setChartMode(m.key)} style={{
+                  fontSize: 10, padding: '2px 9px', borderRadius: 3, cursor: 'pointer',
+                  background: chartMode === m.key ? 'var(--gold)' : 'var(--bg3)',
+                  color: chartMode === m.key ? '#0b0d12' : 'var(--mut)',
+                  border: '1px solid var(--border)', fontFamily: 'JetBrains Mono',
+                }}>{m.label}</button>
+              ))}
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--mut)', fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: 'var(--mut)', fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => fmts(v)} width={52} />
-              <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="value" stroke="var(--gold)" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: 'var(--gold)' }} />
+              <YAxis
+                tick={{ fontSize: 10, fill: 'var(--mut)', fontFamily: 'JetBrains Mono' }}
+                axisLine={false} tickLine={false} width={56}
+                tickFormatter={v => chartMode === 'eur' ? fmts(v) : `${v.toFixed(1)}%`}
+              />
+              <Tooltip content={<CustomTooltip mode={chartMode} />} />
+              {chartMode === 'pct' && <ReferenceLine y={0} stroke="var(--border)" strokeDasharray="3 3" />}
+              <Line
+                type="monotone"
+                dataKey={chartMode === 'eur' ? 'value' : 'pct'}
+                stroke="var(--gold)" strokeWidth={2} dot={false}
+                activeDot={{ r: 4, fill: 'var(--gold)' }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
