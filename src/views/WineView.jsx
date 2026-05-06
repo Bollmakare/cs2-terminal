@@ -27,8 +27,11 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
   const [search, setSearch] = useState('')
   const [filterRegion, setFilterRegion] = useState('')
   const [filterFormat, setFilterFormat] = useState('')
+  const [selected, setSelected] = useState([])
+  const [bulkCost, setBulkCost] = useState('')
+  const [bulkSaving, setBulkSaving] = useState(false)
 
-  useEffect(() => setItems(initItems ?? []), [initItems])
+  useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
   const totals = useMemo(() => {
     const value = items.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
@@ -60,6 +63,25 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
       return true
     })
   }, [items, search, filterRegion, filterFormat])
+
+  async function applyBulkCost() {
+    if (!selected.length || bulkCost === '') return
+    const cost = parseFloat(bulkCost)
+    if (isNaN(cost)) { toast('Enter a valid number', 'error'); return }
+    setBulkSaving(true)
+    try {
+      const updates = await Promise.all(selected.map(id => updateItem(id, { cost })))
+      setItems(prev => prev.map(i => { const u = updates.find(u => u.id === i.id); return u ?? i }))
+      onItemsChange?.()
+      setSelected([])
+      setBulkCost('')
+      toast(`Set cost to ${fmt(cost)} for ${updates.length} bottles`, 'success')
+    } catch (e) {
+      toast(e.message, 'error')
+    } finally {
+      setBulkSaving(false)
+    }
+  }
 
   async function handleSave(payload) {
     if (modal.item) {
@@ -236,9 +258,24 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
         <span style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 'auto' }}>{filtered.length} / {items.length}</span>
       </div>
 
+      {selected.length > 0 && (
+        <div className="bulk-bar">
+          <span className="bulk-bar-count">{selected.length} selected</span>
+          <span style={{ color: 'var(--mut)', fontSize: 13 }}>Set cost:</span>
+          <input className="bulk-input" type="number" step="0.01" min="0" placeholder="€0.00" value={bulkCost} onChange={e => setBulkCost(e.target.value)} />
+          <button className="btn btn-primary btn-sm" style={{ background: 'var(--wine)' }} onClick={applyBulkCost} disabled={bulkSaving || bulkCost === ''}>
+            {bulkSaving ? <span className="loading-spin" /> : 'Apply'}
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setSelected([])}>Clear</button>
+        </div>
+      )}
+
       <ItemTable
         columns={columns}
         rows={filtered}
+        selectable
+        selected={selected}
+        onSelectChange={setSelected}
         onEdit={item => setModal({ item })}
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}

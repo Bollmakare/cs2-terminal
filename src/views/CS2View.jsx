@@ -4,7 +4,7 @@ import ItemTable from '../components/ItemTable.jsx'
 import AddItemModal from '../components/AddItemModal.jsx'
 import ImageModal from '../components/ImageModal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
-import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn } from '../lib/utils.js'
+import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn, ago } from '../lib/utils.js'
 import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
@@ -28,8 +28,11 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const [filterST, setFilterST] = useState('')
   const [groupView, setGroupView] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState(new Set())
+  const [selected, setSelected] = useState([])
+  const [bulkCost, setBulkCost] = useState('')
+  const [bulkSaving, setBulkSaving] = useState(false)
 
-  useEffect(() => setItems(initItems ?? []), [initItems])
+  useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
   const totals = useMemo(() => {
     const value = items.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
@@ -52,6 +55,25 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
       return true
     })
   }, [items, search, filterWear, filterST])
+
+  async function applyBulkCost() {
+    if (!selected.length || bulkCost === '') return
+    const cost = parseFloat(bulkCost)
+    if (isNaN(cost)) { toast('Enter a valid number', 'error'); return }
+    setBulkSaving(true)
+    try {
+      const updates = await Promise.all(selected.map(id => updateItem(id, { cost })))
+      setItems(prev => prev.map(i => { const u = updates.find(u => u.id === i.id); return u ?? i }))
+      onItemsChange?.()
+      setSelected([])
+      setBulkCost('')
+      toast(`Set cost to ${fmt(cost)} for ${updates.length} skins`, 'success')
+    } catch (e) {
+      toast(e.message, 'error')
+    } finally {
+      setBulkSaving(false)
+    }
+  }
 
   function toggleGroup(key) {
     setExpandedGroups(prev => {
@@ -221,7 +243,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span className="mono">{fmt(effectiveValue(row))}</span>
           {row.last_price_fetched_at
-            ? <span className="badge badge-auto">AUTO</span>
+            ? <span className="badge badge-auto" title={`Fetched ${ago(row.last_price_fetched_at)}`}>AUTO · {ago(row.last_price_fetched_at)}</span>
             : <span className="badge badge-manual">MANUAL</span>}
         </div>
       )
@@ -316,7 +338,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         <button
           className={`btn btn-sm ${groupView ? 'btn-primary' : 'btn-secondary'}`}
           style={groupView ? { background: 'var(--cs)' } : {}}
-          onClick={() => { setGroupView(v => !v); setExpandedGroups(new Set()) }}
+          onClick={() => { setGroupView(v => !v); setExpandedGroups(new Set()); setSelected([]) }}
           title="Group skins by name + wear into collapsible rows"
         >
           ◈ {groupView ? 'Grouped' : 'Group'}
@@ -324,10 +346,25 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         <span style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 'auto' }}>{filtered.length} / {items.length}</span>
       </div>
 
+      {selected.length > 0 && (
+        <div className="bulk-bar">
+          <span className="bulk-bar-count">{selected.length} selected</span>
+          <span style={{ color: 'var(--mut)', fontSize: 13 }}>Set cost:</span>
+          <input className="bulk-input" type="number" step="0.01" min="0" placeholder="€0.00" value={bulkCost} onChange={e => setBulkCost(e.target.value)} />
+          <button className="btn btn-primary btn-sm" style={{ background: 'var(--cs)' }} onClick={applyBulkCost} disabled={bulkSaving || bulkCost === ''}>
+            {bulkSaving ? <span className="loading-spin" /> : 'Apply'}
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setSelected([])}>Clear</button>
+        </div>
+      )}
+
       <ItemTable
         key={groupView ? 'grouped' : 'individual'}
         columns={columns}
         rows={displayRows}
+        selectable={!groupView}
+        selected={selected}
+        onSelectChange={setSelected}
         onEdit={item => setModal({ item })}
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}

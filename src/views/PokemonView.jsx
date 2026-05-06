@@ -4,7 +4,7 @@ import ItemTable from '../components/ItemTable.jsx'
 import AddItemModal from '../components/AddItemModal.jsx'
 import ImageModal from '../components/ImageModal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
-import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn } from '../lib/utils.js'
+import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn, ago } from '../lib/utils.js'
 import CsvImportModal from '../components/CsvImportModal.jsx'
 import SetCompletionPanel from '../components/SetCompletionPanel.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
@@ -192,7 +192,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span className="mono">{fmt(effectiveValue(row))}</span>
           {row.last_price_fetched_at
-            ? <span className="badge badge-auto">AUTO</span>
+            ? <span className="badge badge-auto" title={`Fetched ${ago(row.last_price_fetched_at)}`}>AUTO · {ago(row.last_price_fetched_at)}</span>
             : <span className="badge badge-manual">MANUAL</span>}
         </div>
       )

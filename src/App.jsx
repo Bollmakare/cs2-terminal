@@ -85,7 +85,9 @@ export default function App() {
       await addPriceHistory({ item_id: null, price: total, source: 'snapshot', user_id: session?.user?.id ?? null })
       const snaps = await getSnapshotHistory()
       setSnapshots(snaps)
-    } catch {}
+    } catch (e) {
+      console.warn('Portfolio snapshot failed:', e.message)
+    }
   }
 
   async function refreshCS2(cs2Items) {
