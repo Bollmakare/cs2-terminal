@@ -26,6 +26,12 @@ const NAV_GROUPS = [
       { to: '/wishlist', label: 'Wishlist', dot: '#c9a84c' },
     ]
   },
+  {
+    label: 'Fun',
+    items: [
+      { to: '/fun', label: 'Fun Zone', dot: '#c9a84c' },
+    ]
+  },
 ]
 
 export default function Sidebar({ user, netWorth, open, onClose }) {
