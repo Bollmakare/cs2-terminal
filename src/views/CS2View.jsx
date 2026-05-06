@@ -4,7 +4,8 @@ import ItemTable from '../components/ItemTable.jsx'
 import AddItemModal from '../components/AddItemModal.jsx'
 import ImageModal from '../components/ImageModal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
-import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv } from '../lib/utils.js'
+import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn } from '../lib/utils.js'
+import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
@@ -20,6 +21,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [ledgerItem, setLedgerItem] = useState(null)
   const [sellItem, setSellItem] = useState(null)
+  const [csvImport, setCsvImport] = useState(false)
 
   useMemo(() => setItems(initItems ?? []), [initItems])
 
@@ -172,6 +174,19 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         )
       }
     },
+    {
+      key: 'held', label: 'Held',
+      render: row => {
+        const dur = holdDuration(row.created_at)
+        const ann = annualizedReturn(row.cost, effectiveValue(row), row.created_at)
+        return (
+          <div>
+            <div className="mono" style={{ fontSize: 12, color: 'var(--mut)' }}>{dur ?? '—'}</div>
+            {ann != null && <div className="mono" style={{ fontSize: 11, color: ann >= 0 ? 'var(--grn)' : 'var(--red)' }}>{ann >= 0 ? '+' : ''}{ann.toFixed(1)}%/yr</div>}
+          </div>
+        )
+      }
+    },
   ]
 
   const statCards = [
@@ -187,6 +202,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         <div className="view-title" style={{ color: 'var(--cs)' }}>CS2 Skins</div>
         <div className="view-actions">
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>
           <button className="btn btn-primary btn-sm" style={{ background: 'var(--cs)' }} onClick={() => setModal({ item: null })}>
             + Add Skin
           </button>
@@ -246,6 +262,19 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
           onItemUpdate={updated => {
             setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
             setLedgerItem(updated)
+          }}
+        />
+      )}
+
+      {csvImport && (
+        <CsvImportModal
+          vertical="cs2"
+          userId={userId}
+          onClose={() => setCsvImport(false)}
+          onImported={newItems => {
+            setItems(prev => [...newItems, ...prev])
+            setCsvImport(false)
+            onItemsChange?.()
           }}
         />
       )}

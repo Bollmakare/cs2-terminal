@@ -4,6 +4,8 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import StatCards from '../components/StatCards.jsx'
 import { fmt, fmts, pct, sgn, greetingTime, calcPnl, effectiveValue } from '../lib/utils.js'
 
+const THIS_YEAR = new Date().getFullYear()
+
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
@@ -74,6 +76,26 @@ export default function Dashboard({ items, snapshots, user }) {
     { label: 'Items', value: String(totals.count) },
   ]
 
+  const drinkingWindow = useMemo(() => {
+    const wines = items?.filter(i => i.vertical === 'wine') ?? []
+    const ready = wines.filter(i => {
+      const f = i.metadata?.drink_from, t = i.metadata?.drink_to
+      return f && t && THIS_YEAR >= f && THIS_YEAR <= t
+    })
+    const soon = wines.filter(i => {
+      const f = i.metadata?.drink_from, t = i.metadata?.drink_to
+      if (t && THIS_YEAR > t) return false
+      return f && f > THIS_YEAR && f <= THIS_YEAR + 2
+    })
+    const pastPeak = wines.filter(i => {
+      const t = i.metadata?.drink_to
+      return t && THIS_YEAR > t
+    })
+    return { ready, soon, pastPeak }
+  }, [items])
+
+  const hasAlerts = drinkingWindow.ready.length > 0 || drinkingWindow.soon.length > 0 || drinkingWindow.pastPeak.length > 0
+
   const greeting = greetingTime()
   const firstName = user?.email?.split('@')[0] ?? 'Collector'
 
@@ -106,6 +128,47 @@ export default function Dashboard({ items, snapshots, user }) {
           )
         })}
       </div>
+
+      {hasAlerts && (
+        <div style={{ marginBottom: 20 }}>
+          <div className="section-title" style={{ marginBottom: 10 }}>🍷 Cellar Alerts</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {drinkingWindow.ready.map(item => (
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 6, padding: '9px 14px' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--grn)', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 500 }}>{item.name}</span>
+                  {item.metadata?.vintage && <span className="mono" style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 8 }}>{item.metadata.vintage}</span>}
+                </div>
+                <span style={{ fontSize: 12, color: 'var(--grn)' }}>Ready now · {item.metadata?.drink_from}–{item.metadata?.drink_to}</span>
+                <span className="mono" style={{ fontSize: 12, color: 'var(--mut)' }}>×{item.qty}</span>
+              </div>
+            ))}
+            {drinkingWindow.soon.map(item => (
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(201,168,76,0.07)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 6, padding: '9px 14px' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 500 }}>{item.name}</span>
+                  {item.metadata?.vintage && <span className="mono" style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 8 }}>{item.metadata.vintage}</span>}
+                </div>
+                <span style={{ fontSize: 12, color: 'var(--gold)' }}>Ready from {item.metadata?.drink_from}</span>
+                <span className="mono" style={{ fontSize: 12, color: 'var(--mut)' }}>×{item.qty}</span>
+              </div>
+            ))}
+            {drinkingWindow.pastPeak.map(item => (
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 6, padding: '9px 14px' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mut)', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 500, color: 'var(--mut)' }}>{item.name}</span>
+                  {item.metadata?.vintage && <span className="mono" style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 8 }}>{item.metadata.vintage}</span>}
+                </div>
+                <span style={{ fontSize: 12, color: 'var(--mut)' }}>Past peak · best before {item.metadata?.drink_to}</span>
+                <span className="mono" style={{ fontSize: 12, color: 'var(--mut)' }}>×{item.qty}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {chartData.length > 1 && (
         <div className="chart-wrap" style={{ marginBottom: 20 }}>

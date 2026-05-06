@@ -57,6 +57,24 @@ export function greetingTime() {
   return 'Good evening'
 }
 
+export function holdDuration(createdAt) {
+  if (!createdAt) return null
+  const days = Math.floor((Date.now() - new Date(createdAt)) / 86400000)
+  if (days < 1) return '<1d'
+  if (days < 30) return `${days}d`
+  if (days < 365) return `${Math.floor(days / 30)}mo`
+  const y = Math.floor(days / 365)
+  const m = Math.floor((days % 365) / 30)
+  return m > 0 ? `${y}y ${m}mo` : `${y}y`
+}
+
+export function annualizedReturn(cost, value, createdAt) {
+  if (!cost || cost <= 0 || !value || value <= 0 || !createdAt) return null
+  const days = (Date.now() - new Date(createdAt)) / 86400000
+  if (days < 30) return null
+  return (Math.pow(value / cost, 365 / days) - 1) * 100
+}
+
 export function csvEscape(v) {
   if (v == null) return ''
   const s = String(v)

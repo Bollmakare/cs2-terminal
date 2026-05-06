@@ -75,6 +75,25 @@ export async function getTodaySnapshot() {
   return data?.[0] ?? null
 }
 
+// ── Wishlist ──────────────────────────────────────────────────────────────────
+
+export async function getWishlistItems() {
+  const { data, error } = await supabase.from('wishlist_items').select('*').order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function addWishlistItem(item) {
+  const { data, error } = await supabase.from('wishlist_items').insert(item).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteWishlistItem(id) {
+  const { error } = await supabase.from('wishlist_items').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ── Sold Items ────────────────────────────────────────────────────────────────
 
 export async function addSoldItem(entry) {

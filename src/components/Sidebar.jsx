@@ -10,6 +10,7 @@ const NAVS = [
   { to: '/wine', label: 'Wine Cellar', dot: '#c44569' },
   { to: '/cellar-log', label: 'Cellar Log', dot: '#7a1f3d' },
   { to: '/sold', label: 'Sold Items', dot: '#4caf50' },
+  { to: '/wishlist', label: 'Wishlist', dot: '#c9a84c' },
 ]
 
 export default function Sidebar({ user, netWorth }) {
