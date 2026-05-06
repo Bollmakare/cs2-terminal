@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import StatCards from '../components/StatCards.jsx'
 import ItemTable from '../components/ItemTable.jsx'
 import AddItemModal from '../components/AddItemModal.jsx'
@@ -25,7 +25,7 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
   const [ledgerItem, setLedgerItem] = useState(null)
   const [csvImport, setCsvImport] = useState(false)
 
-  useMemo(() => setItems(initItems ?? []), [initItems])
+  useEffect(() => setItems(initItems ?? []), [initItems])
 
   const totals = useMemo(() => {
     const value = items.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)

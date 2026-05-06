@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import StatCards from '../components/StatCards.jsx'
 import ItemTable from '../components/ItemTable.jsx'
 import AddItemModal from '../components/AddItemModal.jsx'
@@ -33,7 +33,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [bulkCost, setBulkCost] = useState('')
   const [bulkSaving, setBulkSaving] = useState(false)
 
-  useMemo(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
+  useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
   const sets = useMemo(() => {
     const s = new Set(items.map(i => i.metadata?.set_name).filter(Boolean))
