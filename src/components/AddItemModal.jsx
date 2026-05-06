@@ -78,6 +78,12 @@ function mkMeta(vertical, f) {
       grading_service: f.grading_status !== 'none' ? f.grading_service : null,
       submitted_at: f.grading_status !== 'none' ? f.submitted_at || null : null,
       expected_return: f.grading_status !== 'none' ? f.expected_return || null : null,
+      artist: f.artist || null,
+      release_date: f.release_date || null,
+      card_series: f.card_series || null,
+      subtypes: f.subtypes || null,
+      card_types: f.card_types || null,
+      card_image: f.card_image || null,
     }
   }
   if (vertical === 'wine') {
@@ -134,6 +140,12 @@ function defaultFields(vertical, item) {
     grading_service: m.grading_service ?? 'PSA',
     submitted_at: m.submitted_at ?? '',
     expected_return: m.expected_return ?? '',
+    artist: m.artist ?? '',
+    release_date: m.release_date ?? '',
+    card_series: m.card_series ?? '',
+    subtypes: m.subtypes ?? '',
+    card_types: m.card_types ?? '',
+    card_image: m.card_image ?? '',
   }
   if (vertical === 'wine') return {
     name: item?.name ?? '',
@@ -170,7 +182,18 @@ async function fetchPokemonCardFromUrl(url) {
     if (!res.ok) return null
     const { data } = await res.json()
     if (!data) return null
-    return { name: data.name, set_name: data.set?.name ?? '', card_number: data.number, rarity: data.rarity ?? '' }
+    return {
+      name: data.name,
+      set_name: data.set?.name ?? '',
+      card_number: data.number,
+      rarity: data.rarity ?? '',
+      artist: data.artist ?? '',
+      release_date: data.set?.releaseDate ?? '',
+      card_series: data.set?.series ?? '',
+      subtypes: (data.subtypes ?? []).join(', '),
+      card_types: (data.types ?? []).join(', '),
+      card_image: data.images?.large ?? data.images?.small ?? '',
+    }
   } catch { return null }
 }
 
@@ -336,7 +359,7 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
                       setCardUrlLoading(true)
                       const card = await fetchPokemonCardFromUrl(url)
                       setCardUrlLoading(false)
-                      if (card) setF(prev => ({ ...prev, name: card.name, set_name: card.set_name, card_number: card.card_number, rarity: card.rarity || prev.rarity }))
+                      if (card) setF(prev => ({ ...prev, name: card.name, set_name: card.set_name, card_number: card.card_number, rarity: card.rarity || prev.rarity, artist: card.artist, release_date: card.release_date, card_series: card.card_series, subtypes: card.subtypes, card_types: card.card_types, card_image: card.card_image }))
                     }}
                   />
                   {cardUrlLoading && <span className="loading-spin" style={{ flexShrink: 0, marginTop: 8 }} />}
