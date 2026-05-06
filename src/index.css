@@ -895,6 +895,26 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
 .pnl-chip.pos { background: rgba(61,214,140,0.15); color: var(--grn); }
 .pnl-chip.neg { background: rgba(255,92,92,0.15); color: var(--red); }
 
+/* ── Set Grid ── */
+.set-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 6px;
+}
+.set-grid-card {
+  position: relative;
+  transition: opacity 0.15s, transform 0.12s;
+}
+.set-grid-card.missing {
+  opacity: 0.28;
+  cursor: pointer;
+}
+.set-grid-card.missing:hover {
+  opacity: 0.75;
+  transform: scale(1.04);
+}
+.set-grid-card.owned { cursor: default; }
+
 /* ── Float highlight ── */
 .float-low { color: var(--grn); font-weight: 600; }
 

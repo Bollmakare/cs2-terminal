@@ -12,6 +12,7 @@ import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
 import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
+import SetGridPanel from '../components/SetGridPanel.jsx'
 
 const PORTFOLIOS = ['brun single', 'green single', 'Single svart', 'Main']
 const ITEM_TYPE_LABELS = { card: 'Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Sealed' }
@@ -32,6 +33,8 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [selected, setSelected] = useState([])
   const [bulkCost, setBulkCost] = useState('')
   const [bulkSaving, setBulkSaving] = useState(false)
+  const [viewMode, setViewMode] = useState('table')
+  const [gridSet, setGridSet] = useState('')
 
   useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
@@ -47,6 +50,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       if (filterSet && i.metadata?.set_name !== filterSet) return false
       if (filterVariance === 'nocost' && (i.cost ?? 0) > 0) return false
       if (filterVariance === 'noprice' && i.last_price_fetched_at) return false
+      if (filterVariance === 'dupes' && i.qty <= 1) return false
       return true
     })
   }, [items, search, filterPortfolio, filterSet, filterVariance])
@@ -161,6 +165,14 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
                   Cert #{row.metadata.cert_number}
                 </div>
               )}
+              {row.metadata?.grading_status === 'submitted' && (
+                <div style={{ fontSize: 10, color: 'var(--gold)', marginTop: 2 }}>
+                  📬 At {row.metadata.grading_service ?? 'PSA'}
+                  {row.metadata?.expected_return
+                    ? ` · due ${new Date(row.metadata.expected_return).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })}`
+                    : ''}
+                </div>
+              )}
             </div>
           </div>
         )
@@ -255,6 +267,13 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       <div className="view-header">
         <div className="view-title" style={{ color: 'var(--pkm)' }}>Pokémon TCG</div>
         <div className="view-actions">
+          <button
+            className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
+            style={viewMode === 'grid' ? { background: 'var(--pkm)', color: '#000' } : {}}
+            onClick={() => setViewMode(v => v === 'grid' ? 'table' : 'grid')}
+          >
+            ⊞ {viewMode === 'grid' ? 'Grid' : 'Grid'}
+          </button>
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>
           <button className="btn btn-primary btn-sm" style={{ background: 'var(--pkm)', color: '#000' }} onClick={() => setModal({ item: null })}>
@@ -266,6 +285,31 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       <StatCards cards={statCards} />
 
       <SetCompletionPanel items={items} />
+
+      {viewMode === 'grid' && (
+        <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mut)', fontWeight: 600 }}>Set Grid</span>
+            <select
+              className="filter-select"
+              value={gridSet}
+              onChange={e => setGridSet(e.target.value)}
+              style={{ minWidth: 180 }}
+            >
+              <option value="">— Select a set —</option>
+              {sets.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <SetGridPanel
+            items={items}
+            setName={gridSet}
+            onAddCard={card => setModal({
+              item: null,
+              prefill: { name: card.name, set_name: gridSet, card_number: card.number }
+            })}
+          />
+        </div>
+      )}
 
       <div className="filters-row">
         <input
@@ -286,6 +330,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           <option value="">All</option>
           <option value="nocost">Missing cost</option>
           <option value="noprice">No auto-price</option>
+          <option value="dupes">Duplicates (qty &gt; 1)</option>
         </select>
         <span style={{ fontSize: 12, color: 'var(--mut)', marginLeft: 'auto' }}>{filtered.length} / {items.length}</span>
       </div>
@@ -334,6 +379,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         <AddItemModal
           vertical="pokemon"
           item={modal.item}
+          prefill={modal.prefill}
           userId={userId}
           onSave={handleSave}
           onClose={() => setModal(null)}

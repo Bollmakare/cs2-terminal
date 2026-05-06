@@ -146,9 +146,19 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
             ? <img className="thumb" src={row.metadata.images[0]} alt="" onClick={() => setPhotoItem(row)} />
             : <div className="thumb-placeholder" />}
           <div>
-            <div>{row.name}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>{row.name}</span>
+              {row.metadata?.critic_score && (
+                <span style={{ fontFamily: 'JetBrains Mono', fontSize: 10, color: 'var(--gold)', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 3, padding: '1px 5px' }}>
+                  ★ {row.metadata.critic_score}
+                </span>
+              )}
+            </div>
             {row.metadata?.bin_location && (
               <div style={{ fontSize: 11, color: 'var(--mut)', marginTop: 1 }}>📍 {row.metadata.bin_location}</div>
+            )}
+            {row.metadata?.purchase_source && (
+              <div style={{ fontSize: 10, color: 'var(--mut)', marginTop: 1 }}>from {row.metadata.purchase_source}</div>
             )}
           </div>
         </div>

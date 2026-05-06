@@ -40,6 +40,9 @@ function mkMeta(vertical, f) {
       stattrak: f.stattrak === 'true',
       inspect_link: f.inspect_link.trim() || null,
       notes: f.notes.trim() || null,
+      pattern: f.pattern !== '' ? parseInt(f.pattern) : null,
+      sticker_notes: f.sticker_notes.trim() || null,
+      trade_lock_until: f.trade_lock_until || null,
     }
   }
   if (vertical === 'pokemon') {
@@ -54,6 +57,10 @@ function mkMeta(vertical, f) {
       language: f.language,
       portfolio: f.portfolio,
       notes: f.notes.trim() || null,
+      grading_status: f.grading_status !== 'none' ? f.grading_status : null,
+      grading_service: f.grading_status !== 'none' ? f.grading_service : null,
+      submitted_at: f.grading_status !== 'none' ? f.submitted_at || null : null,
+      expected_return: f.grading_status !== 'none' ? f.expected_return || null : null,
     }
   }
   if (vertical === 'wine') {
@@ -68,6 +75,8 @@ function mkMeta(vertical, f) {
       drink_from: f.drink_from ? parseInt(f.drink_from) : null,
       drink_to: f.drink_to ? parseInt(f.drink_to) : null,
       storage_notes: f.storage_notes.trim() || null,
+      critic_score: f.critic_score !== '' ? parseInt(f.critic_score) : null,
+      purchase_source: f.purchase_source.trim() || null,
     }
   }
   return {}
@@ -85,6 +94,9 @@ function defaultFields(vertical, item) {
     value: item?.value != null && item.value > 0 ? String(item.value) : '',
     qty: item?.qty != null ? String(item.qty) : '1',
     notes: m.notes ?? '',
+    pattern: m.pattern != null ? String(m.pattern) : '',
+    sticker_notes: m.sticker_notes ?? '',
+    trade_lock_until: m.trade_lock_until ?? '',
   }
   if (vertical === 'pokemon') return {
     name: item?.name ?? '',
@@ -101,6 +113,10 @@ function defaultFields(vertical, item) {
     value: item?.value != null && item.value > 0 ? String(item.value) : '',
     qty: item?.qty != null ? String(item.qty) : '1',
     notes: m.notes ?? '',
+    grading_status: m.grading_status ?? 'none',
+    grading_service: m.grading_service ?? 'PSA',
+    submitted_at: m.submitted_at ?? '',
+    expected_return: m.expected_return ?? '',
   }
   if (vertical === 'wine') return {
     name: item?.name ?? '',
@@ -117,13 +133,15 @@ function defaultFields(vertical, item) {
     value: item?.value != null && item.value > 0 ? String(item.value) : '',
     qty: item?.qty != null ? String(item.qty) : '1',
     storage_notes: m.storage_notes ?? '',
+    critic_score: m.critic_score != null ? String(m.critic_score) : '',
+    purchase_source: m.purchase_source ?? '',
   }
   return {}
 }
 
-export default function AddItemModal({ vertical, item, userId, onSave, onClose }) {
+export default function AddItemModal({ vertical, item, userId, onSave, onClose, prefill }) {
   const isEdit = !!item
-  const [f, setF] = useState(() => defaultFields(vertical, item))
+  const [f, setF] = useState(() => { const base = defaultFields(vertical, item); return prefill ? { ...base, ...prefill } : base })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   useEscapeKey(onClose)
@@ -210,6 +228,21 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose }
                   placeholder="steam://rungame/730/…" style={{ fontSize: 11 }} />
               </Field>
 
+              <SectionDivider label="Details" />
+              <Field label="Pattern / Seed" hint="0–1000. Essential for Case Hardened (blue %), Fade (%), Marble Fade — determines tier and price premium.">
+                <input className="form-input mono" type="number" min="0" max="1000" step="1"
+                  value={f.pattern} onChange={e => set('pattern', e.target.value)} placeholder="661" />
+              </Field>
+              <Field label="Trade Lock Until" hint="7-day lock after trade. Set this so you know when the skin is tradeable.">
+                <input className="form-input" type="date"
+                  value={f.trade_lock_until} onChange={e => set('trade_lock_until', e.target.value)} />
+              </Field>
+              <Field label="Sticker Notes" full hint="Rare stickers (Katowice 2014, etc.) can exceed the skin value. Note name, position, apply count.">
+                <textarea className="form-textarea" value={f.sticker_notes}
+                  onChange={e => set('sticker_notes', e.target.value)} rows={2}
+                  placeholder="Slot 1: Katowice 2014 IBP (Holo) · Slot 2: …" />
+              </Field>
+
               <SectionDivider label="Pricing" />
               <Field label="Purchase Price (€)" hint="What you paid">
                 <input className="form-input mono" type="number" step="0.01" min="0" required
@@ -284,6 +317,31 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose }
                   onChange={e => set('cert_number', e.target.value)} placeholder="12345678" />
               </Field>
 
+              <SectionDivider label="Grading Submission" />
+              <Field label="Status" hint="Track cards currently at a grading service.">
+                <select className="form-select" value={f.grading_status} onChange={e => set('grading_status', e.target.value)}>
+                  <option value="none">Not submitted</option>
+                  <option value="submitted">At grader</option>
+                  <option value="returned">Returned / In hand</option>
+                </select>
+              </Field>
+              {f.grading_status !== 'none' && <>
+                <Field label="Grading Service">
+                  <select className="form-select" value={f.grading_service} onChange={e => set('grading_service', e.target.value)}>
+                    <option value="PSA">PSA</option>
+                    <option value="BGS">BGS (Beckett)</option>
+                    <option value="CGC">CGC</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </Field>
+                <Field label="Submitted On">
+                  <input className="form-input" type="date" value={f.submitted_at} onChange={e => set('submitted_at', e.target.value)} />
+                </Field>
+                <Field label="Expected Return">
+                  <input className="form-input" type="date" value={f.expected_return} onChange={e => set('expected_return', e.target.value)} />
+                </Field>
+              </>}
+
               <SectionDivider label="Collection" />
               <Field label="Portfolio">
                 <select className="form-select" value={f.portfolio} onChange={e => set('portfolio', e.target.value)}>
@@ -349,6 +407,15 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose }
                 hint="Found on back label or capsule — identifies the exact production run. Useful for provenance.">
                 <input className="form-input mono" value={f.lot_number}
                   onChange={e => set('lot_number', e.target.value)} placeholder="L2415" />
+              </Field>
+              <Field label="Critic Score" hint="Enter the most relevant score — Parker (WA), Decanter, Wine Spectator (50–100 scale).">
+                <input className="form-input mono" type="number" min="50" max="100" step="1"
+                  value={f.critic_score} onChange={e => set('critic_score', e.target.value)} placeholder="98" />
+              </Field>
+              <Field label="Purchase Source" hint="Where you bought it — merchant, auction house, négociant, private sale.">
+                <input className="form-input" value={f.purchase_source}
+                  onChange={e => set('purchase_source', e.target.value)}
+                  placeholder="Christie's, iDealwine, cave privée…" />
               </Field>
 
               <SectionDivider label="Storage Location" />

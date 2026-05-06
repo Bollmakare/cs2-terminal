@@ -13,6 +13,7 @@ import SellModal from '../components/SellModal.jsx'
 import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 
 const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }
+const WEAR_RANGES = { FN: [0, 0.07], MW: [0.07, 0.15], FT: [0.15, 0.38], WW: [0.38, 0.45], BS: [0.45, 1.0] }
 
 export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const toast = useToast()
@@ -190,21 +191,33 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
               ? <img className="thumb" src={row.metadata.images[0]} alt="" onClick={() => setPhotoItem(row)} />
               : <div className="thumb-placeholder" />}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
               <span>{row.name}</span>
               {row.metadata?.stattrak && <span className="badge badge-sttrack" style={{ fontSize: 9 }}>ST</span>}
               {row._isGroup && <span style={{ fontSize: 10, color: 'var(--gold)', fontFamily: 'JetBrains Mono' }}>{row._groupCount} lots</span>}
+              {!row._isGroup && (() => {
+                const tl = row.metadata?.trade_lock_until
+                if (!tl) return null
+                const days = Math.ceil((new Date(tl) - Date.now()) / 86400000)
+                if (days <= 0) return null
+                return <span style={{ fontSize: 9, color: 'var(--mut)', fontFamily: 'JetBrains Mono', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 4px' }}>🔒 {days}d</span>
+              })()}
             </div>
-            {!row._isGroup && row.metadata?.inspect_link && (
-              <a
-                href={row.metadata.inspect_link}
-                title="Inspect in game"
-                style={{ fontSize: 10, color: 'var(--cs)', textDecoration: 'none', opacity: 0.7 }}
-                onClick={e => e.stopPropagation()}
-              >
-                🔍 Inspect
-              </a>
-            )}
+            <div style={{ display: 'flex', gap: 8, marginTop: 1 }}>
+              {!row._isGroup && row.metadata?.pattern != null && (
+                <span style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>#{row.metadata.pattern}</span>
+              )}
+              {!row._isGroup && row.metadata?.inspect_link && (
+                <a
+                  href={row.metadata.inspect_link}
+                  title="Inspect in game"
+                  style={{ fontSize: 10, color: 'var(--cs)', textDecoration: 'none', opacity: 0.7 }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  🔍 Inspect
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )
@@ -220,9 +233,20 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
       key: 'float', label: 'Float',
       sortValue: row => row.metadata?.float ?? Infinity,
       render: row => {
-        const f = row.metadata?.float
-        if (f == null) return '—'
-        return <span className={`mono ${f < 0.1 ? 'float-low' : ''}`}>{Number(f).toFixed(4)}</span>
+        const fv = row.metadata?.float
+        if (fv == null) return '—'
+        const range = WEAR_RANGES[row.metadata?.wear]
+        const pos = range ? ((fv - range[0]) / (range[1] - range[0])) * 100 : null
+        return (
+          <div>
+            <span className={`mono ${fv < 0.1 ? 'float-low' : ''}`}>{Number(fv).toFixed(4)}</span>
+            {pos != null && (
+              <div style={{ width: 44, height: 3, background: 'var(--bg3)', borderRadius: 2, marginTop: 3, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.min(pos, 100)}%`, background: pos < 25 ? 'var(--grn)' : 'var(--mut)', borderRadius: 2 }} />
+              </div>
+            )}
+          </div>
+        )
       }
     },
     { key: 'qty', label: 'Qty', sortValue: row => row.qty, render: row => <span className="mono">{row.qty}</span> },
