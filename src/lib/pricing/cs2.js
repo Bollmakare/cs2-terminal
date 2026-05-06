@@ -1,4 +1,4 @@
-import { updateItem } from '../api.js'
+import { updateItem, bumpApiUsage } from '../api.js'
 import { slp } from '../utils.js'
 
 const API_KEY = '83c3a015-8f1c-4e45-b2a8-922d60e31678'
@@ -8,6 +8,7 @@ const CACHE_TTL = 6 * 60 * 60 * 1000
 const DAY_LIMIT = 95
 const MONTH_LIMIT = 950
 
+// localStorage keys for fast local limit checking (synced from Supabase but fast to read)
 function todayKey() {
   const d = new Date()
   return `pe_d_${d.getFullYear()}_${d.getMonth() + 1}_${d.getDate()}`
@@ -17,7 +18,7 @@ function monthKey() {
   return `pe_m_${d.getFullYear()}_${d.getMonth() + 1}`
 }
 
-export function getUsage() {
+export function getLocalUsage() {
   return {
     day: parseInt(localStorage.getItem(todayKey()) || '0', 10),
     month: parseInt(localStorage.getItem(monthKey()) || '0', 10),
@@ -26,19 +27,25 @@ export function getUsage() {
   }
 }
 
-function bumpUsage() {
+function bumpLocalUsage() {
   const dk = todayKey(), mk = monthKey()
   localStorage.setItem(dk, String(parseInt(localStorage.getItem(dk) || '0', 10) + 1))
   localStorage.setItem(mk, String(parseInt(localStorage.getItem(mk) || '0', 10) + 1))
 }
 
+export function syncLocalUsageFromDb(usage) {
+  // Called after reading from api_usage table so local cache matches DB
+  if (usage?.day != null) localStorage.setItem(todayKey(), String(usage.day))
+  if (usage?.month != null) localStorage.setItem(monthKey(), String(usage.month))
+}
+
 export function checkLimits() {
-  const { day, month } = getUsage()
+  const { day, month } = getLocalUsage()
   return day < DAY_LIMIT && month < MONTH_LIMIT
 }
 
 function cacheKey(name) {
-  return `pe_price_${name}`
+  return `pe_price_${encodeURIComponent(name)}`
 }
 
 function getCached(name) {
@@ -72,7 +79,7 @@ export function isAnyStale(items) {
   return items.some(i => isCacheStale(i.name))
 }
 
-export async function fetchCS2Prices(items, onProgress) {
+export async function fetchCS2Prices(items, userId, onProgress) {
   if (!checkLimits()) throw new Error('API rate limit reached')
   if (!items.length) return {}
 
@@ -82,7 +89,9 @@ export async function fetchCS2Prices(items, onProgress) {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
     priceMap = await res.json()
-    bumpUsage()
+    // Update both localStorage (fast) and Supabase (shared with cron)
+    bumpLocalUsage()
+    if (userId) bumpApiUsage(userId).catch(() => {})
   } catch (e) {
     throw new Error('Failed to fetch CS2 prices: ' + e.message)
   }

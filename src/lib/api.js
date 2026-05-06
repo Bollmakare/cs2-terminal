@@ -1,5 +1,7 @@
 import { supabase } from './supabase.js'
 
+// ── Items ────────────────────────────────────────────────────────────────────
+
 export async function getItems(vertical) {
   let q = supabase.from('items').select('*').order('created_at', { ascending: false })
   if (vertical) q = q.eq('vertical', vertical)
@@ -25,29 +27,35 @@ export async function deleteItem(id) {
   if (error) throw error
 }
 
+// ── Price History ────────────────────────────────────────────────────────────
+
 export async function addPriceHistory(entry) {
   const { error } = await supabase.from('price_history').insert(entry)
   if (error) throw error
 }
 
-export async function getPriceHistory(itemId) {
-  let q = supabase.from('price_history').select('*').order('recorded_at', { ascending: true })
-  if (itemId === null) {
-    q = q.is('item_id', null).eq('source', 'snapshot')
-  } else {
-    q = q.eq('item_id', itemId)
-  }
-  const { data, error } = await q
+export async function deletePriceHistory(id) {
+  const { error } = await supabase.from('price_history').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function getItemPriceHistory(itemId) {
+  const { data, error } = await supabase
+    .from('price_history')
+    .select('*')
+    .eq('item_id', itemId)
+    .order('recorded_at', { ascending: true })
   if (error) throw error
   return data
 }
 
 export async function getSnapshotHistory() {
+  // Combine user snapshots + cron snapshots for equity curve
   const { data, error } = await supabase
     .from('price_history')
     .select('*')
     .is('item_id', null)
-    .eq('source', 'snapshot')
+    .in('source', ['snapshot', 'cron-cs2', 'cron-pokemon'])
     .order('recorded_at', { ascending: true })
   if (error) throw error
   return data
@@ -65,4 +73,85 @@ export async function getTodaySnapshot() {
     .limit(1)
   if (error) throw error
   return data?.[0] ?? null
+}
+
+// ── API Usage ────────────────────────────────────────────────────────────────
+
+export async function getApiUsage() {
+  const today = new Date().toISOString().split('T')[0]
+  const monthStart = today.substring(0, 7) + '-01'
+
+  // User's own usage today
+  const { data: userToday } = await supabase
+    .from('api_usage')
+    .select('calls_today, calls_month')
+    .eq('service', 'pricempire')
+    .eq('date', today)
+    .maybeSingle()
+
+  // Cron/system usage this month (user_id IS NULL rows are publicly readable)
+  const { data: cronMonth } = await supabase
+    .from('api_usage')
+    .select('calls_today')
+    .eq('service', 'pricempire')
+    .is('user_id', null)
+    .gte('date', monthStart)
+    .lte('date', today)
+
+  const cronDay = await supabase
+    .from('api_usage')
+    .select('calls_today')
+    .eq('service', 'pricempire')
+    .is('user_id', null)
+    .eq('date', today)
+    .maybeSingle()
+    .then(r => r.data?.calls_today ?? 0)
+
+  const cronMonthTotal = cronMonth?.reduce((s, r) => s + (r.calls_today ?? 0), 0) ?? 0
+
+  return {
+    // Combined (cron + user) counts for the status bar
+    day: (userToday?.calls_today ?? 0) + cronDay,
+    month: (userToday?.calls_month ?? 0) + cronMonthTotal,
+    dayLimit: 95,
+    monthLimit: 950,
+  }
+}
+
+export async function bumpApiUsage(userId) {
+  const today = new Date().toISOString().split('T')[0]
+  const monthStart = today.substring(0, 7) + '-01'
+
+  // Read today's user row
+  const { data: existing } = await supabase
+    .from('api_usage')
+    .select('id, calls_today, calls_month')
+    .eq('service', 'pricempire')
+    .eq('date', today)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  // Compute month total across all days this month for this user
+  const { data: monthRows } = await supabase
+    .from('api_usage')
+    .select('calls_today')
+    .eq('service', 'pricempire')
+    .eq('user_id', userId)
+    .gte('date', monthStart)
+    .lte('date', today)
+
+  const callsMonth = monthRows?.reduce((s, r) => s + (r.calls_today ?? 0), 0) ?? 0
+  const callsToday = existing?.calls_today ?? 0
+  const now = new Date().toISOString()
+
+  if (existing) {
+    await supabase
+      .from('api_usage')
+      .update({ calls_today: callsToday + 1, calls_month: callsMonth + 1, last_refresh: now })
+      .eq('id', existing.id)
+  } else {
+    await supabase
+      .from('api_usage')
+      .insert({ service: 'pricempire', date: today, calls_today: 1, calls_month: callsMonth + 1, last_refresh: now, user_id: userId })
+  }
 }

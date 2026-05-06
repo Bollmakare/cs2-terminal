@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { getSession, onAuthChange } from './lib/auth.js'
-import { getItems, getSnapshotHistory, getTodaySnapshot, addPriceHistory } from './lib/api.js'
+import { getItems, getSnapshotHistory, getTodaySnapshot, addPriceHistory, getApiUsage } from './lib/api.js'
 import { effectiveValue } from './lib/utils.js'
-import { fetchCS2Prices, applyCS2Prices, isAnyStale } from './lib/pricing/cs2.js'
+import { fetchCS2Prices, applyCS2Prices, isAnyStale, syncLocalUsageFromDb } from './lib/pricing/cs2.js'
 import { fetchAllPokemonPrices, applyPokemonPrices } from './lib/pricing/pokemon.js'
 import AuthScreen from './components/AuthScreen.jsx'
 import Sidebar from './components/Sidebar.jsx'
@@ -22,6 +22,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [cs2Status, setCS2Status] = useState('idle')
   const [pkmnStatus, setPkmnStatus] = useState('idle')
+  const [usage, setUsage] = useState(null)
 
   useEffect(() => {
     getSession().then(s => {
@@ -29,6 +30,14 @@ export default function App() {
       if (!s) setLoading(false)
     })
     return onAuthChange(s => setSession(s))
+  }, [])
+
+  const loadUsage = useCallback(async () => {
+    try {
+      const u = await getApiUsage()
+      setUsage(u)
+      syncLocalUsageFromDb(u)
+    } catch {}
   }, [])
 
   const loadData = useCallback(async () => {
@@ -39,6 +48,8 @@ export default function App() {
       setItems(all)
       setSnapshots(snaps)
 
+      await loadUsage()
+
       const cs2Items = all.filter(i => i.vertical === 'cs2')
       if (cs2Items.length && isAnyStale(cs2Items)) {
         refreshCS2(cs2Items)
@@ -46,8 +57,7 @@ export default function App() {
         setCS2Status('ok')
       }
 
-      const pkmItems = all.filter(i => i.vertical === 'pokemon')
-      if (pkmItems.length) setPkmnStatus('ok')
+      if (all.filter(i => i.vertical === 'pokemon').length) setPkmnStatus('ok')
 
       await takeSnapshot(all)
     } catch (e) {
@@ -68,8 +78,7 @@ export default function App() {
       if (existing) return
       const total = allItems.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
       if (total <= 0) return
-      const uid = session?.user?.id
-      await addPriceHistory({ item_id: null, price: total, source: 'snapshot', user_id: uid ?? null })
+      await addPriceHistory({ item_id: null, price: total, source: 'snapshot', user_id: session?.user?.id ?? null })
       const snaps = await getSnapshotHistory()
       setSnapshots(snaps)
     } catch {}
@@ -80,7 +89,7 @@ export default function App() {
     if (!its.length) return
     setCS2Status('loading')
     try {
-      const results = await fetchCS2Prices(its)
+      const results = await fetchCS2Prices(its, session?.user?.id)
       await applyCS2Prices(its, results)
       const fresh = await getItems('cs2')
       setItems(prev => {
@@ -89,6 +98,7 @@ export default function App() {
       })
       setCS2Status('ok')
       toast('CS2 prices updated', 'success')
+      loadUsage()
     } catch (e) {
       setCS2Status(e.message.includes('limit') ? 'limit' : 'error')
       toast(e.message, 'error')
@@ -122,7 +132,6 @@ export default function App() {
   if (session === undefined) {
     return <div className="page-loading"><span className="loading-spin" /> Loading…</div>
   }
-
   if (!session) return <AuthScreen />
 
   const cs2Items = items.filter(i => i.vertical === 'cs2')
@@ -137,6 +146,7 @@ export default function App() {
         <StatusBar
           cs2Status={cs2Status}
           pkmnStatus={pkmnStatus}
+          usage={usage}
           onRefreshCS2={() => refreshCS2()}
           onRefreshPkm={refreshPokemon}
         />
