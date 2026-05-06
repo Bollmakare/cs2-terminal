@@ -8,6 +8,7 @@ import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv } from '../li
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
+import SellModal from '../components/SellModal.jsx'
 
 const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }
 
@@ -18,6 +19,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const [photoItem, setPhotoItem] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [ledgerItem, setLedgerItem] = useState(null)
+  const [sellItem, setSellItem] = useState(null)
 
   useMemo(() => setItems(initItems ?? []), [initItems])
 
@@ -200,7 +202,10 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}
         extraActions={row => (
-          <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+          <>
+            <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
+            <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+          </>
         )}
         emptyMessage="No CS2 skins added yet."
       />
@@ -241,6 +246,23 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
           onItemUpdate={updated => {
             setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
             setLedgerItem(updated)
+          }}
+        />
+      )}
+
+      {sellItem && (
+        <SellModal
+          item={sellItem}
+          userId={userId}
+          onClose={() => setSellItem(null)}
+          onSold={remaining => {
+            if (remaining <= 0) {
+              setItems(prev => prev.filter(i => i.id !== sellItem.id))
+            } else {
+              setItems(prev => prev.map(i => i.id === sellItem.id ? { ...i, qty: remaining } : i))
+            }
+            setSellItem(null)
+            onItemsChange?.()
           }}
         />
       )}

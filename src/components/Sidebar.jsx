@@ -9,6 +9,7 @@ const NAVS = [
   { to: '/pokemon', label: 'Pokémon TCG', dot: '#ffd60a' },
   { to: '/wine', label: 'Wine Cellar', dot: '#c44569' },
   { to: '/cellar-log', label: 'Cellar Log', dot: '#7a1f3d' },
+  { to: '/sold', label: 'Sold Items', dot: '#4caf50' },
 ]
 
 export default function Sidebar({ user, netWorth }) {

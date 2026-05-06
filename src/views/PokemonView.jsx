@@ -8,6 +8,7 @@ import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv } from '../li
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
+import SellModal from '../components/SellModal.jsx'
 
 const PORTFOLIOS = ['brun single', 'green single', 'Single svart', 'Main']
 const ITEM_TYPE_LABELS = { card: 'Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Sealed' }
@@ -19,6 +20,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [photoItem, setPhotoItem] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [ledgerItem, setLedgerItem] = useState(null)
+  const [sellItem, setSellItem] = useState(null)
   const [search, setSearch] = useState('')
   const [filterPortfolio, setFilterPortfolio] = useState('')
   const [filterSet, setFilterSet] = useState('')
@@ -292,7 +294,10 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}
         extraActions={row => (
-          <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+          <>
+            <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
+            <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+          </>
         )}
         emptyMessage="No Pokémon cards match your filters."
       />
@@ -333,6 +338,23 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           onItemUpdate={updated => {
             setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
             setLedgerItem(updated)
+          }}
+        />
+      )}
+
+      {sellItem && (
+        <SellModal
+          item={sellItem}
+          userId={userId}
+          onClose={() => setSellItem(null)}
+          onSold={remaining => {
+            if (remaining <= 0) {
+              setItems(prev => prev.filter(i => i.id !== sellItem.id))
+            } else {
+              setItems(prev => prev.map(i => i.id === sellItem.id ? { ...i, qty: remaining } : i))
+            }
+            setSellItem(null)
+            onItemsChange?.()
           }}
         />
       )}

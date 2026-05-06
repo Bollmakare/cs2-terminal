@@ -75,6 +75,28 @@ export async function getTodaySnapshot() {
   return data?.[0] ?? null
 }
 
+// ── Sold Items ────────────────────────────────────────────────────────────────
+
+export async function addSoldItem(entry) {
+  const { data, error } = await supabase.from('sold_items').insert(entry).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function getSoldItems() {
+  const { data, error } = await supabase
+    .from('sold_items')
+    .select('*')
+    .order('sold_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function deleteSoldItem(id) {
+  const { error } = await supabase.from('sold_items').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ── Consumed Items ────────────────────────────────────────────────────────────
 
 export async function addConsumedItem(entry) {
