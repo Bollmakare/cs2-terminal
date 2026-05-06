@@ -108,8 +108,10 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       item_type: i.metadata?.item_type ?? 'card',
       set_name: i.metadata?.set_name ?? '',
       card_number: i.metadata?.card_number ?? '',
+      rarity: i.metadata?.rarity ?? '',
       condition: i.metadata?.condition ?? '',
       grade: i.metadata?.grade ?? '',
+      cert_number: i.metadata?.cert_number ?? '',
       language: i.metadata?.language ?? '',
       portfolio: i.metadata?.portfolio ?? '',
       cost: i.cost,
@@ -137,7 +139,13 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
               <div>{row.name}</div>
               <div style={{ fontSize: 11, color: 'var(--mut)' }}>
                 {row.metadata?.set_name} {row.metadata?.card_number ? `· #${row.metadata.card_number}` : ''}
+                {row.metadata?.rarity ? ` · ${row.metadata.rarity}` : ''}
               </div>
+              {row.metadata?.cert_number && (
+                <div style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>
+                  Cert #{row.metadata.cert_number}
+                </div>
+              )}
             </div>
           </div>
         )

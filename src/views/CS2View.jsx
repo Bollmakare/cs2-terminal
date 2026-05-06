@@ -84,8 +84,22 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
           {row.metadata?.images?.[0]
             ? <img className="thumb" src={row.metadata.images[0]} alt="" onClick={() => setPhotoItem(row)} />
             : <div className="thumb-placeholder" />}
-          <span>{row.name}</span>
-          {row.metadata?.stattrak && <span className="badge badge-sttrack" style={{ fontSize: 9 }}>ST</span>}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span>{row.name}</span>
+              {row.metadata?.stattrak && <span className="badge badge-sttrack" style={{ fontSize: 9 }}>ST</span>}
+            </div>
+            {row.metadata?.inspect_link && (
+              <a
+                href={row.metadata.inspect_link}
+                title="Inspect in game"
+                style={{ fontSize: 10, color: 'var(--cs)', textDecoration: 'none', opacity: 0.7 }}
+                onClick={e => e.stopPropagation()}
+              >
+                🔍 Inspect
+              </a>
+            )}
+          </div>
         </div>
       )
     },

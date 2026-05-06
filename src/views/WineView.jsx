@@ -60,10 +60,15 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
       name: i.name,
       producer: i.metadata?.producer ?? '',
       vintage: i.metadata?.vintage ?? '',
+      appellation: i.metadata?.appellation ?? '',
       region: i.metadata?.region ?? '',
       format: i.metadata?.format ?? '',
+      lot_number: i.metadata?.lot_number ?? '',
+      bin_location: i.metadata?.bin_location ?? '',
+      drink_from: i.metadata?.drink_from ?? '',
+      drink_to: i.metadata?.drink_to ?? '',
       cost: i.cost,
-      value: i.value ?? '',
+      value: effectiveValue(i),
       qty: i.qty,
       pnl_abs: (effectiveValue(i) - (i.cost ?? 0)) * i.qty,
       pnl_pct: i.cost > 0 ? ((effectiveValue(i) - i.cost) / i.cost * 100).toFixed(2) : '',
@@ -80,14 +85,46 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
           {row.metadata?.images?.[0]
             ? <img className="thumb" src={row.metadata.images[0]} alt="" onClick={() => setPhotoItem(row)} />
             : <div className="thumb-placeholder" />}
-          <span>{row.name}</span>
+          <div>
+            <div>{row.name}</div>
+            {row.metadata?.bin_location && (
+              <div style={{ fontSize: 11, color: 'var(--mut)', marginTop: 1 }}>📍 {row.metadata.bin_location}</div>
+            )}
+          </div>
         </div>
       )
     },
     { key: 'producer', label: 'Producer', render: row => row.metadata?.producer ?? '—' },
-    { key: 'vintage', label: 'Vintage', render: row => <span className="mono">{row.metadata?.vintage ?? '—'}</span> },
+    {
+      key: 'vintage', label: 'Vintage',
+      render: row => {
+        const v = row.metadata?.vintage
+        const from = row.metadata?.drink_from
+        const to = row.metadata?.drink_to
+        return (
+          <div>
+            <span className="mono">{v ?? '—'}</span>
+            {(from || to) && (
+              <div style={{ fontSize: 10, color: 'var(--mut)', marginTop: 1 }}>
+                Drink {from ?? '?'}–{to ?? '?'}
+              </div>
+            )}
+          </div>
+        )
+      }
+    },
+    {
+      key: 'region', label: 'Region',
+      render: row => (
+        <div>
+          <div>{row.metadata?.region ?? '—'}</div>
+          {row.metadata?.appellation && (
+            <div style={{ fontSize: 11, color: 'var(--mut)' }}>{row.metadata.appellation}</div>
+          )}
+        </div>
+      )
+    },
     { key: 'format', label: 'Format', render: row => row.metadata?.format ?? '—' },
-    { key: 'region', label: 'Region', render: row => row.metadata?.region ?? '—' },
     { key: 'qty', label: 'Qty', render: row => <span className="mono">{row.qty}</span> },
     { key: 'cost', label: 'Cost', render: row => <span className="mono">{fmt(row.cost)}</span> },
     { key: 'value', label: 'Value', render: row => <span className="mono">{fmt(effectiveValue(row))}</span> },
