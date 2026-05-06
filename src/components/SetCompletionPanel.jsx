@@ -37,6 +37,8 @@ export default function SetCompletionPanel({ items }) {
     for (const item of items) {
       const setName = item.metadata?.set_name
       if (!setName) continue
+      const itemType = item.metadata?.item_type
+      if (itemType && itemType !== 'card') continue
       if (!map[setName]) map[setName] = new Set()
       if (item.metadata?.card_number) map[setName].add(item.metadata.card_number)
       else map[setName].add(`__item_${item.id}`)

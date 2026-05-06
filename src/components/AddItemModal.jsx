@@ -143,10 +143,13 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose }
         setError('Float must be a number between 0 and 1'); setSaving(false); return
       }
 
+      const cost = f.cost !== '' ? parseFloat(f.cost) : 0
+      if (isNaN(cost) || cost < 0) { setError('Enter a valid purchase price'); setSaving(false); return }
+
       const payload = {
         vertical,
         name: f.name.trim(),
-        cost: parseFloat(f.cost) || 0,
+        cost,
         value: f.value !== '' ? parseFloat(f.value) : null,
         qty,
         metadata: mkMeta(vertical, f),
