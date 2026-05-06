@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 export default function ItemTable({
   columns,
@@ -12,10 +12,31 @@ export default function ItemTable({
   onSelectChange,
   emptyMessage,
 }) {
-  const isEmpty = !rows || rows.length === 0
+  const [sortKey, setSortKey] = useState(null)
+  const [sortDir, setSortDir] = useState('asc')
+
+  function handleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return rows ?? []
+    const col = columns.find(c => c.key === sortKey)
+    if (!col?.sortValue) return rows ?? []
+    return [...(rows ?? [])].sort((a, b) => {
+      const av = col.sortValue(a) ?? (sortDir === 'asc' ? Infinity : -Infinity)
+      const bv = col.sortValue(b) ?? (sortDir === 'asc' ? Infinity : -Infinity)
+      if (av < bv) return sortDir === 'asc' ? -1 : 1
+      if (av > bv) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [rows, sortKey, sortDir, columns])
+
+  const isEmpty = sorted.length === 0
 
   function toggleAll(e) {
-    if (e.target.checked) onSelectChange(rows.map(r => r.id))
+    if (e.target.checked) onSelectChange(sorted.map(r => r.id))
     else onSelectChange([])
   }
 
@@ -35,13 +56,25 @@ export default function ItemTable({
                   type="checkbox"
                   className="cb"
                   onChange={toggleAll}
-                  checked={!isEmpty && selected?.length === rows.length}
-                  ref={el => { if (el) el.indeterminate = selected?.length > 0 && selected.length < rows.length }}
+                  checked={!isEmpty && selected?.length === sorted.length}
+                  ref={el => { if (el) el.indeterminate = selected?.length > 0 && selected.length < sorted.length }}
                 />
               </th>
             )}
             {columns.map(c => (
-              <th key={c.key} style={c.style}>{c.label}</th>
+              <th
+                key={c.key}
+                style={c.style}
+                className={c.sortValue ? 'sortable' : ''}
+                onClick={c.sortValue ? () => handleSort(c.key) : undefined}
+              >
+                {c.label}
+                {c.sortValue && (
+                  <span className={`sort-icon${sortKey === c.key ? ' active' : ''}`}>
+                    {sortKey === c.key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕'}
+                  </span>
+                )}
+              </th>
             ))}
             <th style={{ width: 90 }}>Actions</th>
           </tr>
@@ -53,7 +86,7 @@ export default function ItemTable({
                 {emptyMessage ?? 'No items yet.'}
               </td>
             </tr>
-          ) : rows.map(row => (
+          ) : sorted.map(row => (
             <tr key={row.id}>
               {selectable && (
                 <td>
@@ -70,16 +103,10 @@ export default function ItemTable({
               ))}
               <td>
                 <div className="action-btns">
-                  {onEdit && (
-                    <button className="btn-icon" title="Edit" onClick={() => onEdit(row)}>✎</button>
-                  )}
-                  {onPhoto && (
-                    <button className="btn-icon" title="Photos" onClick={() => onPhoto(row)}>🖼</button>
-                  )}
+                  {onEdit && <button className="btn-icon" title="Edit" onClick={() => onEdit(row)}>✎</button>}
+                  {onPhoto && <button className="btn-icon" title="Photos" onClick={() => onPhoto(row)}>🖼</button>}
                   {extraActions?.(row)}
-                  {onDelete && (
-                    <button className="btn-icon danger" title="Delete" onClick={() => onDelete(row)}>✕</button>
-                  )}
+                  {onDelete && <button className="btn-icon danger" title="Delete" onClick={() => onDelete(row)}>✕</button>}
                 </div>
               </td>
             </tr>

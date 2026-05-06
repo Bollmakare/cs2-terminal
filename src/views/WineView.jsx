@@ -117,6 +117,7 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
   const columns = [
     {
       key: 'name', label: 'Wine',
+      sortValue: row => row.name,
       render: row => (
         <div className="item-name-cell">
           {row.metadata?.images?.[0]
@@ -131,9 +132,10 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
         </div>
       )
     },
-    { key: 'producer', label: 'Producer', render: row => row.metadata?.producer ?? '—' },
+    { key: 'producer', label: 'Producer', sortValue: row => row.metadata?.producer ?? '', render: row => row.metadata?.producer ?? '—' },
     {
       key: 'vintage', label: 'Vintage',
+      sortValue: row => row.metadata?.vintage ?? 0,
       render: row => {
         const v = row.metadata?.vintage
         const from = row.metadata?.drink_from
@@ -161,12 +163,13 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
         </div>
       )
     },
-    { key: 'format', label: 'Format', render: row => row.metadata?.format ?? '—' },
-    { key: 'qty', label: 'Qty', render: row => <span className="mono">{row.qty}</span> },
-    { key: 'cost', label: 'Cost', render: row => <span className="mono">{fmt(row.cost)}</span> },
-    { key: 'value', label: 'Value', render: row => <span className="mono">{fmt(effectiveValue(row))}</span> },
+    { key: 'format', label: 'Format', sortValue: row => row.metadata?.format ?? '', render: row => row.metadata?.format ?? '—' },
+    { key: 'qty', label: 'Qty', sortValue: row => row.qty, render: row => <span className="mono">{row.qty}</span> },
+    { key: 'cost', label: 'Cost', sortValue: row => row.cost ?? 0, render: row => <span className="mono">{fmt(row.cost)}</span> },
+    { key: 'value', label: 'Value', sortValue: row => effectiveValue(row), render: row => <span className="mono">{fmt(effectiveValue(row))}</span> },
     {
       key: 'pnl', label: 'P&L',
+      sortValue: row => calcPnl(row.cost ?? 0, effectiveValue(row), row.qty).abs,
       render: row => {
         const { abs, pct: p } = calcPnl(row.cost ?? 0, effectiveValue(row), row.qty)
         return (
@@ -179,6 +182,7 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
     },
     {
       key: 'held', label: 'Held',
+      sortValue: row => new Date(row.created_at).getTime(),
       render: row => {
         const dur = holdDuration(row.created_at)
         const ann = annualizedReturn(row.cost, effectiveValue(row), row.created_at)
@@ -248,7 +252,7 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
             </MoreMenu>
           </>
         )}
-        emptyMessage="No wine bottles added yet."
+        emptyMessage={filtered.length === 0 && items.length > 0 ? 'No wines match your filters.' : 'No wine bottles added yet.'}
       />
 
       {modal && (

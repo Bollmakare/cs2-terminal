@@ -104,6 +104,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const columns = [
     {
       key: 'name', label: 'Skin',
+      sortValue: row => row.name,
       render: row => (
         <div className="item-name-cell">
           {row.metadata?.images?.[0]
@@ -130,24 +131,29 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
     },
     {
       key: 'wear', label: 'Wear',
+      sortValue: row => row.metadata?.wear ?? '',
       render: row => row.metadata?.wear
         ? <span className={`badge ${WEAR_COLOR[row.metadata.wear] ?? ''}`}>{row.metadata.wear}</span>
         : '—'
     },
     {
       key: 'float', label: 'Float',
+      sortValue: row => row.metadata?.float ?? Infinity,
       render: row => {
         const f = row.metadata?.float
         if (f == null) return '—'
         return <span className={`mono ${f < 0.1 ? 'float-low' : ''}`}>{Number(f).toFixed(4)}</span>
       }
     },
+    { key: 'qty', label: 'Qty', sortValue: row => row.qty, render: row => <span className="mono">{row.qty}</span> },
     {
       key: 'cost', label: 'Cost',
+      sortValue: row => row.cost ?? 0,
       render: row => <span className="mono">{fmt(row.cost)}</span>
     },
     {
       key: 'value', label: 'Market Value',
+      sortValue: row => effectiveValue(row),
       render: row => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span className="mono">{fmt(effectiveValue(row))}</span>
@@ -178,6 +184,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
     },
     {
       key: 'pnl', label: 'P&L',
+      sortValue: row => calcPnl(row.cost ?? 0, effectiveValue(row), row.qty).abs,
       render: row => {
         const { abs, pct: p } = calcPnl(row.cost ?? 0, effectiveValue(row), row.qty)
         return (
@@ -190,6 +197,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
     },
     {
       key: 'held', label: 'Held',
+      sortValue: row => new Date(row.created_at).getTime(),
       render: row => {
         const dur = holdDuration(row.created_at)
         const ann = annualizedReturn(row.cost, effectiveValue(row), row.created_at)
@@ -258,7 +266,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
             </MoreMenu>
           </>
         )}
-        emptyMessage="No CS2 skins added yet."
+        emptyMessage={filtered.length === 0 && items.length > 0 ? 'No skins match your filters.' : 'No CS2 skins added yet.'}
       />
 
       {modal && (

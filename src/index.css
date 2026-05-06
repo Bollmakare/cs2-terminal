@@ -871,6 +871,11 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
   outline: none;
 }
 
+.data-table th.sortable { cursor: pointer; user-select: none; }
+.data-table th.sortable:hover { color: var(--txt); }
+.sort-icon { font-size: 10px; opacity: 0.3; }
+.sort-icon.active { opacity: 1; color: var(--gold); }
+
 /* ── Float highlight ── */
 .float-low { color: var(--grn); font-weight: 600; }
 
