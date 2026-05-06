@@ -7,6 +7,7 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv } from '../lib/utils.js'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
+import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 
 const PORTFOLIOS = ['brun single', 'green single', 'Single svart', 'Main']
 const ITEM_TYPE_LABELS = { card: 'Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Sealed' }
@@ -17,6 +18,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [modal, setModal] = useState(null)
   const [photoItem, setPhotoItem] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [ledgerItem, setLedgerItem] = useState(null)
   const [search, setSearch] = useState('')
   const [filterPortfolio, setFilterPortfolio] = useState('')
   const [filterSet, setFilterSet] = useState('')
@@ -289,6 +291,9 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         onEdit={item => setModal({ item })}
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}
+        extraActions={row => (
+          <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+        )}
         emptyMessage="No Pokémon cards match your filters."
       />
 
@@ -318,6 +323,17 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           dangerous
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {ledgerItem && (
+        <ItemLedgerModal
+          item={ledgerItem}
+          onClose={() => setLedgerItem(null)}
+          onItemUpdate={updated => {
+            setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
+            setLedgerItem(updated)
+          }}
         />
       )}
     </div>

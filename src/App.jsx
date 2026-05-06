@@ -13,6 +13,7 @@ import Dashboard from './views/Dashboard.jsx'
 import CS2View from './views/CS2View.jsx'
 import PokemonView from './views/PokemonView.jsx'
 import WineView from './views/WineView.jsx'
+import CellarLogView from './views/CellarLogView.jsx'
 
 export default function App() {
   const toast = useToast()
@@ -159,6 +160,7 @@ export default function App() {
               <Route path="/cs2" element={<CS2View items={cs2Items} userId={userId} onItemsChange={loadData} />} />
               <Route path="/pokemon" element={<PokemonView items={pokemonItems} userId={userId} onItemsChange={loadData} />} />
               <Route path="/wine" element={<WineView items={wineItems} userId={userId} onItemsChange={loadData} />} />
+              <Route path="/cellar-log" element={<CellarLogView />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           )}

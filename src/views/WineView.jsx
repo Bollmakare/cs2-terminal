@@ -5,6 +5,8 @@ import AddItemModal from '../components/AddItemModal.jsx'
 import ImageModal from '../components/ImageModal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import WinePriceModal from '../components/WinePriceModal.jsx'
+import ConsumeModal from '../components/ConsumeModal.jsx'
+import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv } from '../lib/utils.js'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { openWineSearcher } from '../lib/pricing/wine.js'
@@ -17,6 +19,8 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
   const [photoItem, setPhotoItem] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [priceItem, setPriceItem] = useState(null)
+  const [consumeItem, setConsumeItem] = useState(null)
+  const [ledgerItem, setLedgerItem] = useState(null)
 
   useMemo(() => setItems(initItems ?? []), [initItems])
 
@@ -179,20 +183,10 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
         onPhoto={item => setPhotoItem(item)}
         extraActions={row => (
           <>
-            <button
-              className="btn-icon"
-              title="Price history"
-              onClick={() => setPriceItem(row)}
-            >
-              📈
-            </button>
-            <button
-              className="btn-icon"
-              title="Search on Wine-Searcher"
-              onClick={() => openWineSearcher(row.name, row.metadata?.vintage, row.metadata?.producer)}
-            >
-              🔍
-            </button>
+            <button className="btn-icon" title="Price history" onClick={() => setPriceItem(row)}>📈</button>
+            <button className="btn-icon" title="Open a bottle" onClick={() => setConsumeItem(row)}>🍷</button>
+            <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+            <button className="btn-icon" title="Search on Wine-Searcher" onClick={() => openWineSearcher(row.name, row.metadata?.vintage, row.metadata?.producer)}>🔍</button>
           </>
         )}
         emptyMessage="No wine bottles added yet."
@@ -235,6 +229,34 @@ export default function WineView({ items: initItems, userId, onItemsChange }) {
           onItemUpdate={updated => {
             setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
             setPriceItem(updated)
+          }}
+        />
+      )}
+
+      {consumeItem && (
+        <ConsumeModal
+          item={consumeItem}
+          userId={userId}
+          onClose={() => setConsumeItem(null)}
+          onConsumed={remaining => {
+            if (remaining <= 0) {
+              setItems(prev => prev.filter(i => i.id !== consumeItem.id))
+            } else {
+              setItems(prev => prev.map(i => i.id === consumeItem.id ? { ...i, qty: remaining } : i))
+            }
+            setConsumeItem(null)
+            onItemsChange?.()
+          }}
+        />
+      )}
+
+      {ledgerItem && (
+        <ItemLedgerModal
+          item={ledgerItem}
+          onClose={() => setLedgerItem(null)}
+          onItemUpdate={updated => {
+            setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
+            setLedgerItem(updated)
           }}
         />
       )}

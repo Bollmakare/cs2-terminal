@@ -7,6 +7,7 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv } from '../lib/utils.js'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
+import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 
 const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }
 
@@ -16,6 +17,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const [modal, setModal] = useState(null)
   const [photoItem, setPhotoItem] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [ledgerItem, setLedgerItem] = useState(null)
 
   useMemo(() => setItems(initItems ?? []), [initItems])
 
@@ -197,6 +199,9 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
         onEdit={item => setModal({ item })}
         onDelete={item => setDeleteTarget(item)}
         onPhoto={item => setPhotoItem(item)}
+        extraActions={row => (
+          <button className="btn-icon" title="Notebook" onClick={() => setLedgerItem(row)}>📓</button>
+        )}
         emptyMessage="No CS2 skins added yet."
       />
 
@@ -226,6 +231,17 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
           dangerous
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {ledgerItem && (
+        <ItemLedgerModal
+          item={ledgerItem}
+          onClose={() => setLedgerItem(null)}
+          onItemUpdate={updated => {
+            setItems(prev => prev.map(i => i.id === updated.id ? updated : i))
+            setLedgerItem(updated)
+          }}
         />
       )}
     </div>
