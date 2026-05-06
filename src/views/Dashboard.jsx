@@ -196,7 +196,7 @@ export default function Dashboard({ items, snapshots, user }) {
                 <div key={item.id} className="top-performer-row">
                   <span className="top-performer-rank">#{i + 1}</span>
                   <span className="top-performer-name">{item.name}</span>
-                  <span className="top-performer-val">{fmt(item.value ?? item.cost)}</span>
+                  <span className="top-performer-val">{fmt(effectiveValue(item))}</span>
                   <span className={`top-performer-pct ${sgn(item.pnlPct)}`}>{pct(item.pnlPct)}</span>
                 </div>
               ))}
