@@ -78,6 +78,12 @@ function mkMeta(vertical, f) {
       grading_service: f.grading_status !== 'none' ? f.grading_service : null,
       submitted_at: f.grading_status !== 'none' ? f.submitted_at || null : null,
       expected_return: f.grading_status !== 'none' ? f.expected_return || null : null,
+      artist: f.artist || null,
+      release_date: f.release_date || null,
+      card_series: f.card_series || null,
+      subtypes: f.subtypes || null,
+      card_types: f.card_types || null,
+      card_image: f.card_image || null,
     }
   }
   if (vertical === 'wine') {
@@ -134,6 +140,12 @@ function defaultFields(vertical, item) {
     grading_service: m.grading_service ?? 'PSA',
     submitted_at: m.submitted_at ?? '',
     expected_return: m.expected_return ?? '',
+    artist: m.artist ?? '',
+    release_date: m.release_date ?? '',
+    card_series: m.card_series ?? '',
+    subtypes: m.subtypes ?? '',
+    card_types: m.card_types ?? '',
+    card_image: m.card_image ?? '',
   }
   if (vertical === 'wine') return {
     name: item?.name ?? '',
@@ -156,11 +168,41 @@ function defaultFields(vertical, item) {
   return {}
 }
 
+async function fetchPokemonCardFromUrl(url) {
+  try {
+    const u = new URL(url.trim())
+    if (!u.hostname.includes('pokemoncard.io')) return null
+    const match = u.pathname.match(/\/card\/(.+)/)
+    if (!match) return null
+    const segments = match[1].replace(/\/$/, '').split('-')
+    if (segments.length < 3) return null
+    const number = segments[segments.length - 1]
+    const setId = segments[segments.length - 2]
+    const res = await fetch(`https://api.pokemontcg.io/v2/cards/${setId}-${number}`)
+    if (!res.ok) return null
+    const { data } = await res.json()
+    if (!data) return null
+    return {
+      name: data.name,
+      set_name: data.set?.name ?? '',
+      card_number: data.number,
+      rarity: data.rarity ?? '',
+      artist: data.artist ?? '',
+      release_date: data.set?.releaseDate ?? '',
+      card_series: data.set?.series ?? '',
+      subtypes: (data.subtypes ?? []).join(', '),
+      card_types: (data.types ?? []).join(', '),
+      card_image: data.images?.large ?? data.images?.small ?? '',
+    }
+  } catch { return null }
+}
+
 export default function AddItemModal({ vertical, item, userId, onSave, onClose, prefill }) {
   const isEdit = !!item
   const [f, setF] = useState(() => { const base = defaultFields(vertical, item); return prefill ? { ...base, ...prefill } : base })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [cardUrlLoading, setCardUrlLoading] = useState(false)
   useEscapeKey(onClose)
 
   function set(key, val) {
@@ -303,6 +345,27 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
 
             {/* ── POKÉMON ── */}
             {vertical === 'pokemon' && <>
+              <SectionDivider label="Quick Add from pokemoncard.io" />
+              <Field label="pokemoncard.io URL" full
+                hint="Paste a link e.g. pokemoncard.io/card/mewtwo-basep-14 — name, set and number fill automatically">
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    className="form-input"
+                    placeholder="https://pokemoncard.io/card/mewtwo-basep-14"
+                    style={{ fontSize: 11 }}
+                    onChange={async e => {
+                      const url = e.target.value
+                      if (!url.includes('pokemoncard.io/card/')) return
+                      setCardUrlLoading(true)
+                      const card = await fetchPokemonCardFromUrl(url)
+                      setCardUrlLoading(false)
+                      if (card) setF(prev => ({ ...prev, name: card.name, set_name: card.set_name, card_number: card.card_number, rarity: card.rarity || prev.rarity, artist: card.artist, release_date: card.release_date, card_series: card.card_series, subtypes: card.subtypes, card_types: card.card_types, card_image: card.card_image }))
+                    }}
+                  />
+                  {cardUrlLoading && <span className="loading-spin" style={{ flexShrink: 0, marginTop: 8 }} />}
+                </div>
+              </Field>
+
               <SectionDivider label="Card Identity" />
               <Field label="Card Name" full
                 hint="Exact English name as it appears on the card. Used for auto-price lookup.">

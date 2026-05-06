@@ -195,21 +195,34 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       sortValue: row => row.name,
       render: row => {
         const imgs = row.metadata?.images ?? []
+        const apiImg = row.metadata?.card_image
         return (
           <div className="item-name-cell">
             {imgs[0]
               ? <img className="thumb" src={imgs[0]} alt="" onClick={() => setPhotoItem(row)} />
-              : <PokemonCardImage
-                  setName={row.metadata?.set_name}
-                  cardNumber={row.metadata?.card_number}
-                  onClick={() => setPhotoItem(row)}
-                />}
+              : apiImg
+                ? <img className="thumb" src={apiImg} alt="" onClick={() => setPhotoItem(row)} style={{ cursor: 'pointer' }} />
+                : <PokemonCardImage
+                    setName={row.metadata?.set_name}
+                    cardNumber={row.metadata?.card_number}
+                    onClick={() => setPhotoItem(row)}
+                  />}
             <div>
-              <div>{row.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                <span>{row.name}</span>
+                {row.metadata?.subtypes && <span style={{ fontSize: 10, color: 'var(--mut)', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.subtypes}</span>}
+                {row.metadata?.card_types && <span style={{ fontSize: 10, color: 'var(--pkm)', background: 'rgba(255,214,10,0.08)', border: '1px solid rgba(255,214,10,0.2)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.card_types}</span>}
+              </div>
               <div style={{ fontSize: 11, color: 'var(--mut)' }}>
-                {row.metadata?.set_name} {row.metadata?.card_number ? `· #${row.metadata.card_number}` : ''}
+                {row.metadata?.set_name}{row.metadata?.card_series ? ` (${row.metadata.card_series})` : ''}{row.metadata?.card_number ? ` · #${row.metadata.card_number}` : ''}
                 {row.metadata?.rarity ? ` · ${row.metadata.rarity}` : ''}
               </div>
+              {row.metadata?.release_date && (
+                <div style={{ fontSize: 10, color: 'var(--mut)' }}>📅 {row.metadata.release_date}</div>
+              )}
+              {row.metadata?.artist && (
+                <div style={{ fontSize: 10, color: 'var(--mut)' }}>✏️ {row.metadata.artist}</div>
+              )}
               {row.metadata?.cert_number && (
                 <div style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>
                   Cert #{row.metadata.cert_number}
@@ -419,6 +432,15 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         extraActions={row => (
           <>
             <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
+            {(row.metadata?.item_type && row.metadata.item_type !== 'card')
+              ? <button className="btn-icon" title="Find price on PriceCharting" onClick={() => {
+                  const q = encodeURIComponent(row.name)
+                  window.open(`https://www.pricecharting.com/search-products?q=${q}&type=prices`, '_blank')
+                }}>🔍</button>
+              : <button className="btn-icon" title="View on pokemoncard.io" onClick={() => {
+                  const q = [row.name, row.metadata?.set_name, row.metadata?.card_number].filter(Boolean).join(' ')
+                  window.open(`https://pokemoncard.io/?q=${encodeURIComponent(q)}`, '_blank')
+                }}>🔗</button>}
             <MoreMenu>
               <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
             </MoreMenu>
