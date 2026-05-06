@@ -1,0 +1,132 @@
+import { updateItem } from '../api.js'
+import { slp } from '../utils.js'
+
+const API_KEY = '83c3a015-8f1c-4e45-b2a8-922d60e31678'
+const BASE_URL = 'https://api.pricempire.com/v3/items/prices'
+const SOURCES = 'skinport,buff163,csfloat,steam'
+const CACHE_TTL = 6 * 60 * 60 * 1000
+const DAY_LIMIT = 95
+const MONTH_LIMIT = 950
+
+function todayKey() {
+  const d = new Date()
+  return `pe_d_${d.getFullYear()}_${d.getMonth() + 1}_${d.getDate()}`
+}
+function monthKey() {
+  const d = new Date()
+  return `pe_m_${d.getFullYear()}_${d.getMonth() + 1}`
+}
+
+export function getUsage() {
+  return {
+    day: parseInt(localStorage.getItem(todayKey()) || '0', 10),
+    month: parseInt(localStorage.getItem(monthKey()) || '0', 10),
+    dayLimit: DAY_LIMIT,
+    monthLimit: MONTH_LIMIT,
+  }
+}
+
+function bumpUsage() {
+  const dk = todayKey(), mk = monthKey()
+  localStorage.setItem(dk, String(parseInt(localStorage.getItem(dk) || '0', 10) + 1))
+  localStorage.setItem(mk, String(parseInt(localStorage.getItem(mk) || '0', 10) + 1))
+}
+
+export function checkLimits() {
+  const { day, month } = getUsage()
+  return day < DAY_LIMIT && month < MONTH_LIMIT
+}
+
+function cacheKey(name) {
+  return `pe_price_${name}`
+}
+
+function getCached(name) {
+  try {
+    const raw = localStorage.getItem(cacheKey(name))
+    if (!raw) return null
+    const { ts, data } = JSON.parse(raw)
+    if (Date.now() - ts < CACHE_TTL) return data
+  } catch {}
+  return null
+}
+
+function setCache(name, data) {
+  try {
+    localStorage.setItem(cacheKey(name), JSON.stringify({ ts: Date.now(), data }))
+  } catch {}
+}
+
+function isCacheStale(name) {
+  try {
+    const raw = localStorage.getItem(cacheKey(name))
+    if (!raw) return true
+    const { ts } = JSON.parse(raw)
+    return Date.now() - ts >= CACHE_TTL
+  } catch {
+    return true
+  }
+}
+
+export function isAnyStale(items) {
+  return items.some(i => isCacheStale(i.name))
+}
+
+export async function fetchCS2Prices(items, onProgress) {
+  if (!checkLimits()) throw new Error('API rate limit reached')
+  if (!items.length) return {}
+
+  const url = `${BASE_URL}?api_key=${API_KEY}&currency=EUR&sources=${SOURCES}`
+  let priceMap = {}
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
+    priceMap = await res.json()
+    bumpUsage()
+  } catch (e) {
+    throw new Error('Failed to fetch CS2 prices: ' + e.message)
+  }
+
+  const results = {}
+  for (const item of items) {
+    const raw = priceMap[item.name]
+    if (!raw) { results[item.id] = null; continue }
+
+    const sources = {}
+    const vals = []
+    for (const src of SOURCES.split(',')) {
+      const v = raw[src]?.price
+      if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+    }
+    if (!vals.length) { results[item.id] = null; continue }
+
+    vals.sort((a, b) => a - b)
+    const median = vals.length % 2 === 0
+      ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
+      : vals[Math.floor(vals.length / 2)]
+
+    results[item.id] = { price: median, sources, name: item.name }
+    setCache(item.name, { price: median, sources })
+  }
+
+  return results
+}
+
+export async function applyCS2Prices(items, priceResults) {
+  const updates = []
+  for (const item of items) {
+    const r = priceResults[item.id]
+    if (!r) continue
+    updates.push(updateItem(item.id, {
+      value: r.price,
+      last_price_fetched_at: new Date().toISOString(),
+      metadata: { ...item.metadata, price_sources: r.sources },
+    }))
+    await slp(50)
+  }
+  await Promise.all(updates)
+}
+
+export function getCachedPrice(name) {
+  return getCached(name)
+}

@@ -1,0 +1,12 @@
+{
+  "name": "VAULT",
+  "short_name": "VAULT",
+  "description": "Premium personal portfolio tracker for CS2 skins, Pokémon TCG, and Wine",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#c9a84c",
+  "icons": [
+    { "src": "/vault.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
