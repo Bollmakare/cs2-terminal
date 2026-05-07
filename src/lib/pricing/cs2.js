@@ -79,8 +79,11 @@ export function isAnyStale(items) {
   return items.some(i => isCacheStale(i.name))
 }
 
+export let lastPriceSource = null
+
 async function fetchFromCsgotrader(items) {
   const data = await getCS2Data()
+  if (!Object.keys(data).length) throw new Error('csgotrader returned empty data')
   const results = {}
   for (const item of items) {
     const d = data[item.name]
@@ -93,6 +96,7 @@ async function fetchFromCsgotrader(items) {
     if (d.buff163Price != null) sources.buff163 = d.buff163Price
     results[item.id] = { price, sources, name: item.name }
   }
+  lastPriceSource = 'csgotrader'
   return results
 }
 
@@ -128,9 +132,10 @@ export async function fetchCS2Prices(items, userId, onProgress) {
 
       results[item.id] = { price: median, sources, name: item.name }
     }
+    lastPriceSource = 'pricempire'
     return results
-  } catch {
-    // PriceEmpire unavailable — fall back to csgotrader.app
+  } catch (e) {
+    console.error('[CS2] PriceEmpire failed, falling back to csgotrader:', e.message)
     return fetchFromCsgotrader(items)
   }
 }

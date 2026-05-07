@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { getItems, getSnapshotHistory, getTodaySnapshot, addPriceHistory } from './lib/api.js'
 import { effectiveValue } from './lib/utils.js'
-import { fetchCS2Prices, applyCS2Prices, isAnyStale } from './lib/pricing/cs2.js'
+import { fetchCS2Prices, applyCS2Prices, isAnyStale, lastPriceSource } from './lib/pricing/cs2.js'
 import { fetchAllPokemonPrices, applyPokemonPrices } from './lib/pricing/pokemon.js'
 import AuthScreen from './components/AuthScreen.jsx'
 import Sidebar from './components/Sidebar.jsx'
@@ -47,6 +47,8 @@ export default function App() {
       const cs2Items = all.filter(i => i.vertical === 'cs2')
       if (cs2Items.length && isAnyStale(cs2Items)) {
         refreshCS2(cs2Items)
+      } else if (cs2Items.length) {
+        setCS2Status(lastPriceSource === 'pricempire' ? 'ok' : 'fallback')
       } else {
         setCS2Status('ok')
       }
@@ -92,8 +94,8 @@ export default function App() {
         const map = Object.fromEntries(fresh.map(i => [i.id, i]))
         return prev.map(i => map[i.id] ?? i)
       })
-      setCS2Status('ok')
-      toast('CS2 prices updated', 'success')
+      setCS2Status(lastPriceSource === 'pricempire' ? 'ok' : 'fallback')
+      toast(`CS2 prices updated via ${lastPriceSource ?? 'csgotrader'}`, 'success')
     } catch (e) {
       setCS2Status(e.message.includes('limit') ? 'limit' : 'error')
       toast(e.message, 'error')

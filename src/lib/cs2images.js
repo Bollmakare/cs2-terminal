@@ -38,7 +38,7 @@ export async function getCS2Data() {
         memCache = map
         return map
       })
-      .catch(() => ({}))
+      .catch(e => { console.error('[CS2] csgotrader.app fetch failed:', e.message); fetchPromise = null; return {} })
   }
   return fetchPromise
 }

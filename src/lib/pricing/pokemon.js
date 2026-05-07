@@ -125,6 +125,6 @@ export async function applyPokemonPrices(items, priceResults) {
     user_id: item.user_id ?? null,
   }))
   if (historyRows.length) {
-    addPriceHistory(historyRows).catch(() => {})
+    addPriceHistory(historyRows).catch(e => console.error('[PKM] price_history write failed:', e.message))
   }
 }
