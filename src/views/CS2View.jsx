@@ -8,7 +8,7 @@ import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration
 import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
-import { getCS2IconUrls, iconUrlToCdn } from '../lib/cs2images.js'
+import { getCS2Data, iconUrlToCdn } from '../lib/cs2images.js'
 
 function CS2ItemImage({ name, cachedUrl, onClick }) {
   const [src, setSrc] = useState(cachedUrl || null)
@@ -16,8 +16,8 @@ function CS2ItemImage({ name, cachedUrl, onClick }) {
 
   useEffect(() => {
     if (src || failed) return
-    getCS2IconUrls().then(map => {
-      const u = map[name]
+    getCS2Data().then(map => {
+      const u = map[name]?.iconUrl
       if (u) setSrc(iconUrlToCdn(u))
     })
   }, [name, src, failed])

@@ -1,5 +1,6 @@
 import { updateItem, bumpApiUsage } from '../api.js'
 import { slp } from '../utils.js'
+import { getCS2Data } from '../cs2images.js'
 
 const API_KEY = '83c3a015-8f1c-4e45-b2a8-922d60e31678'
 const BASE_URL = 'https://api.pricempire.com/v3/items/prices'
@@ -79,46 +80,62 @@ export function isAnyStale(items) {
   return items.some(i => isCacheStale(i.name))
 }
 
+async function fetchFromCsgotrader(items) {
+  const data = await getCS2Data()
+  const results = {}
+  for (const item of items) {
+    const d = data[item.name]
+    if (!d) { results[item.id] = null; continue }
+    const price = d.steamPrice ?? d.skinportPrice ?? d.buff163Price ?? null
+    if (!price) { results[item.id] = null; continue }
+    const sources = {}
+    if (d.steamPrice != null) sources.steam = d.steamPrice
+    if (d.skinportPrice != null) sources.skinport = d.skinportPrice
+    if (d.buff163Price != null) sources.buff163 = d.buff163Price
+    results[item.id] = { price, sources, name: item.name }
+    setCache(item.name, { price, sources })
+  }
+  return results
+}
+
 export async function fetchCS2Prices(items, userId, onProgress) {
   if (!checkLimits()) throw new Error('API rate limit reached')
   if (!items.length) return {}
 
   const url = `${BASE_URL}?api_key=${API_KEY}&currency=EUR&sources=${SOURCES}`
-  let priceMap = {}
   try {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
-    priceMap = await res.json()
-    // Update both localStorage (fast) and Supabase (shared with cron)
+    const priceMap = await res.json()
     bumpLocalUsage()
     if (userId) bumpApiUsage(userId).catch(() => {})
-  } catch (e) {
-    throw new Error('Failed to fetch CS2 prices: ' + e.message)
-  }
 
-  const results = {}
-  for (const item of items) {
-    const raw = priceMap[item.name]
-    if (!raw) { results[item.id] = null; continue }
+    const results = {}
+    for (const item of items) {
+      const raw = priceMap[item.name]
+      if (!raw) { results[item.id] = null; continue }
 
-    const sources = {}
-    const vals = []
-    for (const src of SOURCES.split(',')) {
-      const v = raw[src]?.price
-      if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+      const sources = {}
+      const vals = []
+      for (const src of SOURCES.split(',')) {
+        const v = raw[src]?.price
+        if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+      }
+      if (!vals.length) { results[item.id] = null; continue }
+
+      vals.sort((a, b) => a - b)
+      const median = vals.length % 2 === 0
+        ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
+        : vals[Math.floor(vals.length / 2)]
+
+      results[item.id] = { price: median, sources, name: item.name }
+      setCache(item.name, { price: median, sources })
     }
-    if (!vals.length) { results[item.id] = null; continue }
-
-    vals.sort((a, b) => a - b)
-    const median = vals.length % 2 === 0
-      ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
-      : vals[Math.floor(vals.length / 2)]
-
-    results[item.id] = { price: median, sources, name: item.name }
-    setCache(item.name, { price: median, sources })
+    return results
+  } catch {
+    // PriceEmpire unavailable — fall back to csgotrader.app
+    return fetchFromCsgotrader(items)
   }
-
-  return results
 }
 
 export async function applyCS2Prices(items, priceResults) {
