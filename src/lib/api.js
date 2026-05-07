@@ -49,6 +49,25 @@ export async function getItemPriceHistory(itemId) {
   return data
 }
 
+export async function getItemsPriceHistory(itemIds) {
+  if (!itemIds.length) return {}
+  const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase
+    .from('price_history')
+    .select('item_id, price, recorded_at')
+    .in('item_id', itemIds)
+    .not('item_id', 'is', null)
+    .gte('recorded_at', since)
+    .order('recorded_at', { ascending: true })
+  if (error) throw error
+  const map = {}
+  for (const row of data ?? []) {
+    if (!map[row.item_id]) map[row.item_id] = []
+    map[row.item_id].push(row.price)
+  }
+  return map
+}
+
 export async function getSnapshotHistory() {
   // Combine user snapshots + cron snapshots for equity curve
   const { data, error } = await supabase

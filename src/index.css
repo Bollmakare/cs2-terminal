@@ -915,6 +915,17 @@ input, select, textarea { font-family: 'Syne', sans-serif; }
 }
 .set-grid-card.owned { cursor: default; }
 
+/* ── Market link ── */
+.market-link {
+  font-size: 10px;
+  color: var(--mut);
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 2px;
+  transition: color 0.15s;
+}
+.market-link:hover { color: var(--pkm); }
+
 /* ── Float highlight ── */
 .float-low { color: var(--grn); font-weight: 600; }
 

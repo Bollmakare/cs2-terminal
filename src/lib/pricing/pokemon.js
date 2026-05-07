@@ -1,5 +1,4 @@
-import { updateItem } from '../api.js'
-import { slp } from '../utils.js'
+import { updateItem, addPriceHistory } from '../api.js'
 
 const BASE_URL = 'https://api.pokemontcg.io/v2/cards'
 const CACHE_TTL = 6 * 60 * 60 * 1000
@@ -91,22 +90,22 @@ export async function fetchAllPokemonPrices(items, onProgress) {
     results[item.id] = r
     done++
     onProgress?.(done, cards.length)
-    await slp(300)
+    await new Promise(r => setTimeout(r, 300))
   }
 
   return results
 }
 
 export async function applyPokemonPrices(items, priceResults) {
-  const updates = []
-  for (const item of items) {
+  const ts = new Date().toISOString()
+  const applicable = items.filter(item => priceResults[item.id]?.cardmarket_eur != null)
+
+  const tasks = applicable.map(item => {
     const r = priceResults[item.id]
-    if (!r) continue
-    const price = r.cardmarket_eur ?? null
-    if (price == null) continue
-    updates.push(updateItem(item.id, {
+    const price = r.cardmarket_eur
+    return updateItem(item.id, {
       value: price,
-      last_price_fetched_at: new Date().toISOString(),
+      last_price_fetched_at: ts,
       metadata: {
         ...item.metadata,
         price_sources: {
@@ -114,8 +113,18 @@ export async function applyPokemonPrices(items, priceResults) {
           tcgplayer_usd: r.tcgplayer_usd,
         },
       },
-    }))
-    await slp(50)
+    })
+  })
+  await Promise.all(tasks)
+
+  // Write price history for sparklines (best-effort, one entry per item per refresh)
+  const historyRows = applicable.map(item => ({
+    item_id: item.id,
+    price: priceResults[item.id].cardmarket_eur,
+    source: 'tcgapi',
+    user_id: item.user_id ?? null,
+  }))
+  if (historyRows.length) {
+    addPriceHistory(historyRows).catch(() => {})
   }
-  await Promise.all(updates)
 }

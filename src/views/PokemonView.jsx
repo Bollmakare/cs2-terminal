@@ -7,7 +7,7 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn, ago } from '../lib/utils.js'
 import CsvImportModal from '../components/CsvImportModal.jsx'
 import SetCompletionPanel from '../components/SetCompletionPanel.jsx'
-import { addItem, updateItem, deleteItem } from '../lib/api.js'
+import { addItem, updateItem, deleteItem, getItemsPriceHistory } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
@@ -62,6 +62,24 @@ function PokemonCardImage({ setName, cardNumber, onClick }) {
   return <img className="thumb" src={src} alt="" onClick={onClick} style={{ cursor: 'pointer' }} />
 }
 
+function PriceSparkline({ points }) {
+  if (!points || points.length < 2) return null
+  const min = Math.min(...points)
+  const max = Math.max(...points)
+  const range = max - min || 0.01
+  const W = 52, H = 18, n = points.length
+  const pts = points.map((p, i) =>
+    `${Math.round((i / (n - 1)) * W)},${Math.round(H - ((p - min) / range) * (H - 4) - 2)}`
+  ).join(' ')
+  const trend = points[points.length - 1] - points[0]
+  const stroke = trend > 0.01 ? '#3dd68c' : trend < -0.01 ? '#ff5c5c' : '#5a6175'
+  return (
+    <svg width={W} height={H} style={{ display: 'block', marginTop: 3, flexShrink: 0 }}>
+      <polyline points={pts} fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export default function PokemonView({ items: initItems, userId, onItemsChange }) {
   const toast = useToast()
   const [items, setItems] = useState(initItems ?? [])
@@ -81,8 +99,16 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [viewMode, setViewMode] = useState('table')
   const [gridSet, setGridSet] = useState('')
   const [packSim, setPackSim] = useState(false)
+  const [priceHistories, setPriceHistories] = useState({})
 
   useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
+
+  useEffect(() => {
+    if (!items.length) return
+    getItemsPriceHistory(items.map(i => i.id))
+      .then(setPriceHistories)
+      .catch(() => {})
+  }, [items])
 
   const sets = useMemo(() => {
     const s = new Set(items.map(i => i.metadata?.set_name).filter(Boolean))
@@ -196,12 +222,21 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       render: row => {
         const imgs = row.metadata?.images ?? []
         const apiImg = row.metadata?.card_image
+        const isCard = !row.metadata?.item_type || row.metadata.item_type === 'card'
+        const marketUrl = isCard
+          ? `https://www.cardmarket.com/en/Pokemon/Products/Search?searchString=${encodeURIComponent(row.name)}`
+          : `https://www.pricecharting.com/search-products?q=${encodeURIComponent(row.name)}&type=prices`
+        const info = [
+          row.metadata?.set_name,
+          row.metadata?.card_number ? `#${row.metadata.card_number}` : null,
+          row.metadata?.rarity,
+        ].filter(Boolean).join(' · ')
         return (
           <div className="item-name-cell">
             {imgs[0]
-              ? <img className="thumb" src={imgs[0]} alt="" onClick={() => setPhotoItem(row)} />
+              ? <img className="thumb" src={imgs[0]} alt={row.name} onClick={() => setPhotoItem(row)} />
               : apiImg
-                ? <img className="thumb" src={apiImg} alt="" onClick={() => setPhotoItem(row)} style={{ cursor: 'pointer' }} />
+                ? <img className="thumb" src={apiImg} alt={row.name} onClick={() => setPhotoItem(row)} style={{ cursor: 'pointer' }} />
                 : <PokemonCardImage
                     setName={row.metadata?.set_name}
                     cardNumber={row.metadata?.card_number}
@@ -210,32 +245,24 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
                 <span>{row.name}</span>
-                {row.metadata?.subtypes && <span style={{ fontSize: 10, color: 'var(--mut)', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.subtypes}</span>}
-                {row.metadata?.card_types && <span style={{ fontSize: 10, color: 'var(--pkm)', background: 'rgba(255,214,10,0.08)', border: '1px solid rgba(255,214,10,0.2)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.card_types}</span>}
+                {row.metadata?.grade && (
+                  <span style={{ fontSize: 10, color: 'var(--gold)', fontFamily: 'JetBrains Mono', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', borderRadius: 3, padding: '1px 5px' }}>
+                    {row.metadata.grading_service ?? 'PSA'} {row.metadata.grade}
+                  </span>
+                )}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--mut)' }}>
-                {row.metadata?.set_name}{row.metadata?.card_series ? ` (${row.metadata.card_series})` : ''}{row.metadata?.card_number ? ` · #${row.metadata.card_number}` : ''}
-                {row.metadata?.rarity ? ` · ${row.metadata.rarity}` : ''}
-              </div>
-              {row.metadata?.release_date && (
-                <div style={{ fontSize: 10, color: 'var(--mut)' }}>📅 {row.metadata.release_date}</div>
-              )}
-              {row.metadata?.artist && (
-                <div style={{ fontSize: 10, color: 'var(--mut)' }}>✏️ {row.metadata.artist}</div>
-              )}
-              {row.metadata?.cert_number && (
-                <div style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>
-                  Cert #{row.metadata.cert_number}
-                </div>
-              )}
+              {info && <div style={{ fontSize: 11, color: 'var(--mut)' }}>{info}</div>}
               {row.metadata?.grading_status === 'submitted' && (
-                <div style={{ fontSize: 10, color: 'var(--gold)', marginTop: 2 }}>
+                <div style={{ fontSize: 10, color: 'var(--gold)', marginTop: 1 }}>
                   📬 At {row.metadata.grading_service ?? 'PSA'}
                   {row.metadata?.expected_return
                     ? ` · due ${new Date(row.metadata.expected_return).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })}`
                     : ''}
                 </div>
               )}
+              <a href={marketUrl} target="_blank" rel="noopener noreferrer" className="market-link" onClick={e => e.stopPropagation()}>
+                {isCard ? 'Cardmarket ↗' : 'PriceCharting ↗'}
+              </a>
             </div>
           </div>
         )
@@ -277,11 +304,14 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       key: 'value', label: 'Value',
       sortValue: row => effectiveValue(row),
       render: row => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="mono">{fmt(effectiveValue(row))}</span>
-          {row.last_price_fetched_at
-            ? <span className="badge badge-auto" title={`Fetched ${ago(row.last_price_fetched_at)}`}>AUTO · {ago(row.last_price_fetched_at)}</span>
-            : <span className="badge badge-manual">MANUAL</span>}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="mono">{fmt(effectiveValue(row))}</span>
+            {row.last_price_fetched_at
+              ? <span className="badge badge-auto" title={`Fetched ${ago(row.last_price_fetched_at)}`}>AUTO</span>
+              : <span className="badge badge-manual">MANUAL</span>}
+          </div>
+          <PriceSparkline points={priceHistories[row.id]} />
         </div>
       )
     },
@@ -317,7 +347,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
             style={viewMode === 'grid' ? { background: 'var(--pkm)', color: '#000' } : {}}
             onClick={() => setViewMode(v => v === 'grid' ? 'table' : 'grid')}
           >
-            ⊞ {viewMode === 'grid' ? 'Grid' : 'Grid'}
+            ⊞ {viewMode === 'grid' ? 'Table' : 'Grid'}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>
@@ -413,15 +443,6 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         extraActions={row => (
           <>
             <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
-            {(row.metadata?.item_type && row.metadata.item_type !== 'card')
-              ? <button className="btn-icon" title="Find price on PriceCharting" onClick={() => {
-                  const q = encodeURIComponent(row.name)
-                  window.open(`https://www.pricecharting.com/search-products?q=${q}&type=prices`, '_blank')
-                }}>🔍</button>
-              : <button className="btn-icon" title="View on pokemoncard.io" onClick={() => {
-                  const q = [row.name, row.metadata?.set_name, row.metadata?.card_number].filter(Boolean).join(' ')
-                  window.open(`https://pokemoncard.io/?q=${encodeURIComponent(q)}`, '_blank')
-                }}>🔗</button>}
             <MoreMenu>
               <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
             </MoreMenu>
