@@ -1,5 +1,4 @@
 import { updateItem, bumpApiUsage } from '../api.js'
-import { slp } from '../utils.js'
 
 const API_KEY = '83c3a015-8f1c-4e45-b2a8-922d60e31678'
 const BASE_URL = 'https://api.pricempire.com/v3/items/prices'
@@ -34,7 +33,6 @@ function bumpLocalUsage() {
 }
 
 export function syncLocalUsageFromDb(usage) {
-  // Called after reading from api_usage table so local cache matches DB
   if (usage?.day != null) localStorage.setItem(todayKey(), String(usage.day))
   if (usage?.month != null) localStorage.setItem(monthKey(), String(usage.month))
 }
@@ -79,61 +77,84 @@ export function isAnyStale(items) {
   return items.some(i => isCacheStale(i.name))
 }
 
+export let lastPriceSource = null
+
+const SKINPORT_URL = 'https://api.skinport.com/v1/items?app_id=730&currency=EUR'
+
+async function fetchFromSkinport(items) {
+  const res = await fetch(SKINPORT_URL)
+  if (!res.ok) throw new Error(`Skinport ${res.status}`)
+  const list = await res.json()
+  const priceMap = {}
+  for (const entry of list) {
+    if (entry.suggested_price != null) priceMap[entry.market_hash_name] = entry.suggested_price
+  }
+  const results = {}
+  for (const item of items) {
+    const price = priceMap[item.name]
+    if (!price) { results[item.id] = null; continue }
+    results[item.id] = { price, sources: { skinport: price }, name: item.name }
+  }
+  lastPriceSource = 'skinport'
+  return results
+}
+
 export async function fetchCS2Prices(items, userId, onProgress) {
   if (!checkLimits()) throw new Error('API rate limit reached')
   if (!items.length) return {}
 
   const url = `${BASE_URL}?api_key=${API_KEY}&currency=EUR&sources=${SOURCES}`
-  let priceMap = {}
   try {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
-    priceMap = await res.json()
-    // Update both localStorage (fast) and Supabase (shared with cron)
+    const priceMap = await res.json()
     bumpLocalUsage()
     if (userId) bumpApiUsage(userId).catch(() => {})
-  } catch (e) {
-    throw new Error('Failed to fetch CS2 prices: ' + e.message)
-  }
 
-  const results = {}
-  for (const item of items) {
-    const raw = priceMap[item.name]
-    if (!raw) { results[item.id] = null; continue }
+    const results = {}
+    for (const item of items) {
+      const raw = priceMap[item.name]
+      if (!raw) { results[item.id] = null; continue }
 
-    const sources = {}
-    const vals = []
-    for (const src of SOURCES.split(',')) {
-      const v = raw[src]?.price
-      if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+      const sources = {}
+      const vals = []
+      for (const src of SOURCES.split(',')) {
+        const v = raw[src]?.price
+        if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+      }
+      if (!vals.length) { results[item.id] = null; continue }
+
+      vals.sort((a, b) => a - b)
+      const median = vals.length % 2 === 0
+        ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
+        : vals[Math.floor(vals.length / 2)]
+
+      results[item.id] = { price: median, sources, name: item.name }
     }
-    if (!vals.length) { results[item.id] = null; continue }
-
-    vals.sort((a, b) => a - b)
-    const median = vals.length % 2 === 0
-      ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
-      : vals[Math.floor(vals.length / 2)]
-
-    results[item.id] = { price: median, sources, name: item.name }
-    setCache(item.name, { price: median, sources })
+    lastPriceSource = 'pricempire'
+    return results
+  } catch (e) {
+    console.error('[CS2] PriceEmpire failed, falling back to Skinport:', e.message)
+    return fetchFromSkinport(items)
   }
-
-  return results
 }
 
 export async function applyCS2Prices(items, priceResults) {
-  const updates = []
-  for (const item of items) {
-    const r = priceResults[item.id]
-    if (!r) continue
-    updates.push(updateItem(item.id, {
-      value: r.price,
-      last_price_fetched_at: new Date().toISOString(),
-      metadata: { ...item.metadata, price_sources: r.sources },
-    }))
-    await slp(50)
+  const ts = new Date().toISOString()
+  const tasks = items
+    .filter(item => priceResults[item.id])
+    .map(item => {
+      const r = priceResults[item.id]
+      return updateItem(item.id, {
+        value: r.price,
+        last_price_fetched_at: ts,
+        metadata: { ...item.metadata, price_sources: r.sources },
+      }).then(() => ({ name: r.name, price: r.price, sources: r.sources }))
+    })
+  const applied = await Promise.all(tasks)
+  for (const { name, price, sources } of applied) {
+    setCache(name, { price, sources })
   }
-  await Promise.all(updates)
 }
 
 export function getCachedPrice(name) {

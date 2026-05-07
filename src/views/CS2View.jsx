@@ -8,7 +8,10 @@ import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration
 import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
-import { getCS2IconUrls, iconUrlToCdn } from '../lib/cs2images.js'
+import { getCS2Data, iconUrlToCdn, fetchSteamImage } from '../lib/cs2images.js'
+import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
+import SellModal from '../components/SellModal.jsx'
+import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 
 function CS2ItemImage({ name, cachedUrl, onClick }) {
   const [src, setSrc] = useState(cachedUrl || null)
@@ -16,18 +19,28 @@ function CS2ItemImage({ name, cachedUrl, onClick }) {
 
   useEffect(() => {
     if (src || failed) return
-    getCS2IconUrls().then(map => {
-      const u = map[name]
-      if (u) setSrc(iconUrlToCdn(u))
-    })
+    ;(async () => {
+      const map = await getCS2Data()
+      const u = map[name]?.iconUrl
+      if (u) { setSrc(iconUrlToCdn(u)); return }
+      const steamUrl = await fetchSteamImage(name)
+      if (steamUrl) setSrc(steamUrl)
+      else setFailed(true)
+    })()
   }, [name, src, failed])
 
   if (failed || !src) return <div className="thumb-placeholder" />
-  return <img className="thumb" src={src} alt="" onClick={onClick} onError={() => setFailed(true)} style={{ cursor: 'pointer' }} />
+  return (
+    <img
+      className="thumb"
+      src={src}
+      alt={name}
+      onClick={onClick}
+      onError={() => { setSrc(null); setFailed(true) }}
+      style={{ cursor: 'pointer' }}
+    />
+  )
 }
-import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
-import SellModal from '../components/SellModal.jsx'
-import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 
 const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }
 const WEAR_RANGES = { FN: [0, 0.07], MW: [0.07, 0.15], FT: [0.15, 0.38], WW: [0.38, 0.45], BS: [0.45, 1.0] }

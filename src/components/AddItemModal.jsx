@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useEscapeKey } from '../lib/hooks.js'
+import { fetchSteamImage } from '../lib/cs2images.js'
 
 const WEAR_OPTIONS = ['FN', 'MW', 'FT', 'WW', 'BS']
 const WEAR_LABELS = { FN: 'Factory New (0.00–0.07)', MW: 'Minimal Wear (0.07–0.15)', FT: 'Field-Tested (0.15–0.38)', WW: 'Well-Worn (0.38–0.45)', BS: 'Battle-Scarred (0.45–1.00)' }
@@ -60,6 +61,7 @@ function mkMeta(vertical, f) {
       pattern: f.pattern !== '' ? parseInt(f.pattern) : null,
       sticker_notes: f.sticker_notes.trim() || null,
       trade_lock_until: f.trade_lock_until || null,
+      card_image: f.card_image || null,
     }
   }
   if (vertical === 'pokemon') {
@@ -120,6 +122,7 @@ function defaultFields(vertical, item) {
     pattern: m.pattern != null ? String(m.pattern) : '',
     sticker_notes: m.sticker_notes ?? '',
     trade_lock_until: m.trade_lock_until ?? '',
+    card_image: m.card_image ?? '',
   }
   if (vertical === 'pokemon') return {
     name: item?.name ?? '',
@@ -265,16 +268,17 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
                   className="form-input"
                   placeholder="https://steamcommunity.com/market/listings/730/AK-47 | Redline (Field-Tested)"
                   style={{ fontSize: 11 }}
-                  onChange={e => {
+                  onChange={async e => {
                     const parsed = parseSteamUrl(e.target.value)
-                    if (parsed) {
-                      setF(prev => ({
-                        ...prev,
-                        name: parsed.name,
-                        ...(parsed.wear ? { wear: parsed.wear } : {}),
-                        stattrak: parsed.stattrak ? 'true' : 'false',
-                      }))
-                    }
+                    if (!parsed) return
+                    setF(prev => ({
+                      ...prev,
+                      name: parsed.name,
+                      ...(parsed.wear ? { wear: parsed.wear } : {}),
+                      stattrak: parsed.stattrak ? 'true' : 'false',
+                    }))
+                    const imgUrl = await fetchSteamImage(parsed.name)
+                    if (imgUrl) setF(prev => ({ ...prev, card_image: imgUrl }))
                   }}
                 />
               </Field>

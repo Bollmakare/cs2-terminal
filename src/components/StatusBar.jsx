@@ -1,21 +1,16 @@
-export default function StatusBar({ cs2Status, pkmnStatus, usage, onRefreshCS2, onRefreshPkm, onMenuClick }) {
-  const day = usage?.day ?? 0
-  const month = usage?.month ?? 0
-  const dayLimit = usage?.dayLimit ?? 95
-  const monthLimit = usage?.monthLimit ?? 950
-  const dayWarn = day > dayLimit * 0.8
-  const monthWarn = month > monthLimit * 0.8
-
+export default function StatusBar({ cs2Status, pkmnStatus, onRefreshCS2, onRefreshPkm, onMenuClick }) {
   return (
     <div className="status-bar">
       <button className="hamburger" onClick={onMenuClick} aria-label="Menu">☰</button>
-      <span className={`status-dot ${cs2Status === 'ok' ? 'green' : cs2Status === 'loading' ? 'yellow' : 'red'}`} />
+      <span className={`status-dot ${cs2Status === 'ok' ? 'green' : cs2Status === 'fallback' ? 'green' : cs2Status === 'loading' ? 'yellow' : cs2Status === 'limit' ? 'red' : 'grey'}`} />
       <span className="status-label">
         CS2{' '}
         {cs2Status === 'ok' ? 'Live'
+          : cs2Status === 'fallback' ? 'Live · skinport'
           : cs2Status === 'loading' ? 'Fetching…'
           : cs2Status === 'limit' ? 'Limit reached'
-          : 'Offline'}
+          : cs2Status === 'error' ? 'Unavailable'
+          : '—'}
       </span>
 
       <span className="status-sep">|</span>
@@ -29,13 +24,6 @@ export default function StatusBar({ cs2Status, pkmnStatus, usage, onRefreshCS2, 
       <span className="status-label" style={{ color: 'var(--wine)' }}>Wine — Manual</span>
 
       <div className="status-bar-right">
-        <span className={`usage-pill ${dayWarn ? 'warn' : ''}`} title="PriceEmpire calls today (combined frontend + cron)">
-          PE {day}/{dayLimit}d
-        </span>
-        <span className={`usage-pill ${monthWarn ? 'warn' : ''}`} title="PriceEmpire calls this month">
-          PE {month}/{monthLimit}m
-        </span>
-
         <button className="btn-refresh" onClick={onRefreshCS2} disabled={cs2Status === 'loading'}>
           {cs2Status === 'loading'
             ? <span className="loading-spin" style={{ width: 10, height: 10 }} />
