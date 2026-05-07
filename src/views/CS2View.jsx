@@ -9,6 +9,8 @@ import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import { getCS2Data, iconUrlToCdn } from '../lib/cs2images.js'
+import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
+import SellModal from '../components/SellModal.jsx'
 
 function CS2ItemImage({ name, cachedUrl, onClick }) {
   const [src, setSrc] = useState(cachedUrl || null)
@@ -23,10 +25,8 @@ function CS2ItemImage({ name, cachedUrl, onClick }) {
   }, [name, src, failed])
 
   if (failed || !src) return <div className="thumb-placeholder" />
-  return <img className="thumb" src={src} alt="" onClick={onClick} onError={() => setFailed(true)} style={{ cursor: 'pointer' }} />
+  return <img className="thumb" src={src} alt={name} onClick={onClick} onError={() => setFailed(true)} style={{ cursor: 'pointer' }} />
 }
-import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
-import SellModal from '../components/SellModal.jsx'
 import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 
 const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }

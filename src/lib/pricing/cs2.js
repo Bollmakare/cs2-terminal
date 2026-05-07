@@ -1,5 +1,4 @@
 import { updateItem, bumpApiUsage } from '../api.js'
-import { slp } from '../utils.js'
 import { getCS2Data } from '../cs2images.js'
 
 const API_KEY = '83c3a015-8f1c-4e45-b2a8-922d60e31678'
@@ -93,7 +92,6 @@ async function fetchFromCsgotrader(items) {
     if (d.skinportPrice != null) sources.skinport = d.skinportPrice
     if (d.buff163Price != null) sources.buff163 = d.buff163Price
     results[item.id] = { price, sources, name: item.name }
-    setCache(item.name, { price, sources })
   }
   return results
 }
@@ -129,7 +127,6 @@ export async function fetchCS2Prices(items, userId, onProgress) {
         : vals[Math.floor(vals.length / 2)]
 
       results[item.id] = { price: median, sources, name: item.name }
-      setCache(item.name, { price: median, sources })
     }
     return results
   } catch {
@@ -139,18 +136,21 @@ export async function fetchCS2Prices(items, userId, onProgress) {
 }
 
 export async function applyCS2Prices(items, priceResults) {
-  const updates = []
-  for (const item of items) {
-    const r = priceResults[item.id]
-    if (!r) continue
-    updates.push(updateItem(item.id, {
-      value: r.price,
-      last_price_fetched_at: new Date().toISOString(),
-      metadata: { ...item.metadata, price_sources: r.sources },
-    }))
-    await slp(50)
+  const ts = new Date().toISOString()
+  const tasks = items
+    .filter(item => priceResults[item.id])
+    .map(item => {
+      const r = priceResults[item.id]
+      return updateItem(item.id, {
+        value: r.price,
+        last_price_fetched_at: ts,
+        metadata: { ...item.metadata, price_sources: r.sources },
+      }).then(() => ({ name: r.name, price: r.price, sources: r.sources }))
+    })
+  const applied = await Promise.all(tasks)
+  for (const { name, price, sources } of applied) {
+    setCache(name, { price, sources })
   }
-  await Promise.all(updates)
 }
 
 export function getCachedPrice(name) {
