@@ -222,14 +222,14 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
         setError('Float must be a number between 0 and 1'); setSaving(false); return
       }
 
-      const cost = f.cost !== '' ? parseFloat(f.cost) : 0
-      if (isNaN(cost) || cost < 0) { setError('Enter a valid purchase price'); setSaving(false); return }
+      const cost = f.cost !== '' ? (parseFloat(f.cost) || 0) : 0
+      if (cost < 0) { setError('Purchase price must be a positive number'); setSaving(false); return }
 
       const payload = {
         vertical,
         name: f.name.trim(),
         cost,
-        value: f.value !== '' ? parseFloat(f.value) : null,
+        value: f.value !== '' ? (parseFloat(f.value) || 0) : 0,
         qty,
         metadata: mkMeta(vertical, f),
         user_id: userId,
@@ -325,7 +325,7 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
 
               <SectionDivider label="Pricing" />
               <Field label="Purchase Price (€)" hint="What you paid">
-                <input className="form-input mono" type="number" step="0.01" min="0" required
+                <input className="form-input mono" type="number" step="0.01" min="0"
                   value={f.cost} onChange={e => set('cost', e.target.value)} placeholder="0.00" />
               </Field>
               <Field label="Current Value (€)" hint="Leave empty — auto-fetched from PriceEmpire">
@@ -457,7 +457,7 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
 
               <SectionDivider label="Pricing" />
               <Field label="Purchase Price (€)" hint="What you paid">
-                <input className="form-input mono" type="number" step="0.01" min="0" required
+                <input className="form-input mono" type="number" step="0.01" min="0"
                   value={f.cost} onChange={e => set('cost', e.target.value)} placeholder="0.00" />
               </Field>
               <Field label="Current Value (€)"
@@ -544,7 +544,7 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
 
               <SectionDivider label="Pricing" />
               <Field label="Purchase Price (€)" hint="What you paid per bottle">
-                <input className="form-input mono" type="number" step="0.01" min="0" required
+                <input className="form-input mono" type="number" step="0.01" min="0"
                   value={f.cost} onChange={e => set('cost', e.target.value)} placeholder="0.00" />
               </Field>
               <Field label="Current Value (€)" hint="Check Wine-Searcher for current market price">

@@ -250,12 +250,25 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       }
     },
     {
-      key: 'grade', label: 'Condition',
-      sortValue: row => row.metadata?.grade ?? row.metadata?.condition ?? '',
+      key: 'collection', label: 'Collection',
+      sortValue: row => row.metadata?.portfolio ?? '',
       render: row => {
-        const g = row.metadata?.grade
-        const c = row.metadata?.condition
-        return <span style={{ fontSize: 12 }}>{g && g !== 'Ungraded' ? g : c ?? '—'}</span>
+        const p = row.metadata?.portfolio
+        if (!p) return <span style={{ color: 'var(--mut)' }}>—</span>
+        const colors = { 'brun single': '#c9a84c', 'green single': '#4caf50', 'Single svart': '#9e9e9e', 'Main': '#2196f3' }
+        return <span style={{ fontSize: 11, background: 'var(--bg3)', border: `1px solid ${colors[p] ?? 'var(--border)'}`, color: colors[p] ?? 'var(--txt)', borderRadius: 4, padding: '2px 7px' }}>{p}</span>
+      }
+    },
+    {
+      key: 'release', label: 'Released',
+      sortValue: row => row.metadata?.release_date ?? '',
+      render: row => {
+        const rd = row.metadata?.release_date
+        if (!rd) return <span style={{ color: 'var(--mut)', fontSize: 12 }}>—</span>
+        const [year, month] = rd.split('-')
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+        const label = month ? `${monthNames[parseInt(month)-1]} ${year}` : year
+        return <span style={{ fontSize: 12, color: 'var(--mut)' }}>{label}</span>
       }
     },
     { key: 'qty', label: 'Qty', sortValue: row => row.qty, render: row => <span className="mono">{row.qty}</span> },
@@ -273,23 +286,6 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       )
     },
     {
-      key: 'sources', label: 'Sources',
-      render: row => {
-        const src = row.metadata?.price_sources ?? {}
-        if (!src.cardmarket_eur && !src.tcgplayer_usd) return <span style={{ color: 'var(--mut)', fontSize: 12 }}>—</span>
-        return (
-          <div className="source-chips">
-            {src.cardmarket_eur != null && (
-              <span className="source-chip active">CM {fmt(src.cardmarket_eur)}</span>
-            )}
-            {src.tcgplayer_usd != null && (
-              <span className="source-chip">TCG ${src.tcgplayer_usd.toFixed(2)}</span>
-            )}
-          </div>
-        )
-      }
-    },
-    {
       key: 'pnl', label: 'P&L',
       sortValue: row => calcPnl(row.cost ?? 0, effectiveValue(row), row.qty).abs,
       render: row => {
@@ -298,21 +294,6 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           <div>
             <span className={`pnl-chip ${sgn(abs)}`}>{pct(p)}</span>
             <div className="mono" style={{ fontSize: 11, color: 'var(--mut)', marginTop: 2 }}>{fmts(abs)}</div>
-          </div>
-        )
-      }
-    },
-    {
-      key: 'held', label: 'Held',
-      sortValue: row => new Date(row.created_at).getTime(),
-      render: row => {
-        const dur = holdDuration(row.created_at)
-        const ann = annualizedReturn(row.cost, effectiveValue(row), row.created_at)
-        return (
-          <div>
-            <div className="mono" style={{ fontSize: 12, color: 'var(--mut)' }}>{dur ?? '—'}</div>
-            {ann != null && <div className="mono" style={{ fontSize: 11, color: ann >= 0 ? 'var(--grn)' : 'var(--red)' }}>{ann >= 0 ? '+' : ''}{ann.toFixed(1)}%/yr</div>}
-            {row.updated_at && <div style={{ fontSize: 10, color: 'var(--mut)', marginTop: 2 }} title={new Date(row.updated_at).toLocaleString()}>↻ {ago(row.updated_at)}</div>}
           </div>
         )
       }
