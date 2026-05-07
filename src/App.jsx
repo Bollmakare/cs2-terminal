@@ -48,7 +48,8 @@ export default function App() {
       if (cs2Items.length && isAnyStale(cs2Items)) {
         refreshCS2(cs2Items)
       } else if (cs2Items.length) {
-        setCS2Status(lastPriceSource === 'pricempire' ? 'ok' : 'fallback')
+        const src = lastPriceSource ?? 'skinport'
+        setCS2Status(src === 'pricempire' ? 'ok' : `fallback-${src}`)
       } else {
         setCS2Status('ok')
       }
@@ -94,8 +95,9 @@ export default function App() {
         const map = Object.fromEntries(fresh.map(i => [i.id, i]))
         return prev.map(i => map[i.id] ?? i)
       })
-      setCS2Status(lastPriceSource === 'pricempire' ? 'ok' : 'fallback')
-      toast(`CS2 prices updated via ${lastPriceSource ?? 'skinport'}`, 'success')
+      const src = lastPriceSource ?? 'skinport'
+      setCS2Status(src === 'pricempire' ? 'ok' : `fallback-${src}`)
+      toast(`CS2 prices updated via ${src}`, 'success')
     } catch (e) {
       setCS2Status(e.message.includes('limit') ? 'limit' : 'error')
       toast(e.message, 'error')

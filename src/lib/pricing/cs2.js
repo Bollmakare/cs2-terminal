@@ -87,7 +87,8 @@ async function fetchFromSkinport(items) {
   const list = await res.json()
   const priceMap = {}
   for (const entry of list) {
-    if (entry.suggested_price != null) priceMap[entry.market_hash_name] = entry.suggested_price
+    const price = entry.median_price ?? entry.suggested_price
+    if (price != null && price > 0) priceMap[entry.market_hash_name] = price
   }
   const results = {}
   for (const item of items) {
@@ -96,6 +97,36 @@ async function fetchFromSkinport(items) {
     results[item.id] = { price, sources: { skinport: price }, name: item.name }
   }
   lastPriceSource = 'skinport'
+  return results
+}
+
+function parseSteamPrice(str) {
+  if (!str) return null
+  const s = str.replace(/[^0-9.,]/g, '')
+  // Match optional integer part + 2-digit decimal
+  const m = s.match(/^([\d.,]*?)[,.](\d{2})$/)
+  if (m) return parseFloat((m[1].replace(/[.,]/g, '') || '0') + '.' + m[2])
+  return parseFloat(s.replace(',', '.')) || null
+}
+
+async function fetchFromSteamMarket(items) {
+  const results = {}
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    try {
+      const url = `https://steamcommunity.com/market/priceoverview/?appid=730&currency=3&market_hash_name=${encodeURIComponent(item.name)}`
+      const res = await fetch(url)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          const price = parseSteamPrice(data.median_price || data.lowest_price)
+          results[item.id] = price ? { price, sources: { steam: price }, name: item.name } : null
+        } else { results[item.id] = null }
+      } else { results[item.id] = null }
+    } catch { results[item.id] = null }
+    if (i < items.length - 1) await new Promise(r => setTimeout(r, 1500))
+  }
+  lastPriceSource = 'steam'
   return results
 }
 
@@ -139,7 +170,15 @@ export async function fetchCS2Prices(items, userId, onProgress) {
     }
   }
 
-  return fetchFromSkinport(items)
+  // Skinport: one batch request, fast
+  try {
+    return await fetchFromSkinport(items)
+  } catch (e) {
+    console.error('[CS2] Skinport failed, falling back to Steam Market:', e.message)
+  }
+
+  // Final fallback: Steam market price overview — per-item, rate-limited at ~40 req/min
+  return fetchFromSteamMarket(items)
 }
 
 export async function applyCS2Prices(items, priceResults) {
