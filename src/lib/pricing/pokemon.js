@@ -1,5 +1,4 @@
 import { updateItem } from '../api.js'
-import { slp } from '../utils.js'
 
 const BASE_URL = 'https://api.pokemontcg.io/v2/cards'
 const CACHE_TTL = 6 * 60 * 60 * 1000
@@ -30,6 +29,13 @@ function buildQuery(name, setName, number) {
   if (number) parts.push(`number:"${number}"`)
   if (setName) parts.push(`set.name:"${setName}"`)
   return parts.join(' ')
+}
+
+export function isAnyPokemonStale(items) {
+  return items.some(i => {
+    if (!i.last_price_fetched_at) return true
+    return Date.now() - new Date(i.last_price_fetched_at).getTime() >= CACHE_TTL
+  })
 }
 
 export async function fetchPokemonPrice(item) {
@@ -64,7 +70,12 @@ export async function fetchPokemonPrice(item) {
     return null
   }
 
-  const cm = card.cardmarket?.prices?.trendPrice ?? null
+  const cm = card.cardmarket?.prices?.trendPrice
+    ?? card.cardmarket?.prices?.averageSellPrice
+    ?? card.cardmarket?.prices?.avg30
+    ?? card.cardmarket?.prices?.avg7
+    ?? null
+
   const tcg = card.tcgplayer?.prices?.normal?.market
     ?? card.tcgplayer?.prices?.holofoil?.market
     ?? card.tcgplayer?.prices?.reverseHolofoil?.market
@@ -75,6 +86,7 @@ export async function fetchPokemonPrice(item) {
     tcgplayer_usd: tcg,
     image: card.images?.small ?? null,
     card_id: card.id,
+    card_url: card.cardmarket?.url ?? card.tcgplayer?.url ?? null,
   }
 
   setCache(key, result)
@@ -91,31 +103,33 @@ export async function fetchAllPokemonPrices(items, onProgress) {
     results[item.id] = r
     done++
     onProgress?.(done, cards.length)
-    await slp(300)
+    if (done < cards.length) await new Promise(resolve => setTimeout(resolve, 300))
   }
 
   return results
 }
 
 export async function applyPokemonPrices(items, priceResults) {
-  const updates = []
-  for (const item of items) {
-    const r = priceResults[item.id]
-    if (!r) continue
-    const price = r.cardmarket_eur ?? null
-    if (price == null) continue
-    updates.push(updateItem(item.id, {
-      value: price,
-      last_price_fetched_at: new Date().toISOString(),
-      metadata: {
-        ...item.metadata,
-        price_sources: {
-          cardmarket_eur: r.cardmarket_eur,
-          tcgplayer_usd: r.tcgplayer_usd,
+  const ts = new Date().toISOString()
+  const tasks = items
+    .filter(item => priceResults[item.id])
+    .map(item => {
+      const r = priceResults[item.id]
+      const price = r.cardmarket_eur ?? r.tcgplayer_usd
+      if (price == null) return null
+      return updateItem(item.id, {
+        value: price,
+        last_price_fetched_at: ts,
+        metadata: {
+          ...item.metadata,
+          ...(r.card_url ? { card_url: r.card_url } : {}),
+          price_sources: {
+            cardmarket_eur: r.cardmarket_eur,
+            tcgplayer_usd: r.tcgplayer_usd,
+          },
         },
-      },
-    }))
-    await slp(50)
-  }
-  await Promise.all(updates)
+      })
+    })
+    .filter(Boolean)
+  await Promise.all(tasks)
 }

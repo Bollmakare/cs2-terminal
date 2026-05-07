@@ -209,7 +209,9 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
                   />}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                <span>{row.name}</span>
+                {row.metadata?.card_url
+                  ? <a href={row.metadata.card_url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline dotted' }}>{row.name}</a>
+                  : <span>{row.name}</span>}
                 {row.metadata?.subtypes && <span style={{ fontSize: 10, color: 'var(--mut)', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.subtypes}</span>}
                 {row.metadata?.card_types && <span style={{ fontSize: 10, color: 'var(--pkm)', background: 'rgba(255,214,10,0.08)', border: '1px solid rgba(255,214,10,0.2)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.card_types}</span>}
               </div>
@@ -317,7 +319,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
             style={viewMode === 'grid' ? { background: 'var(--pkm)', color: '#000' } : {}}
             onClick={() => setViewMode(v => v === 'grid' ? 'table' : 'grid')}
           >
-            ⊞ {viewMode === 'grid' ? 'Grid' : 'Grid'}
+            ⊞ {viewMode === 'grid' ? 'Table' : 'Grid'}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>

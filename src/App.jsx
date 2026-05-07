@@ -4,7 +4,7 @@ import { getSession, onAuthChange } from './lib/auth.js'
 import { getItems, getSnapshotHistory, getTodaySnapshot, addPriceHistory } from './lib/api.js'
 import { effectiveValue } from './lib/utils.js'
 import { fetchCS2Prices, applyCS2Prices, isAnyStale, lastPriceSource } from './lib/pricing/cs2.js'
-import { fetchAllPokemonPrices, applyPokemonPrices } from './lib/pricing/pokemon.js'
+import { fetchAllPokemonPrices, applyPokemonPrices, isAnyPokemonStale } from './lib/pricing/pokemon.js'
 import AuthScreen from './components/AuthScreen.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import StatusBar from './components/StatusBar.jsx'
@@ -54,7 +54,12 @@ export default function App() {
         setCS2Status('ok')
       }
 
-      if (all.filter(i => i.vertical === 'pokemon').length) setPkmnStatus('ok')
+      const pkmnItems = all.filter(i => i.vertical === 'pokemon')
+      if (pkmnItems.length && isAnyPokemonStale(pkmnItems)) {
+        refreshPokemon(pkmnItems)
+      } else if (pkmnItems.length) {
+        setPkmnStatus('ok')
+      }
 
       await takeSnapshot(all)
     } catch (e) {
@@ -114,15 +119,15 @@ export default function App() {
     }
   }
 
-  async function refreshPokemon() {
-    const pkmItems = items.filter(i => i.vertical === 'pokemon')
-    if (!pkmItems.length) return
+  async function refreshPokemon(pkmItems) {
+    const pkmItems2 = pkmItems ?? items.filter(i => i.vertical === 'pokemon')
+    if (!pkmItems2.length) return
     setPkmnStatus('loading')
     try {
-      const results = await fetchAllPokemonPrices(pkmItems, (done, total) => {
+      const results = await fetchAllPokemonPrices(pkmItems2, (done, total) => {
         if (done % 10 === 0) toast(`Pokémon: ${done}/${total}`, 'info', 1500)
       })
-      await applyPokemonPrices(pkmItems, results)
+      await applyPokemonPrices(pkmItems2, results)
       const fresh = await getItems('pokemon')
       setItems(prev => {
         const map = Object.fromEntries(fresh.map(i => [i.id, i]))
