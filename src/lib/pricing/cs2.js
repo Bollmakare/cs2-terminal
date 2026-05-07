@@ -100,43 +100,46 @@ async function fetchFromSkinport(items) {
 }
 
 export async function fetchCS2Prices(items, userId, onProgress) {
-  if (!checkLimits()) throw new Error('API rate limit reached')
   if (!items.length) return {}
 
-  const url = `${BASE_URL}?api_key=${API_KEY}&currency=EUR&sources=${SOURCES}`
-  try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
-    const priceMap = await res.json()
-    bumpLocalUsage()
-    if (userId) bumpApiUsage(userId).catch(() => {})
+  // Try PriceEmpire first if within rate limits
+  if (checkLimits()) {
+    const url = `${BASE_URL}?api_key=${API_KEY}&currency=EUR&sources=${SOURCES}`
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
+      const priceMap = await res.json()
+      bumpLocalUsage()
+      if (userId) bumpApiUsage(userId).catch(() => {})
 
-    const results = {}
-    for (const item of items) {
-      const raw = priceMap[item.name]
-      if (!raw) { results[item.id] = null; continue }
+      const results = {}
+      for (const item of items) {
+        const raw = priceMap[item.name]
+        if (!raw) { results[item.id] = null; continue }
 
-      const sources = {}
-      const vals = []
-      for (const src of SOURCES.split(',')) {
-        const v = raw[src]?.price
-        if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+        const sources = {}
+        const vals = []
+        for (const src of SOURCES.split(',')) {
+          const v = raw[src]?.price
+          if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+        }
+        if (!vals.length) { results[item.id] = null; continue }
+
+        vals.sort((a, b) => a - b)
+        const median = vals.length % 2 === 0
+          ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
+          : vals[Math.floor(vals.length / 2)]
+
+        results[item.id] = { price: median, sources, name: item.name }
       }
-      if (!vals.length) { results[item.id] = null; continue }
-
-      vals.sort((a, b) => a - b)
-      const median = vals.length % 2 === 0
-        ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
-        : vals[Math.floor(vals.length / 2)]
-
-      results[item.id] = { price: median, sources, name: item.name }
+      lastPriceSource = 'pricempire'
+      return results
+    } catch (e) {
+      console.error('[CS2] PriceEmpire failed, falling back to Skinport:', e.message)
     }
-    lastPriceSource = 'pricempire'
-    return results
-  } catch (e) {
-    console.error('[CS2] PriceEmpire failed, falling back to Skinport:', e.message)
-    return fetchFromSkinport(items)
   }
+
+  return fetchFromSkinport(items)
 }
 
 export async function applyCS2Prices(items, priceResults) {

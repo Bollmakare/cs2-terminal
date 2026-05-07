@@ -8,7 +8,7 @@ import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration
 import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
-import { getCS2Data, iconUrlToCdn, fetchSteamImage } from '../lib/cs2images.js'
+import { fetchSteamImage } from '../lib/cs2images.js'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
 import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
@@ -19,14 +19,10 @@ function CS2ItemImage({ name, cachedUrl, onClick }) {
 
   useEffect(() => {
     if (src || failed) return
-    ;(async () => {
-      const map = await getCS2Data()
-      const u = map[name]?.iconUrl
-      if (u) { setSrc(iconUrlToCdn(u)); return }
-      const steamUrl = await fetchSteamImage(name)
-      if (steamUrl) setSrc(steamUrl)
+    fetchSteamImage(name).then(url => {
+      if (url) setSrc(url)
       else setFailed(true)
-    })()
+    })
   }, [name, src, failed])
 
   if (failed || !src) return <div className="thumb-placeholder" />
