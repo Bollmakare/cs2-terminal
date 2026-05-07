@@ -48,6 +48,32 @@ export async function getCS2Data() {
   return fetchPromise
 }
 
+const SKIN_LIST_CACHE_KEY = 'cs2_skin_names_v1'
+const SKIN_LIST_TTL = 24 * 60 * 60 * 1000 // 24 hours
+
+let skinListMem = null
+
+// Returns sorted array of all market_hash_name strings from Skinport, cached 24h.
+export async function getCS2SkinList() {
+  if (skinListMem) return skinListMem
+  try {
+    const raw = localStorage.getItem(SKIN_LIST_CACHE_KEY)
+    if (raw) {
+      const { ts, names } = JSON.parse(raw)
+      if (Date.now() - ts < SKIN_LIST_TTL) { skinListMem = names; return names }
+    }
+  } catch {}
+  try {
+    const res = await fetch('https://api.skinport.com/v1/items?app_id=730&currency=EUR')
+    if (!res.ok) return []
+    const list = await res.json()
+    const names = list.map(i => i.market_hash_name).sort()
+    skinListMem = names
+    try { localStorage.setItem(SKIN_LIST_CACHE_KEY, JSON.stringify({ ts: Date.now(), names })) } catch {}
+    return names
+  } catch { return [] }
+}
+
 // Fetches icon URL from Steam market render API and caches it locally for 7 days.
 // Returns a CDN URL string, or null on failure (CORS / network / item not found).
 export async function fetchSteamImage(name) {
