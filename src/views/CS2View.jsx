@@ -8,6 +8,23 @@ import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration
 import CsvImportModal from '../components/CsvImportModal.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
+import { getCS2IconUrls, iconUrlToCdn } from '../lib/cs2images.js'
+
+function CS2ItemImage({ name, cachedUrl, onClick }) {
+  const [src, setSrc] = useState(cachedUrl || null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    if (src || failed) return
+    getCS2IconUrls().then(map => {
+      const u = map[name]
+      if (u) setSrc(iconUrlToCdn(u))
+    })
+  }, [name, src, failed])
+
+  if (failed || !src) return <div className="thumb-placeholder" />
+  return <img className="thumb" src={src} alt="" onClick={onClick} onError={() => setFailed(true)} style={{ cursor: 'pointer' }} />
+}
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
 import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
@@ -189,7 +206,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
             ? <div className="thumb-placeholder" style={{ opacity: 0.3 }} />
             : row.metadata?.images?.[0]
               ? <img className="thumb" src={row.metadata.images[0]} alt="" onClick={() => setPhotoItem(row)} />
-              : <div className="thumb-placeholder" />}
+              : <CS2ItemImage name={row.name} cachedUrl={row.metadata?.card_image} onClick={() => setPhotoItem(row)} />}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
               <span>{row.name}</span>
