@@ -14,7 +14,6 @@ import MoreMenu, { MoreMenuItem } from '../components/MoreMenu.jsx'
 import SetGridPanel from '../components/SetGridPanel.jsx'
 import PackSimulatorModal from '../components/PackSimulatorModal.jsx'
 
-const PORTFOLIOS = ['brun single', 'green single', 'Single svart', 'Main']
 const ITEM_TYPE_LABELS = { card: 'Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Sealed' }
 
 const IMG_TTL = 7 * 24 * 60 * 60 * 1000
@@ -113,6 +112,11 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
 
   const sets = useMemo(() => {
     const s = new Set(items.map(i => i.metadata?.set_name).filter(Boolean))
+    return [...s].sort()
+  }, [items])
+
+  const portfolios = useMemo(() => {
+    const s = new Set(items.map(i => i.metadata?.portfolio).filter(Boolean))
     return [...s].sort()
   }, [items])
 
@@ -468,8 +472,8 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           onChange={e => setSearch(e.target.value)}
         />
         <select className="filter-select" value={filterPortfolio} onChange={e => setFilterPortfolio(e.target.value)}>
-          <option value="">All portfolios</option>
-          {PORTFOLIOS.map(p => <option key={p} value={p}>{p}</option>)}
+          <option value="">All folders</option>
+          {portfolios.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
         <select className="filter-select" value={filterSet} onChange={e => setFilterSet(e.target.value)}>
           <option value="">All sets</option>
@@ -539,6 +543,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           item={modal.item}
           prefill={modal.prefill}
           userId={userId}
+          portfolios={portfolios}
           onSave={handleSave}
           onClose={() => setModal(null)}
         />
