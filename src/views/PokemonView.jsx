@@ -306,18 +306,6 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         return <span style={{ fontSize: 11, background: 'var(--bg3)', border: `1px solid ${colors[p] ?? 'var(--border)'}`, color: colors[p] ?? 'var(--txt)', borderRadius: 4, padding: '2px 7px' }}>{p}</span>
       }
     },
-    {
-      key: 'release', label: 'Released',
-      sortValue: row => row.metadata?.release_date ?? '',
-      render: row => {
-        const rd = row.metadata?.release_date
-        if (!rd) return <span style={{ color: 'var(--mut)', fontSize: 12 }}>—</span>
-        const [year, month] = rd.split('-')
-        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-        const label = month ? `${monthNames[parseInt(month)-1]} ${year}` : year
-        return <span style={{ fontSize: 12, color: 'var(--mut)' }}>{label}</span>
-      }
-    },
     { key: 'qty', label: 'Qty', sortValue: row => row.qty, render: row => <span className="mono">{row.qty}</span> },
     { key: 'cost', label: 'Cost', sortValue: row => row.cost ?? 0, render: row => <span className="mono">{fmt(row.cost)}</span> },
     {
@@ -432,8 +420,8 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
                                 </span>
                               </div>
                               {p != null && (
-                                <div style={{ height: 3, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
-                                  <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? 'var(--grn)' : 'var(--pkm)', borderRadius: 2, transition: 'width 0.4s' }} />
+                                <div style={{ height: 6, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? 'var(--grn)' : 'var(--pkm)', borderRadius: 3, transition: 'width 0.4s' }} />
                                 </div>
                               )}
                             </div>
@@ -528,16 +516,16 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         extraActions={row => (
           <>
             <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
-            {(row.metadata?.item_type && row.metadata.item_type !== 'card')
-              ? <button className="btn-icon" title="Find price on PriceCharting" onClick={() => {
-                  const q = encodeURIComponent(row.name)
-                  window.open(`https://www.pricecharting.com/search-products?q=${q}&type=prices`, '_blank')
-                }}>🔍</button>
-              : <button className="btn-icon" title="View on pokemoncard.io" onClick={() => {
-                  const q = [row.name, row.metadata?.set_name, row.metadata?.card_number].filter(Boolean).join(' ')
-                  window.open(`https://pokemoncard.io/?q=${encodeURIComponent(q)}`, '_blank')
-                }}>🔗</button>}
             <MoreMenu>
+              {(row.metadata?.item_type && row.metadata.item_type !== 'card')
+                ? <MoreMenuItem onClick={() => {
+                    const q = encodeURIComponent(row.name)
+                    window.open(`https://www.pricecharting.com/search-products?q=${q}&type=prices`, '_blank')
+                  }}>🔍 PriceCharting</MoreMenuItem>
+                : <MoreMenuItem onClick={() => {
+                    const q = [row.name, row.metadata?.set_name, row.metadata?.card_number].filter(Boolean).join(' ')
+                    window.open(`https://pokemoncard.io/?q=${encodeURIComponent(q)}`, '_blank')
+                  }}>🔗 pokemoncard.io</MoreMenuItem>}
               <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
             </MoreMenu>
           </>

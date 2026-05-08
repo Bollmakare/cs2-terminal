@@ -189,7 +189,7 @@ export default function SetGridPanel({ items, setName, onAddCard, onEditCard }) 
           <span style={{ color: 'var(--grn)', fontWeight: 600 }}>{ownedCount}</span>
           <span style={{ color: 'var(--mut)' }}> / {cards.length}</span>
         </span>
-        <div style={{ flex: 1, height: 4, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ flex: 1, height: 6, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: 'var(--pkm)', borderRadius: 2, transition: 'width 0.4s' }} />
         </div>
         <span style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: 'var(--mut)', flexShrink: 0 }}>{pct}%</span>
