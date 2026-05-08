@@ -6,7 +6,6 @@ import ImageModal from '../components/ImageModal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn, ago } from '../lib/utils.js'
 import CsvImportModal from '../components/CsvImportModal.jsx'
-import SetCompletionPanel from '../components/SetCompletionPanel.jsx'
 import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
@@ -80,9 +79,31 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [bulkSaving, setBulkSaving] = useState(false)
   const [viewMode, setViewMode] = useState('table')
   const [gridSet, setGridSet] = useState('')
+  const [setSizes, setSetSizes] = useState({})
   const [packSim, setPackSim] = useState(false)
 
   useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
+
+  useEffect(() => {
+    const CACHE_KEY = 'pkm_sets_cache'
+    const CACHE_TTL = 7 * 24 * 60 * 60 * 1000
+    try {
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        const { ts, data } = JSON.parse(cached)
+        if (Date.now() - ts < CACHE_TTL) { setSetSizes(data); return }
+      }
+    } catch {}
+    fetch('https://api.pokemontcg.io/v2/sets?pageSize=250')
+      .then(r => r.json())
+      .then(json => {
+        const map = {}
+        for (const s of json.data ?? []) map[s.name.toLowerCase()] = s.printedTotal ?? s.total ?? null
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: map })) } catch {}
+        setSetSizes(map)
+      })
+      .catch(() => {})
+  }, [])
 
   const sets = useMemo(() => {
     const s = new Set(items.map(i => i.metadata?.set_name).filter(Boolean))
@@ -317,9 +338,9 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           <button
             className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
             style={viewMode === 'grid' ? { background: 'var(--pkm)', color: '#000' } : {}}
-            onClick={() => setViewMode(v => v === 'grid' ? 'table' : 'grid')}
+            onClick={() => { setViewMode(v => v === 'grid' ? 'table' : 'grid'); setGridSet('') }}
           >
-            ⊞ {viewMode === 'grid' ? 'Table' : 'Grid'}
+            ◫ {viewMode === 'grid' ? 'Table' : 'Collection'}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>
@@ -332,31 +353,75 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
 
       <StatCards cards={statCards} />
 
-      <SetCompletionPanel items={items} />
-
       {viewMode === 'grid' && (
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mut)', fontWeight: 600 }}>Set Grid</span>
-            <select
-              className="filter-select"
-              value={gridSet}
-              onChange={e => setGridSet(e.target.value)}
-              style={{ minWidth: 180 }}
-            >
-              <option value="">— Select a set —</option>
-              {sets.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <SetGridPanel
-            items={items}
-            setName={gridSet}
-            onAddCard={card => setModal({
-              item: null,
-              prefill: { name: card.name, set_name: gridSet, card_number: card.number }
-            })}
-            onEditCard={item => setModal({ item })}
-          />
+          {!gridSet ? (
+            <>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mut)', fontWeight: 600, marginBottom: 12 }}>
+                Collection · {sets.length} set{sets.length !== 1 ? 's' : ''}
+              </div>
+              {sets.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--mut)', fontSize: 13 }}>No sets found. Add some cards first.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {sets.map(setName => {
+                    const total = setSizes[setName.toLowerCase()] ?? null
+                    const owned = items.filter(i =>
+                      i.metadata?.set_name?.toLowerCase() === setName.toLowerCase() &&
+                      (!i.metadata?.item_type || i.metadata.item_type === 'card') &&
+                      i.metadata?.card_number
+                    ).length
+                    const p = total ? Math.min((owned / total) * 100, 100) : null
+                    return (
+                      <div
+                        key={setName}
+                        onClick={() => setGridSet(setName)}
+                        style={{ padding: '10px 4px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+                        onMouseLeave={e => e.currentTarget.style.background = ''}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: p != null ? 5 : 0 }}>
+                          <span style={{ fontSize: 13, fontWeight: 500 }}>{setName}</span>
+                          <span style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: 'var(--mut)' }}>
+                            <span style={{ color: p != null && p >= 80 ? 'var(--grn)' : 'var(--txt)', fontWeight: 600 }}>{owned}</span>
+                            {total ? <span style={{ color: 'var(--mut)' }}> / {total}</span> : <span style={{ color: 'var(--mut)' }}> cards</span>}
+                            {p != null && <span style={{ color: p >= 80 ? 'var(--grn)' : 'var(--mut)', marginLeft: 8 }}>{Math.round(p)}%</span>}
+                            <span style={{ color: 'var(--mut)', marginLeft: 10, fontSize: 10 }}>→</span>
+                          </span>
+                        </div>
+                        {p != null && (
+                          <div style={{ height: 3, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? 'var(--grn)' : 'var(--pkm)', borderRadius: 2, transition: 'width 0.4s' }} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setGridSet('')}
+                >
+                  ← All Sets
+                </button>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>{gridSet}</span>
+              </div>
+              <SetGridPanel
+                items={items}
+                setName={gridSet}
+                onAddCard={card => setModal({
+                  item: null,
+                  prefill: { name: card.name, set_name: gridSet, card_number: card.number }
+                })}
+                onEditCard={item => setModal({ item })}
+              />
+            </>
+          )}
         </div>
       )}
 
