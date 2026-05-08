@@ -179,6 +179,7 @@ function mkMeta(vertical, f) {
       subtypes: f.subtypes || null,
       card_types: f.card_types || null,
       card_image: f.card_image || null,
+    card_url: f.card_url.trim() || null,
     }
   }
   if (vertical === 'wine') {
@@ -242,6 +243,7 @@ function defaultFields(vertical, item) {
     subtypes: m.subtypes ?? '',
     card_types: m.card_types ?? '',
     card_image: m.card_image ?? '',
+    card_url: m.card_url ?? '',
   }
   if (vertical === 'wine') return {
     name: item?.name ?? '',
@@ -574,6 +576,20 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
                 hint="Leave empty — auto-fetched from Cardmarket via pokemontcg.io">
                 <input className="form-input mono" type="number" step="0.01" min="0"
                   value={f.value} onChange={e => set('value', e.target.value)} placeholder="Auto-fetched" />
+              </Field>
+              <Field label="Cardmarket / TCGPlayer URL" full
+                hint="Paste a link to this card — auto-filled when prices are fetched, or add manually">
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input className="form-input" type="url" value={f.card_url}
+                    onChange={e => set('card_url', e.target.value)}
+                    placeholder="https://www.cardmarket.com/en/Pokemon/Products/Singles/…" />
+                  {f.card_url && (
+                    <a href={f.card_url} target="_blank" rel="noopener noreferrer"
+                      style={{ flexShrink: 0, fontSize: 11, color: 'var(--pkm)', whiteSpace: 'nowrap' }}>
+                      ↗ Open
+                    </a>
+                  )}
+                </div>
               </Field>
               <Field label="Qty">
                 <input className="form-input mono" type="number" min="1"
