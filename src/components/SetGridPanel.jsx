@@ -106,6 +106,7 @@ function UnmatchedWarning({ unmatched, onEdit }) {
 export default function SetGridPanel({ items, setName, onAddCard, onEditCard }) {
   const [cards, setCards] = useState([])
   const [loading, setLoading] = useState(false)
+  const [preview, setPreview] = useState(null)
 
   useEffect(() => {
     if (!setName) { setCards([]); return }
@@ -202,8 +203,8 @@ export default function SetGridPanel({ items, setName, onAddCard, onEditCard }) 
             <div
               key={card.id}
               className={`set-grid-card${owned ? ' owned' : ' missing'}`}
-              title={`${card.name} · #${card.number}${owned ? ' ✓ Owned' : ' · Click to add'}`}
-              onClick={() => !owned && onAddCard?.(card)}
+              title={`${card.name} · #${card.number}${owned ? ' ✓ Owned' : ' · Click to view'}`}
+              onClick={() => setPreview({ card, owned })}
             >
               {card.images?.small
                 ? <img src={card.images.small} alt={card.name} style={{ width: '100%', borderRadius: 4, display: 'block' }} />
@@ -225,6 +226,51 @@ export default function SetGridPanel({ items, setName, onAddCard, onEditCard }) 
       </div>
 
       <UnmatchedWarning unmatched={unmatched} onEdit={onEditCard} />
+
+      {preview && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setPreview(null)}
+        >
+          <div
+            style={{ position: 'relative', maxWidth: 340, width: '100%' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreview(null)}
+              style={{ position: 'absolute', top: -14, right: -14, width: 30, height: 30, borderRadius: '50%', background: 'var(--bg2)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 16, color: 'var(--txt)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
+            >×</button>
+            <img
+              src={preview.card.images?.large ?? preview.card.images?.small}
+              alt={preview.card.name}
+              style={{ width: '100%', borderRadius: 12, display: 'block' }}
+            />
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{preview.card.name}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: 'JetBrains Mono' }}>
+                  #{preview.card.number}{preview.card.rarity ? ` · ${preview.card.rarity}` : ''}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                {!preview.owned && (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    style={{ background: 'var(--pkm)', color: '#000' }}
+                    onClick={() => { onAddCard?.(preview.card); setPreview(null) }}
+                  >+ Add</button>
+                )}
+                <a
+                  href={`https://www.cardmarket.com/en/Pokemon/Products/Singles?searchString=${encodeURIComponent(preview.card.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary btn-sm"
+                >Cardmarket ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
