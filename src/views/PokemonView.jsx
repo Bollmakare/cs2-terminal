@@ -85,7 +85,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
   useEffect(() => {
-    const CACHE_KEY = 'pkm_sets_cache'
+    const CACHE_KEY = 'pkm_sets_cache_v2'
     const CACHE_TTL = 7 * 24 * 60 * 60 * 1000
     try {
       const cached = localStorage.getItem(CACHE_KEY)
@@ -98,7 +98,13 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       .then(r => r.json())
       .then(json => {
         const map = {}
-        for (const s of json.data ?? []) map[s.name.toLowerCase()] = s.printedTotal ?? s.total ?? null
+        for (const s of json.data ?? []) {
+          map[s.name.toLowerCase()] = {
+            total: s.printedTotal ?? s.total ?? null,
+            releaseDate: s.releaseDate ?? null,
+            series: s.series ?? null,
+          }
+        }
         try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: map })) } catch {}
         setSetSizes(map)
       })
@@ -109,6 +115,24 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
     const s = new Set(items.map(i => i.metadata?.set_name).filter(Boolean))
     return [...s].sort()
   }, [items])
+
+  const groupedSets = useMemo(() => {
+    const groups = {}
+    for (const setName of sets) {
+      const info = setSizes[setName.toLowerCase()]
+      const series = info?.series ?? 'Other'
+      if (!groups[series]) groups[series] = []
+      groups[series].push({ setName, info })
+    }
+    for (const g of Object.values(groups)) {
+      g.sort((a, b) => (b.info?.releaseDate ?? '').localeCompare(a.info?.releaseDate ?? ''))
+    }
+    return Object.entries(groups).sort(([, a], [, b]) => {
+      const aDate = a[0]?.info?.releaseDate ?? ''
+      const bDate = b[0]?.info?.releaseDate ?? ''
+      return bDate.localeCompare(aDate)
+    })
+  }, [sets, setSizes])
 
   const filtered = useMemo(() => {
     return items.filter(i => {
@@ -363,37 +387,58 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
               {sets.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--mut)', fontSize: 13 }}>No sets found. Add some cards first.</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {sets.map(setName => {
-                    const total = setSizes[setName.toLowerCase()] ?? null
-                    const owned = items.filter(i =>
-                      i.metadata?.set_name?.toLowerCase() === setName.toLowerCase() &&
-                      (!i.metadata?.item_type || i.metadata.item_type === 'card') &&
-                      i.metadata?.card_number
-                    ).length
-                    const p = total ? Math.min((owned / total) * 100, 100) : null
+                <div>
+                  {groupedSets.map(([series, setsInSeries]) => {
+                    const years = setsInSeries.map(s => s.info?.releaseDate?.split('/')[0]).filter(Boolean).map(Number)
+                    const minY = years.length ? Math.min(...years) : null
+                    const maxY = years.length ? Math.max(...years) : null
+                    const range = minY ? (minY === maxY ? String(minY) : `${minY}–${maxY}`) : null
                     return (
-                      <div
-                        key={setName}
-                        onClick={() => setGridSet(setName)}
-                        style={{ padding: '10px 4px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
-                        onMouseLeave={e => e.currentTarget.style.background = ''}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: p != null ? 5 : 0 }}>
-                          <span style={{ fontSize: 13, fontWeight: 500 }}>{setName}</span>
-                          <span style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: 'var(--mut)' }}>
-                            <span style={{ color: p != null && p >= 80 ? 'var(--grn)' : 'var(--txt)', fontWeight: 600 }}>{owned}</span>
-                            {total ? <span style={{ color: 'var(--mut)' }}> / {total}</span> : <span style={{ color: 'var(--mut)' }}> cards</span>}
-                            {p != null && <span style={{ color: p >= 80 ? 'var(--grn)' : 'var(--mut)', marginLeft: 8 }}>{Math.round(p)}%</span>}
-                            <span style={{ color: 'var(--mut)', marginLeft: 10, fontSize: 10 }}>→</span>
-                          </span>
+                      <div key={series} style={{ marginBottom: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px 4px', borderBottom: '2px solid var(--border)' }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--pkm)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{series}</span>
+                          {range && <span style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>{range}</span>}
+                          <span style={{ fontSize: 10, color: 'var(--mut)', marginLeft: 'auto' }}>{setsInSeries.length} set{setsInSeries.length !== 1 ? 's' : ''}</span>
                         </div>
-                        {p != null && (
-                          <div style={{ height: 3, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? 'var(--grn)' : 'var(--pkm)', borderRadius: 2, transition: 'width 0.4s' }} />
-                          </div>
-                        )}
+                        {setsInSeries.map(({ setName, info }) => {
+                          const total = info?.total ?? null
+                          const owned = items.filter(i =>
+                            i.metadata?.set_name?.toLowerCase() === setName.toLowerCase() &&
+                            (!i.metadata?.item_type || i.metadata.item_type === 'card') &&
+                            i.metadata?.card_number
+                          ).length
+                          const p = total ? Math.min((owned / total) * 100, 100) : null
+                          const [yr, mo] = (info?.releaseDate ?? '').split('/')
+                          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                          const dateLabel = yr ? (mo ? `${months[parseInt(mo,10)-1]} ${yr}` : yr) : null
+                          return (
+                            <div
+                              key={setName}
+                              onClick={() => setGridSet(setName)}
+                              style={{ padding: '9px 4px 9px 12px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+                              onMouseLeave={e => e.currentTarget.style.background = ''}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: p != null ? 5 : 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                                  <span style={{ fontSize: 13, fontWeight: 500 }}>{setName}</span>
+                                  {dateLabel && <span style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>{dateLabel}</span>}
+                                </div>
+                                <span style={{ fontFamily: 'JetBrains Mono', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                  <span style={{ color: p != null && p >= 80 ? 'var(--grn)' : 'var(--txt)', fontWeight: 600 }}>{owned}</span>
+                                  {total ? <span style={{ color: 'var(--mut)' }}>/{total}</span> : <span style={{ color: 'var(--mut)' }}> cards</span>}
+                                  {p != null && <span style={{ color: p >= 80 ? 'var(--grn)' : 'var(--mut)', marginLeft: 4 }}>{Math.round(p)}%</span>}
+                                  <span style={{ color: 'var(--mut)', marginLeft: 6, fontSize: 10 }}>→</span>
+                                </span>
+                              </div>
+                              {p != null && (
+                                <div style={{ height: 3, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? 'var(--grn)' : 'var(--pkm)', borderRadius: 2, transition: 'width 0.4s' }} />
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     )
                   })}
@@ -403,13 +448,15 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           ) : (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setGridSet('')}
-                >
-                  ← All Sets
-                </button>
-                <span style={{ fontWeight: 600, fontSize: 14 }}>{gridSet}</span>
+                <button className="btn btn-secondary btn-sm" onClick={() => setGridSet('')}>← All Sets</button>
+                <div>
+                  <span style={{ fontWeight: 600, fontSize: 14 }}>{gridSet}</span>
+                  {setSizes[gridSet.toLowerCase()]?.releaseDate && (() => {
+                    const [yr, mo] = setSizes[gridSet.toLowerCase()].releaseDate.split('/')
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                    return <span style={{ fontSize: 11, color: 'var(--mut)', marginLeft: 8, fontFamily: 'JetBrains Mono' }}>{mo ? `${months[parseInt(mo,10)-1]} ${yr}` : yr}</span>
+                  })()}
+                </div>
               </div>
               <SetGridPanel
                 items={items}
