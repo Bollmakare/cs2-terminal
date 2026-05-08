@@ -355,6 +355,7 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
               item: null,
               prefill: { name: card.name, set_name: gridSet, card_number: card.number }
             })}
+            onEditCard={item => setModal({ item })}
           />
         </div>
       )}
