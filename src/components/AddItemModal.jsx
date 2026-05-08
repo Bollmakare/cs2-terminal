@@ -11,7 +11,6 @@ const RARITY_OPTIONS = ['', 'Common', 'Uncommon', 'Rare', 'Rare Holo', 'Rare Hol
 const LANG_OPTIONS = ['EN', 'JPN', 'DE', 'FR', 'KR', 'IT', 'ES', 'PT']
 const ITEM_TYPE_OPTIONS = ['card', 'booster_box', 'etb', 'pack', 'tin', 'sealed_other']
 const ITEM_TYPE_LABELS = { card: 'Single Card', booster_box: 'Booster Box', etb: 'ETB', pack: 'Pack', tin: 'Tin', sealed_other: 'Other Sealed' }
-const PORTFOLIO_OPTIONS = ['brun single', 'green single', 'Single svart', 'Main']
 const FORMAT_OPTIONS = ['750ml', '375ml (Half)', '1.5L Magnum', '3L Double Magnum', '6L Imperial', '9L Salmanazar', '12L Balthazar']
 
 const WEAR_FROM_LABEL = { 'Factory New': 'FN', 'Minimal Wear': 'MW', 'Field-Tested': 'FT', 'Well-Worn': 'WW', 'Battle-Scarred': 'BS' }
@@ -295,7 +294,7 @@ async function fetchPokemonCardFromUrl(url) {
   } catch { return null }
 }
 
-export default function AddItemModal({ vertical, item, userId, onSave, onClose, prefill }) {
+export default function AddItemModal({ vertical, item, userId, onSave, onClose, prefill, portfolios = [] }) {
   const isEdit = !!item
   const [f, setF] = useState(() => { const base = defaultFields(vertical, item); return prefill ? { ...base, ...prefill } : base })
   const [saving, setSaving] = useState(false)
@@ -556,10 +555,17 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
               </>}
 
               <SectionDivider label="Collection" />
-              <Field label="Portfolio">
-                <select className="form-select" value={f.portfolio} onChange={e => set('portfolio', e.target.value)}>
-                  {PORTFOLIO_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
+              <Field label="Folder" hint="Pick an existing folder or type a new name">
+                <input
+                  className="form-input"
+                  list="portfolio-datalist"
+                  value={f.portfolio}
+                  onChange={e => set('portfolio', e.target.value)}
+                  placeholder="e.g. Main, Binder 1, For Trade…"
+                />
+                <datalist id="portfolio-datalist">
+                  {portfolios.map(p => <option key={p} value={p} />)}
+                </datalist>
               </Field>
               <Field label="Notes" full>
                 <textarea className="form-textarea" value={f.notes}
