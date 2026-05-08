@@ -3,6 +3,13 @@ import { useState, useEffect, useMemo } from 'react'
 const CACHE_PREFIX = 'pkm_grid_'
 const CACHE_TTL = 24 * 60 * 60 * 1000
 
+// Normalize a card number for comparison:
+//   "042/165" → "42"   "001" → "1"   "SV001" → "SV001"   "TG01" → "TG01"
+function normalizeCardNumber(n) {
+  const s = String(n).split('/')[0].trim()
+  return /^\d+$/.test(s) ? String(parseInt(s, 10)) : s
+}
+
 async function fetchSetCards(setName) {
   const key = CACHE_PREFIX + setName.toLowerCase().replace(/\s+/g, '_')
   try {
@@ -12,10 +19,27 @@ async function fetchSetCards(setName) {
       if (Date.now() - ts < CACHE_TTL) return data
     }
     const q = encodeURIComponent(`set.name:"${setName}"`)
-    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=${q}&orderBy=number&pageSize=250&select=id,name,number,images,rarity`)
-    if (!res.ok) return []
-    const json = await res.json()
-    const cards = json.data ?? []
+    const baseUrl = `https://api.pokemontcg.io/v2/cards?q=${q}&orderBy=number&pageSize=250&select=id,name,number,images,rarity`
+
+    const firstRes = await fetch(`${baseUrl}&page=1`)
+    if (!firstRes.ok) return []
+    const firstJson = await firstRes.json()
+    let cards = firstJson.data ?? []
+
+    const totalCount = firstJson.totalCount ?? cards.length
+    if (totalCount > 250) {
+      const totalPages = Math.ceil(totalCount / 250)
+      const extras = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, i) =>
+          fetch(`${baseUrl}&page=${i + 2}`)
+            .then(r => r.json())
+            .then(j => j.data ?? [])
+            .catch(() => [])
+        )
+      )
+      for (const page of extras) cards = cards.concat(page)
+    }
+
     localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: cards }))
     return cards
   } catch {
@@ -38,7 +62,7 @@ export default function SetGridPanel({ items, setName, onAddCard }) {
     const s = new Set()
     for (const item of items) {
       if (item.metadata?.set_name?.toLowerCase() === setName?.toLowerCase() && item.metadata?.card_number) {
-        s.add(item.metadata.card_number)
+        s.add(normalizeCardNumber(item.metadata.card_number))
       }
     }
     return s
@@ -68,7 +92,7 @@ export default function SetGridPanel({ items, setName, onAddCard }) {
     )
   }
 
-  const ownedCount = cards.filter(c => ownedNumbers.has(c.number)).length
+  const ownedCount = cards.filter(c => ownedNumbers.has(normalizeCardNumber(c.number))).length
   const pct = Math.round((ownedCount / cards.length) * 100)
 
   return (
@@ -87,7 +111,7 @@ export default function SetGridPanel({ items, setName, onAddCard }) {
 
       <div className="set-grid">
         {cards.map(card => {
-          const owned = ownedNumbers.has(card.number)
+          const owned = ownedNumbers.has(normalizeCardNumber(card.number))
           return (
             <div
               key={card.id}
