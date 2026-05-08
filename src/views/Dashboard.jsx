@@ -38,7 +38,8 @@ export default function Dashboard({ items, snapshots, user }) {
       const its = items?.filter(i => i.vertical === v) ?? []
       const val = its.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
       const cost = its.reduce((s, i) => s + (i.cost ?? 0) * i.qty, 0)
-      return { v, val, cost, count: its.length, pnlPct: cost > 0 ? ((val - cost) / cost) * 100 : 0 }
+      const unpriced = its.filter(i => !i.last_price_fetched_at).length
+      return { v, val, cost, count: its.length, pnlPct: cost > 0 ? ((val - cost) / cost) * 100 : 0, unpriced }
     })
   }, [items])
 
@@ -94,8 +95,8 @@ export default function Dashboard({ items, snapshots, user }) {
   const statCards = [
     { label: 'Net Worth', value: fmt(totals.value) },
     { label: 'Total Invested', value: fmt(totals.cost) },
-    { label: 'Total P&L', value: `${pct(totals.pct)} ${fmts(totals.pnl)}`, colorClass: sgn(totals.pnl) },
-    { label: 'Items', value: String(totals.count) },
+    { label: 'Return', value: pct(totals.pct), colorClass: sgn(totals.pnl) },
+    { label: 'P&L', value: fmts(totals.pnl), colorClass: sgn(totals.pnl) },
   ]
 
   const drinkingWindow = useMemo(() => {
@@ -143,6 +144,11 @@ export default function Dashboard({ items, snapshots, user }) {
                 <span className={sgn(pnlPct)}>{pct(pnlPct)}</span>
                 <span style={{ color: 'var(--mut)' }}> · {fmt(cost)} invested</span>
               </div>
+              {unpriced > 0 && (
+                <div style={{ fontSize: 10, color: 'var(--gold)', marginTop: 4 }}>
+                  ⚠ {unpriced} item{unpriced !== 1 ? 's' : ''} need pricing
+                </div>
+              )}
               <div className="vertical-bar-bg">
                 <div className="vertical-bar-fill" style={{ width: `${totals.value > 0 ? Math.min((val / totals.value) * 100, 100) : 0}%`, background: info.color }} />
               </div>

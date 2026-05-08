@@ -6,8 +6,7 @@ import ImageModal from '../components/ImageModal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { fmt, pct, fmts, sgn, calcPnl, effectiveValue, downloadCsv, holdDuration, annualizedReturn, ago } from '../lib/utils.js'
 import CsvImportModal from '../components/CsvImportModal.jsx'
-import SetCompletionPanel from '../components/SetCompletionPanel.jsx'
-import { addItem, updateItem, deleteItem, getItemsPriceHistory } from '../lib/api.js'
+import { addItem, updateItem, deleteItem } from '../lib/api.js'
 import { useToast } from '../components/Toast.jsx'
 import ItemLedgerModal from '../components/ItemLedgerModal.jsx'
 import SellModal from '../components/SellModal.jsx'
@@ -62,24 +61,6 @@ function PokemonCardImage({ setName, cardNumber, onClick }) {
   return <img className="thumb" src={src} alt="" onClick={onClick} style={{ cursor: 'pointer' }} />
 }
 
-function PriceSparkline({ points }) {
-  if (!points || points.length < 2) return null
-  const min = Math.min(...points)
-  const max = Math.max(...points)
-  const range = max - min || 0.01
-  const W = 52, H = 18, n = points.length
-  const pts = points.map((p, i) =>
-    `${Math.round((i / (n - 1)) * W)},${Math.round(H - ((p - min) / range) * (H - 4) - 2)}`
-  ).join(' ')
-  const trend = points[points.length - 1] - points[0]
-  const stroke = trend > 0.01 ? '#3dd68c' : trend < -0.01 ? '#ff5c5c' : '#5a6175'
-  return (
-    <svg width={W} height={H} style={{ display: 'block', marginTop: 3, flexShrink: 0 }}>
-      <polyline points={pts} fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
 export default function PokemonView({ items: initItems, userId, onItemsChange }) {
   const toast = useToast()
   const [items, setItems] = useState(initItems ?? [])
@@ -98,22 +79,60 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
   const [bulkSaving, setBulkSaving] = useState(false)
   const [viewMode, setViewMode] = useState('table')
   const [gridSet, setGridSet] = useState('')
+  const [setSizes, setSetSizes] = useState({})
   const [packSim, setPackSim] = useState(false)
-  const [priceHistories, setPriceHistories] = useState({})
 
   useEffect(() => { setItems(initItems ?? []); setSelected([]) }, [initItems])
 
   useEffect(() => {
-    if (!items.length) return
-    getItemsPriceHistory(items.map(i => i.id))
-      .then(setPriceHistories)
+    const CACHE_KEY = 'pkm_sets_cache_v2'
+    const CACHE_TTL = 7 * 24 * 60 * 60 * 1000
+    try {
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        const { ts, data } = JSON.parse(cached)
+        if (Date.now() - ts < CACHE_TTL) { setSetSizes(data); return }
+      }
+    } catch {}
+    fetch('https://api.pokemontcg.io/v2/sets?pageSize=250')
+      .then(r => r.json())
+      .then(json => {
+        const map = {}
+        for (const s of json.data ?? []) {
+          map[s.name.toLowerCase()] = {
+            total: s.printedTotal ?? s.total ?? null,
+            releaseDate: s.releaseDate ?? null,
+            series: s.series ?? null,
+          }
+        }
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: map })) } catch {}
+        setSetSizes(map)
+      })
       .catch(() => {})
-  }, [items])
+  }, [])
 
   const sets = useMemo(() => {
     const s = new Set(items.map(i => i.metadata?.set_name).filter(Boolean))
     return [...s].sort()
   }, [items])
+
+  const groupedSets = useMemo(() => {
+    const groups = {}
+    for (const setName of sets) {
+      const info = setSizes[setName.toLowerCase()]
+      const series = info?.series ?? 'Other'
+      if (!groups[series]) groups[series] = []
+      groups[series].push({ setName, info })
+    }
+    for (const g of Object.values(groups)) {
+      g.sort((a, b) => (b.info?.releaseDate ?? '').localeCompare(a.info?.releaseDate ?? ''))
+    }
+    return Object.entries(groups).sort(([, a], [, b]) => {
+      const aDate = a[0]?.info?.releaseDate ?? ''
+      const bDate = b[0]?.info?.releaseDate ?? ''
+      return bDate.localeCompare(aDate)
+    })
+  }, [sets, setSizes])
 
   const filtered = useMemo(() => {
     return items.filter(i => {
@@ -222,21 +241,12 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
       render: row => {
         const imgs = row.metadata?.images ?? []
         const apiImg = row.metadata?.card_image
-        const isCard = !row.metadata?.item_type || row.metadata.item_type === 'card'
-        const marketUrl = isCard
-          ? `https://www.cardmarket.com/en/Pokemon/Products/Search?searchString=${encodeURIComponent(row.name)}`
-          : `https://www.pricecharting.com/search-products?q=${encodeURIComponent(row.name)}&type=prices`
-        const info = [
-          row.metadata?.set_name,
-          row.metadata?.card_number ? `#${row.metadata.card_number}` : null,
-          row.metadata?.rarity,
-        ].filter(Boolean).join(' · ')
         return (
           <div className="item-name-cell">
             {imgs[0]
-              ? <img className="thumb" src={imgs[0]} alt={row.name} onClick={() => setPhotoItem(row)} />
+              ? <img className="thumb" src={imgs[0]} alt="" onClick={() => setPhotoItem(row)} />
               : apiImg
-                ? <img className="thumb" src={apiImg} alt={row.name} onClick={() => setPhotoItem(row)} style={{ cursor: 'pointer' }} />
+                ? <img className="thumb" src={apiImg} alt="" onClick={() => setPhotoItem(row)} style={{ cursor: 'pointer' }} />
                 : <PokemonCardImage
                     setName={row.metadata?.set_name}
                     cardNumber={row.metadata?.card_number}
@@ -244,25 +254,35 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
                   />}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                <span>{row.name}</span>
-                {row.metadata?.grade && (
-                  <span style={{ fontSize: 10, color: 'var(--gold)', fontFamily: 'JetBrains Mono', border: '1px solid rgba(201,168,76,0.4)', background: 'rgba(201,168,76,0.1)', borderRadius: 3, padding: '1px 5px' }}>
-                    {row.metadata.grading_service ?? 'PSA'} {row.metadata.grade}
-                  </span>
-                )}
+                {row.metadata?.card_url
+                  ? <a href={row.metadata.card_url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline dotted' }}>{row.name}</a>
+                  : <span>{row.name}</span>}
+                {row.metadata?.subtypes && <span style={{ fontSize: 10, color: 'var(--mut)', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.subtypes}</span>}
+                {row.metadata?.card_types && <span style={{ fontSize: 10, color: 'var(--pkm)', background: 'rgba(255,214,10,0.08)', border: '1px solid rgba(255,214,10,0.2)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.card_types}</span>}
               </div>
-              {info && <div style={{ fontSize: 11, color: 'var(--mut)' }}>{info}</div>}
+              <div style={{ fontSize: 11, color: 'var(--mut)' }}>
+                {row.metadata?.set_name}{row.metadata?.card_series ? ` (${row.metadata.card_series})` : ''}{row.metadata?.card_number ? ` · #${row.metadata.card_number}` : ''}
+                {row.metadata?.rarity ? ` · ${row.metadata.rarity}` : ''}
+              </div>
+              {row.metadata?.release_date && (
+                <div style={{ fontSize: 10, color: 'var(--mut)' }}>📅 {row.metadata.release_date}</div>
+              )}
+              {row.metadata?.artist && (
+                <div style={{ fontSize: 10, color: 'var(--mut)' }}>✏️ {row.metadata.artist}</div>
+              )}
+              {row.metadata?.cert_number && (
+                <div style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>
+                  Cert #{row.metadata.cert_number}
+                </div>
+              )}
               {row.metadata?.grading_status === 'submitted' && (
-                <div style={{ fontSize: 10, color: 'var(--gold)', marginTop: 1 }}>
+                <div style={{ fontSize: 10, color: 'var(--gold)', marginTop: 2 }}>
                   📬 At {row.metadata.grading_service ?? 'PSA'}
                   {row.metadata?.expected_return
                     ? ` · due ${new Date(row.metadata.expected_return).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })}`
                     : ''}
                 </div>
               )}
-              <a href={marketUrl} target="_blank" rel="noopener noreferrer" className="market-link" onClick={e => e.stopPropagation()}>
-                {isCard ? 'Cardmarket ↗' : 'PriceCharting ↗'}
-              </a>
             </div>
           </div>
         )
@@ -286,32 +306,17 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
         return <span style={{ fontSize: 11, background: 'var(--bg3)', border: `1px solid ${colors[p] ?? 'var(--border)'}`, color: colors[p] ?? 'var(--txt)', borderRadius: 4, padding: '2px 7px' }}>{p}</span>
       }
     },
-    {
-      key: 'release', label: 'Released',
-      sortValue: row => row.metadata?.release_date ?? '',
-      render: row => {
-        const rd = row.metadata?.release_date
-        if (!rd) return <span style={{ color: 'var(--mut)', fontSize: 12 }}>—</span>
-        const [year, month] = rd.split('-')
-        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-        const label = month ? `${monthNames[parseInt(month)-1]} ${year}` : year
-        return <span style={{ fontSize: 12, color: 'var(--mut)' }}>{label}</span>
-      }
-    },
     { key: 'qty', label: 'Qty', sortValue: row => row.qty, render: row => <span className="mono">{row.qty}</span> },
     { key: 'cost', label: 'Cost', sortValue: row => row.cost ?? 0, render: row => <span className="mono">{fmt(row.cost)}</span> },
     {
       key: 'value', label: 'Value',
       sortValue: row => effectiveValue(row),
       render: row => (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="mono">{fmt(effectiveValue(row))}</span>
-            {row.last_price_fetched_at
-              ? <span className="badge badge-auto" title={`Fetched ${ago(row.last_price_fetched_at)}`}>AUTO</span>
-              : <span className="badge badge-manual">MANUAL</span>}
-          </div>
-          <PriceSparkline points={priceHistories[row.id]} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="mono">{fmt(effectiveValue(row))}</span>
+          {row.last_price_fetched_at
+            ? <span className="badge badge-auto" title={`Fetched ${ago(row.last_price_fetched_at)}`}>AUTO · {ago(row.last_price_fetched_at)}</span>
+            : <span className="badge badge-manual">MANUAL</span>}
         </div>
       )
     },
@@ -345,9 +350,9 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           <button
             className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
             style={viewMode === 'grid' ? { background: 'var(--pkm)', color: '#000' } : {}}
-            onClick={() => setViewMode(v => v === 'grid' ? 'table' : 'grid')}
+            onClick={() => { setViewMode(v => v === 'grid' ? 'table' : 'grid'); setGridSet('') }}
           >
-            ⊞ {viewMode === 'grid' ? 'Table' : 'Grid'}
+            ◫ {viewMode === 'grid' ? 'Table' : 'Collection'}
           </button>
           <button className="btn btn-secondary btn-sm" onClick={exportCsv}>↓ CSV</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCsvImport(true)}>↑ Import</button>
@@ -360,30 +365,98 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
 
       <StatCards cards={statCards} />
 
-      <SetCompletionPanel items={items} />
-
       {viewMode === 'grid' && (
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mut)', fontWeight: 600 }}>Set Grid</span>
-            <select
-              className="filter-select"
-              value={gridSet}
-              onChange={e => setGridSet(e.target.value)}
-              style={{ minWidth: 180 }}
-            >
-              <option value="">— Select a set —</option>
-              {sets.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <SetGridPanel
-            items={items}
-            setName={gridSet}
-            onAddCard={card => setModal({
-              item: null,
-              prefill: { name: card.name, set_name: gridSet, card_number: card.number }
-            })}
-          />
+          {!gridSet ? (
+            <>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mut)', fontWeight: 600, marginBottom: 12 }}>
+                Collection · {sets.length} set{sets.length !== 1 ? 's' : ''}
+              </div>
+              {sets.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--mut)', fontSize: 13 }}>No sets found. Add some cards first.</div>
+              ) : (
+                <div>
+                  {groupedSets.map(([series, setsInSeries]) => {
+                    const years = setsInSeries.map(s => s.info?.releaseDate?.split('/')[0]).filter(Boolean).map(Number)
+                    const minY = years.length ? Math.min(...years) : null
+                    const maxY = years.length ? Math.max(...years) : null
+                    const range = minY ? (minY === maxY ? String(minY) : `${minY}–${maxY}`) : null
+                    return (
+                      <div key={series} style={{ marginBottom: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px 4px', borderBottom: '2px solid var(--border)' }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--pkm)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{series}</span>
+                          {range && <span style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>{range}</span>}
+                          <span style={{ fontSize: 10, color: 'var(--mut)', marginLeft: 'auto' }}>{setsInSeries.length} set{setsInSeries.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        {setsInSeries.map(({ setName, info }) => {
+                          const total = info?.total ?? null
+                          const owned = items.filter(i =>
+                            i.metadata?.set_name?.toLowerCase() === setName.toLowerCase() &&
+                            (!i.metadata?.item_type || i.metadata.item_type === 'card') &&
+                            i.metadata?.card_number
+                          ).length
+                          const p = total ? Math.min((owned / total) * 100, 100) : null
+                          const [yr, mo] = (info?.releaseDate ?? '').split('/')
+                          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                          const dateLabel = yr ? (mo ? `${months[parseInt(mo,10)-1]} ${yr}` : yr) : null
+                          return (
+                            <div
+                              key={setName}
+                              onClick={() => setGridSet(setName)}
+                              style={{ padding: '9px 4px 9px 12px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+                              onMouseLeave={e => e.currentTarget.style.background = ''}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: p != null ? 5 : 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                                  <span style={{ fontSize: 13, fontWeight: 500 }}>{setName}</span>
+                                  {dateLabel && <span style={{ fontSize: 10, color: 'var(--mut)', fontFamily: 'JetBrains Mono' }}>{dateLabel}</span>}
+                                </div>
+                                <span style={{ fontFamily: 'JetBrains Mono', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                  <span style={{ color: p != null && p >= 80 ? 'var(--grn)' : 'var(--txt)', fontWeight: 600 }}>{owned}</span>
+                                  {total ? <span style={{ color: 'var(--mut)' }}>/{total}</span> : <span style={{ color: 'var(--mut)' }}> cards</span>}
+                                  {p != null && <span style={{ color: p >= 80 ? 'var(--grn)' : 'var(--mut)', marginLeft: 4 }}>{Math.round(p)}%</span>}
+                                  <span style={{ color: 'var(--mut)', marginLeft: 6, fontSize: 10 }}>→</span>
+                                </span>
+                              </div>
+                              {p != null && (
+                                <div style={{ height: 6, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${p}%`, background: p >= 80 ? 'var(--grn)' : 'var(--pkm)', borderRadius: 3, transition: 'width 0.4s' }} />
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <button className="btn btn-secondary btn-sm" onClick={() => setGridSet('')}>← All Sets</button>
+                <div>
+                  <span style={{ fontWeight: 600, fontSize: 14 }}>{gridSet}</span>
+                  {setSizes[gridSet.toLowerCase()]?.releaseDate && (() => {
+                    const [yr, mo] = setSizes[gridSet.toLowerCase()].releaseDate.split('/')
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                    return <span style={{ fontSize: 11, color: 'var(--mut)', marginLeft: 8, fontFamily: 'JetBrains Mono' }}>{mo ? `${months[parseInt(mo,10)-1]} ${yr}` : yr}</span>
+                  })()}
+                </div>
+              </div>
+              <SetGridPanel
+                items={items}
+                setName={gridSet}
+                onAddCard={card => setModal({
+                  item: null,
+                  prefill: { name: card.name, set_name: gridSet, card_number: card.number }
+                })}
+                onEditCard={item => setModal({ item })}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -444,6 +517,15 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
           <>
             <button className="btn-icon" title="Record sale" onClick={() => setSellItem(row)}>💰</button>
             <MoreMenu>
+              {(row.metadata?.item_type && row.metadata.item_type !== 'card')
+                ? <MoreMenuItem onClick={() => {
+                    const q = encodeURIComponent(row.name)
+                    window.open(`https://www.pricecharting.com/search-products?q=${q}&type=prices`, '_blank')
+                  }}>🔍 PriceCharting</MoreMenuItem>
+                : <MoreMenuItem onClick={() => {
+                    const q = [row.name, row.metadata?.set_name, row.metadata?.card_number].filter(Boolean).join(' ')
+                    window.open(`https://pokemoncard.io/?q=${encodeURIComponent(q)}`, '_blank')
+                  }}>🔗 pokemoncard.io</MoreMenuItem>}
               <MoreMenuItem onClick={() => setLedgerItem(row)}>📓 Notebook</MoreMenuItem>
             </MoreMenu>
           </>

@@ -1,5 +1,4 @@
 import { updateItem, bumpApiUsage } from '../api.js'
-import { getCS2Data } from '../cs2images.js'
 
 const API_KEY = '83c3a015-8f1c-4e45-b2a8-922d60e31678'
 const BASE_URL = 'https://api.pricempire.com/v3/items/prices'
@@ -34,7 +33,6 @@ function bumpLocalUsage() {
 }
 
 export function syncLocalUsageFromDb(usage) {
-  // Called after reading from api_usage table so local cache matches DB
   if (usage?.day != null) localStorage.setItem(todayKey(), String(usage.day))
   if (usage?.month != null) localStorage.setItem(monthKey(), String(usage.month))
 }
@@ -81,63 +79,106 @@ export function isAnyStale(items) {
 
 export let lastPriceSource = null
 
-async function fetchFromCsgotrader(items) {
-  const data = await getCS2Data()
-  if (!Object.keys(data).length) throw new Error('csgotrader returned empty data')
+const SKINPORT_URL = 'https://api.skinport.com/v1/items?app_id=730&currency=EUR'
+
+async function fetchFromSkinport(items) {
+  const res = await fetch(SKINPORT_URL)
+  if (!res.ok) throw new Error(`Skinport ${res.status}`)
+  const list = await res.json()
+  const priceMap = {}
+  for (const entry of list) {
+    const price = entry.median_price ?? entry.suggested_price
+    if (price != null && price > 0) priceMap[entry.market_hash_name] = price
+  }
   const results = {}
   for (const item of items) {
-    const d = data[item.name]
-    if (!d) { results[item.id] = null; continue }
-    const price = d.steamPrice ?? d.skinportPrice ?? d.buff163Price ?? null
+    const price = priceMap[item.name]
     if (!price) { results[item.id] = null; continue }
-    const sources = {}
-    if (d.steamPrice != null) sources.steam = d.steamPrice
-    if (d.skinportPrice != null) sources.skinport = d.skinportPrice
-    if (d.buff163Price != null) sources.buff163 = d.buff163Price
-    results[item.id] = { price, sources, name: item.name }
+    results[item.id] = { price, sources: { skinport: price }, name: item.name }
   }
-  lastPriceSource = 'csgotrader'
+  lastPriceSource = 'skinport'
+  return results
+}
+
+function parseSteamPrice(str) {
+  if (!str) return null
+  const s = str.replace(/[^0-9.,]/g, '')
+  // Match optional integer part + 2-digit decimal
+  const m = s.match(/^([\d.,]*?)[,.](\d{2})$/)
+  if (m) return parseFloat((m[1].replace(/[.,]/g, '') || '0') + '.' + m[2])
+  return parseFloat(s.replace(',', '.')) || null
+}
+
+async function fetchFromSteamMarket(items) {
+  const results = {}
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    try {
+      const url = `https://steamcommunity.com/market/priceoverview/?appid=730&currency=3&market_hash_name=${encodeURIComponent(item.name)}`
+      const res = await fetch(url)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          const price = parseSteamPrice(data.median_price || data.lowest_price)
+          results[item.id] = price ? { price, sources: { steam: price }, name: item.name } : null
+        } else { results[item.id] = null }
+      } else { results[item.id] = null }
+    } catch { results[item.id] = null }
+    if (i < items.length - 1) await new Promise(r => setTimeout(r, 1500))
+  }
+  lastPriceSource = 'steam'
   return results
 }
 
 export async function fetchCS2Prices(items, userId, onProgress) {
-  if (!checkLimits()) throw new Error('API rate limit reached')
   if (!items.length) return {}
 
-  const url = `${BASE_URL}?api_key=${API_KEY}&currency=EUR&sources=${SOURCES}`
-  try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
-    const priceMap = await res.json()
-    bumpLocalUsage()
-    if (userId) bumpApiUsage(userId).catch(() => {})
+  // Try PriceEmpire first if within rate limits
+  if (checkLimits()) {
+    const url = `${BASE_URL}?api_key=${API_KEY}&currency=EUR&sources=${SOURCES}`
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`PriceEmpire ${res.status}`)
+      const priceMap = await res.json()
+      bumpLocalUsage()
+      if (userId) bumpApiUsage(userId).catch(() => {})
 
-    const results = {}
-    for (const item of items) {
-      const raw = priceMap[item.name]
-      if (!raw) { results[item.id] = null; continue }
+      const results = {}
+      for (const item of items) {
+        const raw = priceMap[item.name]
+        if (!raw) { results[item.id] = null; continue }
 
-      const sources = {}
-      const vals = []
-      for (const src of SOURCES.split(',')) {
-        const v = raw[src]?.price
-        if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+        const sources = {}
+        const vals = []
+        for (const src of SOURCES.split(',')) {
+          const v = raw[src]?.price
+          if (v != null && v > 0) { sources[src] = v / 100; vals.push(v / 100) }
+        }
+        if (!vals.length) { results[item.id] = null; continue }
+
+        vals.sort((a, b) => a - b)
+        const median = vals.length % 2 === 0
+          ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
+          : vals[Math.floor(vals.length / 2)]
+
+        results[item.id] = { price: median, sources, name: item.name }
       }
-      if (!vals.length) { results[item.id] = null; continue }
-
-      vals.sort((a, b) => a - b)
-      const median = vals.length % 2 === 0
-        ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2
-        : vals[Math.floor(vals.length / 2)]
-
-      results[item.id] = { price: median, sources, name: item.name }
+      lastPriceSource = 'pricempire'
+      return results
+    } catch (e) {
+      console.error('[CS2] PriceEmpire failed, falling back to Skinport:', e.message)
     }
-    lastPriceSource = 'pricempire'
-    return results
-  } catch (e) {
-    console.error('[CS2] PriceEmpire failed, falling back to csgotrader:', e.message)
-    return fetchFromCsgotrader(items)
   }
+
+  // Skinport: one batch request, fast
+  try {
+    return await fetchFromSkinport(items)
+  } catch (e) {
+    console.error('[CS2] Skinport failed, falling back to Steam Market:', e.message)
+  }
+
+  // Final fallback: Steam market price overview — per-item, rate-limited at ~40 req/min
+  return fetchFromSteamMarket(items)
 }
 
 export async function applyCS2Prices(items, priceResults) {

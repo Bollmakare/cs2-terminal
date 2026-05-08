@@ -1,5 +1,6 @@
 const CACHE_KEY = 'cs2_data_v1'
 const CACHE_TTL = 6 * 60 * 60 * 1000 // 6 hours
+const STEAM_IMG_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
 const CDN = 'https://community.akamai.steamstatic.com/economy/image'
 
 let memCache = null
@@ -13,6 +14,10 @@ function readLocalCache() {
     if (Date.now() - ts > CACHE_TTL) return null
     return data
   } catch { return null }
+}
+
+export function iconUrlToCdn(iconUrl) {
+  return `${CDN}/${iconUrl}/128x96`
 }
 
 // Returns { [market_hash_name]: { iconUrl, steamPrice, skinportPrice, buff163Price } }
@@ -43,6 +48,58 @@ export async function getCS2Data() {
   return fetchPromise
 }
 
-export function iconUrlToCdn(iconUrl) {
-  return `${CDN}/${iconUrl}/128x96`
+const SKIN_LIST_CACHE_KEY = 'cs2_skin_names_v1'
+const SKIN_LIST_TTL = 24 * 60 * 60 * 1000 // 24 hours
+
+let skinListMem = null
+
+// Returns sorted array of all market_hash_name strings from Skinport, cached 24h.
+export async function getCS2SkinList() {
+  if (skinListMem) return skinListMem
+  try {
+    const raw = localStorage.getItem(SKIN_LIST_CACHE_KEY)
+    if (raw) {
+      const { ts, names } = JSON.parse(raw)
+      if (Date.now() - ts < SKIN_LIST_TTL) { skinListMem = names; return names }
+    }
+  } catch {}
+  try {
+    const res = await fetch('https://api.skinport.com/v1/items?app_id=730&currency=EUR')
+    if (!res.ok) return []
+    const list = await res.json()
+    const names = list.map(i => i.market_hash_name).sort()
+    skinListMem = names
+    try { localStorage.setItem(SKIN_LIST_CACHE_KEY, JSON.stringify({ ts: Date.now(), names })) } catch {}
+    return names
+  } catch { return [] }
+}
+
+// Fetches icon URL from Steam market render API and caches it locally for 7 days.
+// Returns a CDN URL string, or null on failure (CORS / network / item not found).
+export async function fetchSteamImage(name) {
+  const ck = `cs2_img_${encodeURIComponent(name)}`
+  try {
+    const raw = localStorage.getItem(ck)
+    if (raw) {
+      const { ts, url } = JSON.parse(raw)
+      if (Date.now() - ts < STEAM_IMG_TTL) return url
+    }
+  } catch {}
+
+  try {
+    const res = await fetch(
+      `https://steamcommunity.com/market/listings/730/${encodeURIComponent(name)}/render?currency=3&start=0&count=1`
+    )
+    if (!res.ok) return null
+    const json = await res.json()
+    const assets730 = json.assets?.['730']?.['2']
+    if (!assets730) return null
+    const iconUrl = Object.values(assets730)[0]?.icon_url
+    if (!iconUrl) return null
+    const cdnUrl = iconUrlToCdn(iconUrl)
+    try { localStorage.setItem(ck, JSON.stringify({ ts: Date.now(), url: cdnUrl })) } catch {}
+    return cdnUrl
+  } catch {
+    return null
+  }
 }

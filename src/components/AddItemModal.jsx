@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useEscapeKey } from '../lib/hooks.js'
+import { fetchSteamImage, getCS2SkinList } from '../lib/cs2images.js'
 
 const WEAR_OPTIONS = ['FN', 'MW', 'FT', 'WW', 'BS']
 const WEAR_LABELS = { FN: 'Factory New (0.00–0.07)', MW: 'Minimal Wear (0.07–0.15)', FT: 'Field-Tested (0.15–0.38)', WW: 'Well-Worn (0.38–0.45)', BS: 'Battle-Scarred (0.45–1.00)' }
@@ -14,6 +15,99 @@ const PORTFOLIO_OPTIONS = ['brun single', 'green single', 'Single svart', 'Main'
 const FORMAT_OPTIONS = ['750ml', '375ml (Half)', '1.5L Magnum', '3L Double Magnum', '6L Imperial', '9L Salmanazar', '12L Balthazar']
 
 const WEAR_FROM_LABEL = { 'Factory New': 'FN', 'Minimal Wear': 'MW', 'Field-Tested': 'FT', 'Well-Worn': 'WW', 'Battle-Scarred': 'BS' }
+const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }
+
+function parseSkinFromName(name) {
+  let wear = null
+  for (const [label, code] of Object.entries(WEAR_FROM_LABEL)) {
+    if (name.includes(`(${label})`)) { wear = code; break }
+  }
+  const stattrak = name.toLowerCase().includes('stattrak')
+  return { name, wear, stattrak }
+}
+
+function SkinSearchInput({ onSelect }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+  const cancelRef = useRef(false)
+
+  // Pre-load skin list when this component mounts so first search is instant
+  useEffect(() => { getCS2SkinList() }, [])
+
+  useEffect(() => {
+    if (query.length < 2) { setResults([]); setOpen(false); return }
+    cancelRef.current = false
+    setLoading(true)
+    getCS2SkinList().then(names => {
+      if (cancelRef.current) return
+      const q = query.toLowerCase()
+      setResults(names.filter(n => n.toLowerCase().includes(q)).slice(0, 25))
+      setLoading(false)
+      setOpen(true)
+    })
+    return () => { cancelRef.current = true }
+  }, [query])
+
+  function handleSelect(name) {
+    setQuery(name)
+    setOpen(false)
+    onSelect(parseSkinFromName(name))
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        className="form-input"
+        placeholder="e.g. AK-47 Redline, Butterfly Knife…"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        onFocus={() => results.length > 0 && setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        autoComplete="off"
+      />
+      {loading && (
+        <span className="loading-spin" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 12, height: 12, flexShrink: 0 }} />
+      )}
+      {open && results.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 2px)', left: 0, right: 0,
+          zIndex: 200, background: 'var(--bg2)', border: '1px solid var(--border)',
+          borderRadius: 6, maxHeight: 224, overflowY: 'auto',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
+        }}>
+          {results.map(name => {
+            const wearEntry = Object.entries(WEAR_FROM_LABEL).find(([lbl]) => name.includes(`(${lbl})`))
+            const wearCode = wearEntry ? wearEntry[1] : null
+            const st = name.toLowerCase().includes('stattrak')
+            const displayName = name
+              .replace(/^StatTrak™ /, '').replace(/^★ StatTrak™ /, '').replace(/^★ /, '')
+              .replace(/\s*\([^)]+\)$/, '')
+            return (
+              <div
+                key={name}
+                onMouseDown={() => handleSelect(name)}
+                style={{
+                  padding: '6px 10px', cursor: 'pointer', fontSize: 12,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  borderBottom: '1px solid var(--border)',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+                onMouseLeave={e => e.currentTarget.style.background = ''}
+              >
+                {st && <span className="badge badge-sttrack" style={{ fontSize: 9, flexShrink: 0 }}>ST</span>}
+                {wearCode && <span className={`badge ${WEAR_COLOR[wearCode] ?? ''}`} style={{ flexShrink: 0 }}>{wearCode}</span>}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function parseSteamUrl(url) {
   try {
@@ -60,6 +154,7 @@ function mkMeta(vertical, f) {
       pattern: f.pattern !== '' ? parseInt(f.pattern) : null,
       sticker_notes: f.sticker_notes.trim() || null,
       trade_lock_until: f.trade_lock_until || null,
+      card_image: f.card_image || null,
     }
   }
   if (vertical === 'pokemon') {
@@ -84,6 +179,7 @@ function mkMeta(vertical, f) {
       subtypes: f.subtypes || null,
       card_types: f.card_types || null,
       card_image: f.card_image || null,
+    card_url: f.card_url.trim() || null,
     }
   }
   if (vertical === 'wine') {
@@ -120,6 +216,7 @@ function defaultFields(vertical, item) {
     pattern: m.pattern != null ? String(m.pattern) : '',
     sticker_notes: m.sticker_notes ?? '',
     trade_lock_until: m.trade_lock_until ?? '',
+    card_image: m.card_image ?? '',
   }
   if (vertical === 'pokemon') return {
     name: item?.name ?? '',
@@ -146,6 +243,7 @@ function defaultFields(vertical, item) {
     subtypes: m.subtypes ?? '',
     card_types: m.card_types ?? '',
     card_image: m.card_image ?? '',
+    card_url: m.card_url ?? '',
   }
   if (vertical === 'wine') return {
     name: item?.name ?? '',
@@ -258,23 +356,37 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
 
             {/* ── CS2 ── */}
             {vertical === 'cs2' && <>
-              <SectionDivider label="Quick Add from Steam" />
-              <Field label="Steam Market URL" full
-                hint="Paste a link from steamcommunity.com/market — name, wear and StatTrak™ fill automatically">
+              <SectionDivider label="Quick Add" />
+              <Field label="Search Skin" full
+                hint="Type any part of the name — select from the dropdown to fill all fields automatically">
+                <SkinSearchInput onSelect={async skin => {
+                  setF(prev => ({
+                    ...prev,
+                    name: skin.name,
+                    ...(skin.wear ? { wear: skin.wear } : {}),
+                    stattrak: skin.stattrak ? 'true' : 'false',
+                  }))
+                  const imgUrl = await fetchSteamImage(skin.name)
+                  if (imgUrl) setF(prev => ({ ...prev, card_image: imgUrl }))
+                }} />
+              </Field>
+              <Field label="Or paste Steam Market URL" full
+                hint="Paste a link from steamcommunity.com/market — fills name, wear and StatTrak™">
                 <input
                   className="form-input"
                   placeholder="https://steamcommunity.com/market/listings/730/AK-47 | Redline (Field-Tested)"
                   style={{ fontSize: 11 }}
-                  onChange={e => {
+                  onChange={async e => {
                     const parsed = parseSteamUrl(e.target.value)
-                    if (parsed) {
-                      setF(prev => ({
-                        ...prev,
-                        name: parsed.name,
-                        ...(parsed.wear ? { wear: parsed.wear } : {}),
-                        stattrak: parsed.stattrak ? 'true' : 'false',
-                      }))
-                    }
+                    if (!parsed) return
+                    setF(prev => ({
+                      ...prev,
+                      name: parsed.name,
+                      ...(parsed.wear ? { wear: parsed.wear } : {}),
+                      stattrak: parsed.stattrak ? 'true' : 'false',
+                    }))
+                    const imgUrl = await fetchSteamImage(parsed.name)
+                    if (imgUrl) setF(prev => ({ ...prev, card_image: imgUrl }))
                   }}
                 />
               </Field>
@@ -464,6 +576,20 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
                 hint="Leave empty — auto-fetched from Cardmarket via pokemontcg.io">
                 <input className="form-input mono" type="number" step="0.01" min="0"
                   value={f.value} onChange={e => set('value', e.target.value)} placeholder="Auto-fetched" />
+              </Field>
+              <Field label="Cardmarket / TCGPlayer URL" full
+                hint="Paste a link to this card — auto-filled when prices are fetched, or add manually">
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input className="form-input" type="url" value={f.card_url}
+                    onChange={e => set('card_url', e.target.value)}
+                    placeholder="https://www.cardmarket.com/en/Pokemon/Products/Singles/…" />
+                  {f.card_url && (
+                    <a href={f.card_url} target="_blank" rel="noopener noreferrer"
+                      style={{ flexShrink: 0, fontSize: 11, color: 'var(--pkm)', whiteSpace: 'nowrap' }}>
+                      ↗ Open
+                    </a>
+                  )}
+                </div>
               </Field>
               <Field label="Qty">
                 <input className="form-input mono" type="number" min="1"

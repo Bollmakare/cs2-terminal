@@ -1,12 +1,21 @@
+const CS2_FALLBACK_LABELS = {
+  'fallback-skinport': 'Live · skinport',
+  'fallback-steam': 'Live · steam market',
+  'fallback-csgotrader': 'Live · csgotrader',
+}
+
 export default function StatusBar({ cs2Status, pkmnStatus, onRefreshCS2, onRefreshPkm, onMenuClick }) {
+  const isFallback = cs2Status.startsWith('fallback')
+  const dotColor = cs2Status === 'ok' || isFallback ? 'green' : cs2Status === 'loading' ? 'yellow' : cs2Status === 'limit' ? 'red' : 'grey'
+
   return (
     <div className="status-bar">
       <button className="hamburger" onClick={onMenuClick} aria-label="Menu">☰</button>
-      <span className={`status-dot ${cs2Status === 'ok' ? 'green' : cs2Status === 'fallback' ? 'green' : cs2Status === 'loading' ? 'yellow' : cs2Status === 'limit' ? 'red' : 'grey'}`} />
+      <span className={`status-dot ${dotColor}`} />
       <span className="status-label">
         CS2{' '}
         {cs2Status === 'ok' ? 'Live'
-          : cs2Status === 'fallback' ? 'Live · csgotrader'
+          : isFallback ? (CS2_FALLBACK_LABELS[cs2Status] ?? 'Live · fallback')
           : cs2Status === 'loading' ? 'Fetching…'
           : cs2Status === 'limit' ? 'Limit reached'
           : cs2Status === 'error' ? 'Unavailable'
@@ -19,9 +28,6 @@ export default function StatusBar({ cs2Status, pkmnStatus, onRefreshCS2, onRefre
       <span className="status-label">
         Pokémon {pkmnStatus === 'ok' ? 'Live' : pkmnStatus === 'loading' ? 'Fetching…' : 'TCGio'}
       </span>
-
-      <span className="status-sep">|</span>
-      <span className="status-label" style={{ color: 'var(--wine)' }}>Wine — Manual</span>
 
       <div className="status-bar-right">
         <button className="btn-refresh" onClick={onRefreshCS2} disabled={cs2Status === 'loading'}>
