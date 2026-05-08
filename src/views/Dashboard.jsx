@@ -131,7 +131,7 @@ export default function Dashboard({ items, snapshots, user }) {
       <StatCards cards={statCards} />
 
       <div className="vertical-cards">
-        {byVertical.map(({ v, val, cost, count, pnlPct }) => {
+        {byVertical.map(({ v, val, cost, count, pnlPct, unpriced }) => {
           const info = vert[v]
           return (
             <div key={v} className="vertical-card" style={{ borderColor: `${info.color}22` }} onClick={() => navigate(info.to)}>
