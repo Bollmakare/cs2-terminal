@@ -114,6 +114,7 @@ export async function applyPokemonPrices(items, priceResults) {
   const tasks = items
     .filter(item => priceResults[item.id])
     .map(item => {
+      if (item.metadata?.cert_value != null) return null  // graded slab — keep certified value
       const r = priceResults[item.id]
       const price = r.cardmarket_eur ?? r.tcgplayer_usd
       if (price == null) return null

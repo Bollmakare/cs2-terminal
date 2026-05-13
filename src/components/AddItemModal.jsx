@@ -178,7 +178,8 @@ function mkMeta(vertical, f) {
       subtypes: f.subtypes || null,
       card_types: f.card_types || null,
       card_image: f.card_image || null,
-    card_url: f.card_url.trim() || null,
+      card_url: f.card_url.trim() || null,
+      cert_value: f.cert_value !== '' ? parseFloat(f.cert_value) : null,
     }
   }
   if (vertical === 'wine') {
@@ -243,6 +244,7 @@ function defaultFields(vertical, item) {
     card_types: m.card_types ?? '',
     card_image: m.card_image ?? '',
     card_url: m.card_url ?? '',
+    cert_value: m.cert_value != null ? String(m.cert_value) : '',
   }
   if (vertical === 'wine') return {
     name: item?.name ?? '',
@@ -322,11 +324,12 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
       const cost = f.cost !== '' ? (parseFloat(f.cost) || 0) : 0
       if (cost < 0) { setError('Purchase price must be a positive number'); setSaving(false); return }
 
+      const certVal = vertical === 'pokemon' && f.cert_value !== '' ? parseFloat(f.cert_value) : null
       const payload = {
         vertical,
         name: f.name.trim(),
         cost,
-        value: f.value !== '' ? (parseFloat(f.value) || 0) : 0,
+        value: certVal != null ? certVal : (f.value !== '' ? (parseFloat(f.value) || 0) : 0),
         qty,
         metadata: mkMeta(vertical, f),
         user_id: userId,
@@ -579,10 +582,18 @@ export default function AddItemModal({ vertical, item, userId, onSave, onClose, 
                   value={f.cost} onChange={e => set('cost', e.target.value)} placeholder="0.00" />
               </Field>
               <Field label="Current Value (€)"
-                hint="Leave empty — auto-fetched from Cardmarket via pokemontcg.io">
+                hint="Leave empty — auto-fetched from Cardmarket via pokemontcg.io (raw price)">
                 <input className="form-input mono" type="number" step="0.01" min="0"
                   value={f.value} onChange={e => set('value', e.target.value)} placeholder="Auto-fetched" />
               </Field>
+              {f.grade && f.grade !== 'Ungraded' && (
+                <Field label="Certified Value (€)"
+                  hint="Graded slab price — overrides the auto-fetched raw price. Check PSA/BGS/CGC registry or recent eBay sales.">
+                  <input className="form-input mono" type="number" step="0.01" min="0"
+                    value={f.cert_value} onChange={e => set('cert_value', e.target.value)}
+                    placeholder="e.g. 250.00" />
+                </Field>
+              )}
               <Field label="Cardmarket / TCGPlayer URL" full
                 hint="Paste a link to this card — auto-filled when prices are fetched, or add manually">
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
