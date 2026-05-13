@@ -261,6 +261,9 @@ export default function PokemonView({ items: initItems, userId, onItemsChange })
                 {row.metadata?.card_url
                   ? <a href={row.metadata.card_url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline dotted' }}>{row.name}</a>
                   : <span>{row.name}</span>}
+                {row.metadata?.grade && row.metadata.grade !== 'Ungraded' && (
+                  <span style={{ fontSize: 9, fontWeight: 700, background: 'var(--gold,#f5c518)', color: '#000', borderRadius: 3, padding: '1px 6px', letterSpacing: '0.05em', flexShrink: 0 }}>{row.metadata.grade}</span>
+                )}
                 {row.metadata?.subtypes && <span style={{ fontSize: 10, color: 'var(--mut)', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.subtypes}</span>}
                 {row.metadata?.card_types && <span style={{ fontSize: 10, color: 'var(--pkm)', background: 'rgba(255,214,10,0.08)', border: '1px solid rgba(255,214,10,0.2)', borderRadius: 3, padding: '1px 5px' }}>{row.metadata.card_types}</span>}
               </div>
