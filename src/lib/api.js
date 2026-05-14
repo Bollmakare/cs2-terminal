@@ -74,7 +74,7 @@ export async function getSnapshotHistory() {
     .from('price_history')
     .select('*')
     .is('item_id', null)
-    .in('source', ['snapshot', 'cron-cs2', 'cron-pokemon'])
+    .in('source', ['snapshot', 'snapshot-cs2', 'snapshot-pokemon', 'snapshot-wine', 'cron-cs2', 'cron-pokemon'])
     .order('recorded_at', { ascending: true })
   if (error) throw error
   return data

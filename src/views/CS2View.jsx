@@ -41,6 +41,30 @@ function CS2ItemImage({ name, cachedUrl, onClick }) {
 const WEAR_COLOR = { FN: 'badge-fn', MW: 'badge-mw', FT: 'badge-ft', WW: 'badge-ww', BS: 'badge-bs' }
 const WEAR_RANGES = { FN: [0, 0.07], MW: [0.07, 0.15], FT: [0.15, 0.38], WW: [0.38, 0.45], BS: [0.45, 1.0] }
 
+function FloatBar({ fv }) {
+  const pct = Math.min(fv, 1) * 100
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span className={`mono ${fv < 0.1 ? 'float-low' : ''}`} style={{ fontSize: 11 }}>
+        {Number(fv).toFixed(4)}
+      </span>
+      <div style={{
+        position: 'relative', width: 80, height: 6, borderRadius: 3,
+        background: 'linear-gradient(to right,#4ade80 0%,#4ade80 7%,#86efac 7%,#86efac 15%,#fde047 15%,#fde047 38%,#fb923c 38%,#fb923c 45%,#ef4444 45%,#ef4444 100%)',
+      }}>
+        {[7, 15, 38, 45].map(z => (
+          <div key={z} style={{ position: 'absolute', left: `${z}%`, top: 0, bottom: 0, width: 1, background: 'rgba(0,0,0,0.35)' }} />
+        ))}
+        <div style={{
+          position: 'absolute', left: `${pct}%`, top: -2, bottom: -2, width: 2,
+          background: '#fff', borderRadius: 1, transform: 'translateX(-50%)',
+          boxShadow: '0 0 3px rgba(0,0,0,0.7)',
+        }} />
+      </div>
+    </div>
+  )
+}
+
 export default function CS2View({ items: initItems, userId, onItemsChange }) {
   const toast = useToast()
   const [items, setItems] = useState(initItems ?? [])
@@ -261,18 +285,7 @@ export default function CS2View({ items: initItems, userId, onItemsChange }) {
       render: row => {
         const fv = row.metadata?.float
         if (fv == null) return '—'
-        const range = WEAR_RANGES[row.metadata?.wear]
-        const pos = range ? ((fv - range[0]) / (range[1] - range[0])) * 100 : null
-        return (
-          <div>
-            <span className={`mono ${fv < 0.1 ? 'float-low' : ''}`}>{Number(fv).toFixed(4)}</span>
-            {pos != null && (
-              <div style={{ width: 44, height: 3, background: 'var(--bg3)', borderRadius: 2, marginTop: 3, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${Math.min(pos, 100)}%`, background: pos < 25 ? 'var(--grn)' : 'var(--mut)', borderRadius: 2 }} />
-              </div>
-            )}
-          </div>
-        )
+        return <FloatBar fv={fv} />
       }
     },
     { key: 'qty', label: 'Qty', sortValue: row => row.qty, render: row => <span className="mono">{row.qty}</span> },

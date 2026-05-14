@@ -78,9 +78,16 @@ export default function App() {
     try {
       const existing = await getTodaySnapshot()
       if (existing) return
+      const uid = session?.user?.id ?? null
       const total = allItems.reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
       if (total <= 0) return
-      await addPriceHistory({ item_id: null, price: total, source: 'snapshot', user_id: session?.user?.id ?? null })
+      const vertTotal = v => allItems.filter(i => i.vertical === v).reduce((s, i) => s + effectiveValue(i) * i.qty, 0)
+      await Promise.all([
+        addPriceHistory({ item_id: null, price: total, source: 'snapshot', user_id: uid }),
+        addPriceHistory({ item_id: null, price: vertTotal('cs2'), source: 'snapshot-cs2', user_id: uid }),
+        addPriceHistory({ item_id: null, price: vertTotal('pokemon'), source: 'snapshot-pokemon', user_id: uid }),
+        addPriceHistory({ item_id: null, price: vertTotal('wine'), source: 'snapshot-wine', user_id: uid }),
+      ])
       const snaps = await getSnapshotHistory()
       setSnapshots(snaps)
     } catch (e) {
