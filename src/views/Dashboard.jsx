@@ -1,21 +1,28 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Legend } from 'recharts'
 import StatCards from '../components/StatCards.jsx'
 import { fmt, fmts, pct, sgn, greetingTime, calcPnl, effectiveValue } from '../lib/utils.js'
 
 const THIS_YEAR = new Date().getFullYear()
 const PERIODS = [{ key: '1w', label: '1W', days: 7 }, { key: '1m', label: '1M', days: 30 }, { key: '3m', label: '3M', days: 90 }, { key: '1y', label: '1Y', days: 365 }, { key: 'all', label: 'All', days: Infinity }]
 
-function CustomTooltip({ active, payload, label, mode }) {
+const VERT_COLORS = { total: 'var(--gold)', cs2: 'var(--cs)', pokemon: 'var(--pkm)', wine: 'var(--wine)' }
+const VERT_LABELS = { total: 'Total', cs2: 'CS2', pokemon: 'Pokémon', wine: 'Wine' }
+
+function CustomTooltip({ active, payload, label, mode, split }) {
   if (!active || !payload?.length) return null
-  const v = payload[0].value
   return (
-    <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px' }}>
-      <div style={{ fontSize: 11, color: 'var(--mut)', marginBottom: 3 }}>{label}</div>
-      <div style={{ fontFamily: 'JetBrains Mono', fontSize: 14, color: v >= 0 ? 'var(--gold)' : 'var(--red)' }}>
-        {mode === 'pct' ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : fmt(v)}
-      </div>
+    <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', minWidth: 110 }}>
+      <div style={{ fontSize: 11, color: 'var(--mut)', marginBottom: 6 }}>{label}</div>
+      {payload.map(p => (
+        <div key={p.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 3 }}>
+          {split && <span style={{ fontSize: 10, color: p.stroke }}>{VERT_LABELS[p.dataKey] ?? p.dataKey}</span>}
+          <span style={{ fontFamily: 'JetBrains Mono', fontSize: 13, color: p.stroke }}>
+            {mode === 'pct' ? `${p.value >= 0 ? '+' : ''}${p.value?.toFixed(2)}%` : fmt(p.value ?? 0)}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -66,6 +73,7 @@ export default function Dashboard({ items, snapshots, user }) {
 
   const [chartMode, setChartMode] = useState('eur')
   const [chartPeriod, setChartPeriod] = useState('all')
+  const [chartSplit, setChartSplit] = useState(false)
 
   const chartData = useMemo(() => {
     if (!snapshots?.length) return []
@@ -73,11 +81,22 @@ export default function Dashboard({ items, snapshots, user }) {
     const cutoff = Date.now() - days * 86400000
     const filtered = chartPeriod === 'all' ? snapshots : snapshots.filter(s => new Date(s.recorded_at).getTime() >= cutoff)
     if (!filtered.length) return []
-    const base = filtered[0].price
-    return filtered.map(s => ({
-      date: new Date(s.recorded_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
-      value: s.price,
-      pct: base > 0 ? ((s.price - base) / base) * 100 : 0,
+
+    const byDate = {}
+    for (const s of filtered) {
+      const d = new Date(s.recorded_at).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })
+      if (!byDate[d]) byDate[d] = { date: d }
+      if (s.source === 'snapshot') byDate[d].total = s.price
+      if (s.source === 'snapshot-cs2') byDate[d].cs2 = s.price
+      if (s.source === 'snapshot-pokemon') byDate[d].pokemon = s.price
+      if (s.source === 'snapshot-wine') byDate[d].wine = s.price
+    }
+
+    const points = Object.values(byDate)
+    const base = points[0]?.total ?? 1
+    return points.map(p => ({
+      ...p,
+      pct: base > 0 ? ((p.total - base) / base) * 100 : 0,
     }))
   }, [snapshots, chartPeriod])
 
@@ -198,36 +217,42 @@ export default function Dashboard({ items, snapshots, user }) {
         </div>
       )}
 
-      {chartData.length > 1 && (
-        <div className="chart-wrap" style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-            <div className="section-title" style={{ flex: 1 }}>Portfolio History</div>
-            {chartChange && (
-              <span className={`pnl-chip ${chartChange.abs >= 0 ? 'pos' : 'neg'}`}>
-                {chartChange.abs >= 0 ? '+' : ''}{fmts(chartChange.abs)} ({chartChange.abs >= 0 ? '+' : ''}{chartChange.rel.toFixed(2)}%)
-              </span>
-            )}
-            <div style={{ display: 'flex', gap: 3 }}>
-              {PERIODS.map(p => (
-                <button key={p.key} onClick={() => setChartPeriod(p.key)} style={{
-                  fontSize: 10, padding: '2px 7px', borderRadius: 3, cursor: 'pointer',
-                  background: chartPeriod === p.key ? 'var(--gold)' : 'var(--bg3)',
-                  color: chartPeriod === p.key ? '#0b0d12' : 'var(--mut)',
-                  border: '1px solid var(--border)', fontFamily: 'JetBrains Mono',
-                }}>{p.label}</button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 3 }}>
-              {[{ key: 'eur', label: '€' }, { key: 'pct', label: '%' }].map(m => (
-                <button key={m.key} onClick={() => setChartMode(m.key)} style={{
-                  fontSize: 10, padding: '2px 9px', borderRadius: 3, cursor: 'pointer',
-                  background: chartMode === m.key ? 'var(--gold)' : 'var(--bg3)',
-                  color: chartMode === m.key ? '#0b0d12' : 'var(--mut)',
-                  border: '1px solid var(--border)', fontFamily: 'JetBrains Mono',
-                }}>{m.label}</button>
-              ))}
-            </div>
+      <div className="chart-wrap" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+          <div className="section-title" style={{ flex: 1 }}>Portfolio History</div>
+          {chartChange && (
+            <span className={`pnl-chip ${chartChange.abs >= 0 ? 'pos' : 'neg'}`}>
+              {chartChange.abs >= 0 ? '+' : ''}{fmts(chartChange.abs)} ({chartChange.abs >= 0 ? '+' : ''}{chartChange.rel.toFixed(2)}%)
+            </span>
+          )}
+          <div style={{ display: 'flex', gap: 3 }}>
+            {PERIODS.map(p => (
+              <button key={p.key} onClick={() => setChartPeriod(p.key)} style={{
+                fontSize: 10, padding: '2px 7px', borderRadius: 3, cursor: 'pointer',
+                background: chartPeriod === p.key ? 'var(--gold)' : 'var(--bg3)',
+                color: chartPeriod === p.key ? '#0b0d12' : 'var(--mut)',
+                border: '1px solid var(--border)', fontFamily: 'JetBrains Mono',
+              }}>{p.label}</button>
+            ))}
           </div>
+          <div style={{ display: 'flex', gap: 3 }}>
+            {[{ key: 'eur', label: '€' }, { key: 'pct', label: '%' }].map(m => (
+              <button key={m.key} onClick={() => setChartMode(m.key)} style={{
+                fontSize: 10, padding: '2px 9px', borderRadius: 3, cursor: 'pointer',
+                background: chartMode === m.key ? 'var(--gold)' : 'var(--bg3)',
+                color: chartMode === m.key ? '#0b0d12' : 'var(--mut)',
+                border: '1px solid var(--border)', fontFamily: 'JetBrains Mono',
+              }}>{m.label}</button>
+            ))}
+            <button onClick={() => setChartSplit(v => !v)} style={{
+              fontSize: 10, padding: '2px 9px', borderRadius: 3, cursor: 'pointer',
+              background: chartSplit ? 'var(--gold)' : 'var(--bg3)',
+              color: chartSplit ? '#0b0d12' : 'var(--mut)',
+              border: '1px solid var(--border)', fontFamily: 'JetBrains Mono',
+            }}>Split</button>
+          </div>
+        </div>
+        {chartData.length > 1 ? (
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -237,18 +262,29 @@ export default function Dashboard({ items, snapshots, user }) {
                 axisLine={false} tickLine={false} width={56}
                 tickFormatter={v => chartMode === 'eur' ? fmts(v) : `${v.toFixed(1)}%`}
               />
-              <Tooltip content={<CustomTooltip mode={chartMode} />} />
+              <Tooltip content={<CustomTooltip mode={chartMode} split={chartSplit} />} />
               {chartMode === 'pct' && <ReferenceLine y={0} stroke="var(--border)" strokeDasharray="3 3" />}
-              <Line
-                type="monotone"
-                dataKey={chartMode === 'eur' ? 'value' : 'pct'}
-                stroke="var(--gold)" strokeWidth={2} dot={false}
-                activeDot={{ r: 4, fill: 'var(--gold)' }}
-              />
+              {chartSplit ? (
+                ['cs2', 'pokemon', 'wine'].map(v => (
+                  <Line key={v} type="monotone" dataKey={v}
+                    stroke={VERT_COLORS[v]} strokeWidth={1.5} dot={false}
+                    activeDot={{ r: 3, fill: VERT_COLORS[v] }} connectNulls />
+                ))
+              ) : (
+                <Line type="monotone" dataKey={chartMode === 'pct' ? 'pct' : 'total'}
+                  stroke="var(--gold)" strokeWidth={2} dot={false}
+                  activeDot={{ r: 4, fill: 'var(--gold)' }} />
+              )}
             </LineChart>
           </ResponsiveContainer>
-        </div>
-      )}
+        ) : (
+          <div style={{ height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--mut)', border: '1px dashed var(--border)', borderRadius: 8 }}>
+            <div style={{ fontSize: 28 }}>📈</div>
+            <div style={{ fontSize: 13 }}>History builds up over time</div>
+            <div style={{ fontSize: 11 }}>A data point is saved each day you open the app</div>
+          </div>
+        )}
+      </div>
 
       <div className="dashboard-cols">
         <div>
