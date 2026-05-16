@@ -4,9 +4,12 @@ const CS2_FALLBACK_LABELS = {
   'fallback-csgotrader': 'Live · csgotrader',
 }
 
-export default function StatusBar({ cs2Status, pkmnStatus, onRefreshCS2, onRefreshPkm, onMenuClick }) {
+export default function StatusBar({ cs2Status, pkmnStatus, onRefreshCS2, onRefreshPkm, onMenuClick, apiUsage }) {
   const isFallback = cs2Status.startsWith('fallback')
   const dotColor = cs2Status === 'ok' || isFallback ? 'green' : cs2Status === 'loading' ? 'yellow' : cs2Status === 'limit' ? 'red' : 'grey'
+
+  const dayWarn = apiUsage && apiUsage.day >= apiUsage.dayLimit * 0.8
+  const monthWarn = apiUsage && apiUsage.month >= apiUsage.monthLimit * 0.8
 
   return (
     <div className="status-bar">
@@ -21,6 +24,13 @@ export default function StatusBar({ cs2Status, pkmnStatus, onRefreshCS2, onRefre
           : cs2Status === 'error' ? 'Unavailable'
           : '—'}
       </span>
+
+      {apiUsage && (
+        <span title={`PriceEmpire API — today: ${apiUsage.day}/${apiUsage.dayLimit} · this month: ${apiUsage.month}/${apiUsage.monthLimit}`}
+          style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: dayWarn || monthWarn ? 'var(--gold)' : 'var(--mut)', marginLeft: 4, cursor: 'default' }}>
+          {apiUsage.day}/{apiUsage.dayLimit}d
+        </span>
+      )}
 
       <span className="status-sep">|</span>
 

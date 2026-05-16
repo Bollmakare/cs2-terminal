@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { getSession, onAuthChange } from './lib/auth.js'
 import { getItems, getSnapshotHistory, getTodaySnapshot, addPriceHistory } from './lib/api.js'
 import { effectiveValue } from './lib/utils.js'
-import { fetchCS2Prices, applyCS2Prices, isAnyStale, lastPriceSource } from './lib/pricing/cs2.js'
+import { fetchCS2Prices, applyCS2Prices, isAnyStale, lastPriceSource, getLocalUsage } from './lib/pricing/cs2.js'
 import { fetchAllPokemonPrices, applyPokemonPrices, isAnyPokemonStale } from './lib/pricing/pokemon.js'
 import AuthScreen from './components/AuthScreen.jsx'
 import Sidebar from './components/Sidebar.jsx'
@@ -171,6 +171,7 @@ export default function App() {
           onRefreshCS2={() => refreshCS2()}
           onRefreshPkm={refreshPokemon}
           onMenuClick={() => setSidebarOpen(o => !o)}
+          apiUsage={getLocalUsage()}
         />
         <main className="page-content">
           {loading ? (
