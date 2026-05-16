@@ -3,7 +3,7 @@ import { updateItem, bumpApiUsage } from '../api.js'
 const API_KEY = '83c3a015-8f1c-4e45-b2a8-922d60e31678'
 const BASE_URL = 'https://api.pricempire.com/v3/items/prices'
 const SOURCES = 'skinport,buff163,csfloat,steam'
-const CACHE_TTL = 6 * 60 * 60 * 1000
+const CACHE_TTL = 24 * 60 * 60 * 1000
 const DAY_LIMIT = 95
 const MONTH_LIMIT = 950
 
